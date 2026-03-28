@@ -10,6 +10,7 @@ void main() {
     final passField = find.byKey(const Key('passField'));
     final loginButton = find.byKey(const Key('loginButton'));
 
+
     await tester.enterText(userField, 'pedro_domingos');
     await tester.enterText(passField, 'feup_2024');
 
