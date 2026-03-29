@@ -25,6 +25,6 @@ void main() {
     await tester.tap(loginButton);
     await tester.pumpAndSettle();
 
-    expect(find.text('Hello, World!'), findsOneWidget);
+    expect(find.text('Hi! my name is Rui'), findsOneWidget);
   });
 }
