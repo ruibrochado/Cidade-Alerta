@@ -2,14 +2,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthService {
   final supabase = Supabase.instance.client;
-  Future<void> signUp(String email, String password) async {
+
+  Future<AuthResponse> signUp(String email, String password) async {
     try {
-      await supabase.auth.signUp(
+      return await supabase.auth.signUp(
         email: email,
         password: password,
       );
-    } 
-    catch (e) {
+    } catch (e) {
       throw Exception('Error signing up: $e');
     }
   }
@@ -20,13 +20,16 @@ class AuthService {
         email: email,
         password: password,
       );
-    }
-    catch (e) {
+    } catch (e) {
       throw Exception('Error signing in: $e');
     }
   }
 
   Future<void> signOut() async {
     await supabase.auth.signOut();
+  }
+
+  User? getCurrentUser() {
+    return supabase.auth.currentUser;
   }
 }
