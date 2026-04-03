@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/auth_service.dart';
 import '../services/issue_service.dart';
 import 'login_page.dart';
@@ -19,10 +20,14 @@ class _HomePageState extends State<HomePage> {
   String? errorMessage;
   bool isDatabaseConnected = false;
 
+  bool isStorageLoading = true;
+  bool isStorageConnected = false;
+
   @override
   void initState() {
     super.initState();
     loadIssues();
+    testStorageConnection();
   }
 
   Future<void> loadIssues() async {
@@ -35,6 +40,7 @@ class _HomePageState extends State<HomePage> {
     try {
       final data = await issueService.fetchIssues();
 
+      if (!mounted) return;
       setState(() {
         issues = data;
         isDatabaseConnected = true;
@@ -42,14 +48,46 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       print('Error loading issues: $e');
 
+      if (!mounted) return;
       setState(() {
         errorMessage = 'Failed to load issues';
         isDatabaseConnected = false;
       });
     }
 
+    if (!mounted) return;
     setState(() {
       isLoading = false;
+    });
+  }
+
+  Future<void> testStorageConnection() async {
+    setState(() {
+      isStorageLoading = true;
+      isStorageConnected = false;
+    });
+
+    try {
+      final supabase = Supabase.instance.client;
+
+      await supabase.storage.from('issue-images').list();
+
+      if (!mounted) return;
+      setState(() {
+        isStorageConnected = true;
+      });
+    } catch (e) {
+      print('Storage error: $e');
+
+      if (!mounted) return;
+      setState(() {
+        isStorageConnected = false;
+      });
+    }
+
+    if (!mounted) return;
+    setState(() {
+      isStorageLoading = false;
     });
   }
 
@@ -110,6 +148,17 @@ class _HomePageState extends State<HomePage> {
                     : isDatabaseConnected
                         ? Colors.green
                         : Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+
+          const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: Text(
+              'Storage available',
+              style: TextStyle(
+                color: Colors.green,
                 fontWeight: FontWeight.bold,
               ),
             ),
