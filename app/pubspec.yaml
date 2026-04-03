@@ -10,7 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_dotenv: ^6.0.0
+  flutter_map: ^8.2.2
   image_picker: ^1.2.1
+  latlong2: ^0.9.1
   supabase_flutter: ^2.12.2
 
 dev_dependencies:
