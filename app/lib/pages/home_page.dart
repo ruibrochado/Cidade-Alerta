@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/issue_service.dart';
+import '../services/notification_service.dart';
 import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -13,6 +14,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final authService = AuthService();
   final issueService = IssueService();
+  final notificationService = NotificationService();
 
   List<Map<String, dynamic>> issues = [];
   bool isLoading = true;
@@ -23,6 +25,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     loadIssues();
+    notificationService.initialize();
   }
 
   Future<void> loadIssues() async {
@@ -117,7 +120,6 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-
           const Padding(
             padding: EdgeInsets.only(bottom: 12),
             child: Text(
@@ -128,7 +130,6 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-
           const Padding(
             padding: EdgeInsets.only(bottom: 12),
             child: Text(
@@ -139,7 +140,16 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-
+          const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: Text(
+              'Push notifications available',
+              style: TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           if (user != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -148,7 +158,6 @@ class _HomePageState extends State<HomePage> {
                 style: const TextStyle(fontSize: 12),
               ),
             ),
-
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
