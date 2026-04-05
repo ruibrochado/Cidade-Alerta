@@ -10,3 +10,5 @@ Our application is a civic and environmental platform that connects citizens to 
 
 In parallel, the application works as a reporting and continuous improvement network: users can create geolocated Reports or Suggestions in a specific Locality (for example, reporting a damaged recycling bin or accumulated trash around the Asprela campus). These reports feature a community evaluation system (upvotes/downvotes) that helps to prioritize issues. All physical (Recycling Bins) and social (Reports) infrastructure is mapped by Localities, allowing the Municipality (such as the Porto City Council) and its respective Municipal Services to manage their collection network and act faster and more directly according to the population's needs.
 
+
+
