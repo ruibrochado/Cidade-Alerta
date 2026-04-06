@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "461031588288",
+    "project_id": "cidade-alerta-34fba",
+    "storage_bucket": "cidade-alerta-34fba.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:461031588288:android:140257bab14add56610825",
+        "android_client_info": {
+          "package_name": "com.example.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlfWH6QXqOWLtrjOcIn4O2Fs4bbYVzSBY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
