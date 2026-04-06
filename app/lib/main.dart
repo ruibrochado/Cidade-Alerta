@@ -45,9 +45,9 @@ class MyApp extends StatelessWidget {
     final user = supabase.auth.currentUser;
 
     return MaterialApp(
-      //home: user != null ? const HomePage() : const LoginPage(),
+      home: user != null ? const HomePage() : const LoginPage(),
       //home : const EmailTestPage(),
-      home: const RecyclingScannerPage(),
+      //home: const RecyclingScannerPage(),
     );
   }
 }

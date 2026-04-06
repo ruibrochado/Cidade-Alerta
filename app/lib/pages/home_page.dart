@@ -1,7 +1,10 @@
+import 'package:app/services/email_service.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/issue_service.dart';
 import '../services/notification_service.dart';
+import 'email_test_page.dart';
+import 'recycling_scanner_page.dart';
 import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -86,6 +89,24 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void goToScanner() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const RecyclingScannerPage(),
+      ),
+    );
+  }
+
+  void sendEmail() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const EmailTestPage(),
+    ),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     final user = authService.getCurrentUser();
@@ -93,12 +114,20 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
-        actions: [
-          IconButton(
-            onPressed: logout,
-            icon: const Icon(Icons.logout),
-          ),
-        ],
+          actions: [
+            IconButton(
+              onPressed: goToScanner,
+              icon: const Icon(Icons.camera_alt),
+            ),
+            IconButton(
+              onPressed: sendEmail,
+              icon: const Icon(Icons.email),
+            ),
+            IconButton(
+              onPressed: logout,
+              icon: const Icon(Icons.logout),
+            ),
+          ],
       ),
       body: Column(
         children: [
