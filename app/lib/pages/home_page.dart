@@ -1,4 +1,3 @@
-import 'package:app/services/email_service.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/issue_service.dart';
@@ -7,6 +6,7 @@ import 'email_test_page.dart';
 import 'recycling_scanner_page.dart';
 import 'login_page.dart';
 import 'map_page.dart';
+import 'issue_category_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -48,7 +48,7 @@ class _HomePageState extends State<HomePage> {
         isDatabaseConnected = true;
       });
     } catch (e) {
-      print('Error loading issues: $e');
+      debugPrint('Error loading issues: $e');
 
       if (!mounted) return;
       setState(() {
@@ -86,7 +86,7 @@ class _HomePageState extends State<HomePage> {
 
       loadIssues();
     } catch (e) {
-      print('Error creating issue: $e');
+      debugPrint('Error creating issue: $e');
     }
   }
 
@@ -117,6 +117,15 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void createReport() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const SelectCategory(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = authService.getCurrentUser();
@@ -124,24 +133,24 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
-          actions: [
-            IconButton(
-              onPressed: goToScanner,
-              icon: const Icon(Icons.camera_alt),
-            ),
-            IconButton(
-              onPressed: sendEmail,
-              icon: const Icon(Icons.email),
-            ),
-            IconButton(
-              onPressed: goToMap,
-              icon: const Icon(Icons.map),
-            ),
-            IconButton(
-              onPressed: logout,
-              icon: const Icon(Icons.logout),
-            ),
-          ],
+        actions: [
+          IconButton(
+            onPressed: goToScanner,
+            icon: const Icon(Icons.camera_alt),
+          ),
+          IconButton(
+            onPressed: sendEmail,
+            icon: const Icon(Icons.email),
+          ),
+          IconButton(
+            onPressed: goToMap,
+            icon: const Icon(Icons.map),
+          ),
+          IconButton(
+            onPressed: logout,
+            icon: const Icon(Icons.logout),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -231,11 +240,17 @@ class _HomePageState extends State<HomePage> {
                               return ListTile(
                                 leading: const Icon(Icons.location_on),
                                 title: Text(issue['title'] ?? 'No title'),
-                                subtitle:
-                                    Text(issue['category'] ?? 'No category'),
+                                subtitle: Text(issue['category'] ?? 'No category'),
                               );
                             },
                           ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextButton(
+              onPressed: createReport,
+              child: const Text('Create a Report'),
+            ),
           ),
         ],
       ),
