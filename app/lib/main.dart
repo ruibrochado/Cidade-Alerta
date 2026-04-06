@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'firebase_options.dart';
 import 'pages/login_page.dart';
 import 'pages/home_page.dart';
+import 'pages/email_test_page.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -43,7 +44,8 @@ class MyApp extends StatelessWidget {
     final user = supabase.auth.currentUser;
 
     return MaterialApp(
-      home: user != null ? const HomePage() : const LoginPage(),
+      //home: user != null ? const HomePage() : const LoginPage(),
+      home : const EmailTestPage(),
     );
   }
 }
