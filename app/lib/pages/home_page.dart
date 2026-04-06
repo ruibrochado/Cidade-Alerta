@@ -6,6 +6,7 @@ import '../services/notification_service.dart';
 import 'email_test_page.dart';
 import 'recycling_scanner_page.dart';
 import 'login_page.dart';
+import 'map_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -99,13 +100,22 @@ class _HomePageState extends State<HomePage> {
   }
 
   void sendEmail() {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => const EmailTestPage(),
-    ),
-  );
-}
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const EmailTestPage(),
+      ),
+    );
+  }
+
+  void goToMap() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const MapPage(),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -122,6 +132,10 @@ class _HomePageState extends State<HomePage> {
             IconButton(
               onPressed: sendEmail,
               icon: const Icon(Icons.email),
+            ),
+            IconButton(
+              onPressed: goToMap,
+              icon: const Icon(Icons.map),
             ),
             IconButton(
               onPressed: logout,
