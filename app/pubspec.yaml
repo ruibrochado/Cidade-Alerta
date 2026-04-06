@@ -16,6 +16,7 @@ dependencies:
   image_picker: ^1.2.1
   latlong2: ^0.9.1
   supabase_flutter: ^2.12.2
+  google_mlkit_image_labeling: ^0.14.1
 
 dev_dependencies:
   flutter_test:

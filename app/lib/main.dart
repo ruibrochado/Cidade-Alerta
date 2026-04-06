@@ -7,6 +7,7 @@ import 'firebase_options.dart';
 import 'pages/login_page.dart';
 import 'pages/home_page.dart';
 import 'pages/email_test_page.dart';
+import 'pages/recycling_scanner_page.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -45,7 +46,8 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       //home: user != null ? const HomePage() : const LoginPage(),
-      home : const EmailTestPage(),
+      //home : const EmailTestPage(),
+      home: const RecyclingScannerPage(),
     );
   }
 }
