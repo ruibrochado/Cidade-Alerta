@@ -141,15 +141,23 @@ In this section you should start by briefly describing the components of the pro
 
 
 ### Logical architecture
-<!--
-The purpose of this subsection is to document the high-level logical structure of the code (Logical View), using a UML diagram with logical packages, without the worry of allocating to components, processes or machines.
+![UML Logical architeture](app/images/UMLLogicalArchitecture.png)
 
-It can be beneficial to present the system in a horizontal decomposition, defining layers and implementation concepts, such as the user interface, business logic and concepts.
+The logical architecture diagram illustrates the high-level organization of the Cidade Alerta application, emphasizing the separation of concerns between internal modules and external dependencies.
 
-Example of _UML package diagram_ showing a _logical view_ of the Eletronic Ticketing System (to be accompanied by a short description of each package):
+**1. Cidade Alerta System (Internal Modules)**
+This package represents the core application running on the user's device, structured into four main components:
+* **User Interface (UI):** The presentation layer responsible for handling citizen interactions, rendering screens (maps, camera, feeds), and capturing input. It is kept "dumb" and delegates all data processing to the underlying layers.
+* **Business Logic:** The brain of the application. It enforces system rules (e.g., calculating points, assigning municipalities), processes raw data, and orchestrates the communication between the UI and the external APIs.
+* **Authentication:** A dedicated module that manages user sessions, registration, and login states, ensuring secure access to the platform.
+* **AI Processing Kit (ML Kit):** A local module invoked by the Business Logic to analyze and classify captured images (e.g., identifying the type of waste) entirely on-device, without relying on external network requests.
 
-![LogicalView](https://user-images.githubusercontent.com/9655877/160585416-b1278ad7-18d7-463c-b8c6-afa4f7ac7639.png)
--->
+**2. External Services**
+This package groups the third-party platforms and APIs consumed by the application to expand its capabilities:
+* **Supabase Backend:** Acts as the primary backend-as-a-service (BaaS). It provides the database (PostgreSQL), file storage for images, and validates requests from the Authentication module. 
+* **OpenStreetMap API:** Consumed directly by the Business Logic to fetch map tiles and perform geocoding (translating raw GPS coordinates into street addresses).
+* **Firebase Cloud Messaging:** Used by the application to push real-time notifications to the users' smartphones (e.g., status updates on reported issues).
+* **Resend Email API:** An external mailing service. Unlike the other APIs, it is not called by the mobile app, but rather invoked directly by the Supabase Backend (via Edge Functions) to dispatch automated email alerts to the respective municipal authorities.
 
 
 ### Physical architecture
@@ -166,6 +174,7 @@ The physical architecture diagram presents five main nodes:
 * **The Firebase Cloud:** responsible for delivering push notifications to the users. 
 
 * **The Resend Server:** an external email infrastructure that receives commands from the Supabase Edge Functions to send automated alerts directly to the municipalities.
+
 
 
 ### Functional prototype
