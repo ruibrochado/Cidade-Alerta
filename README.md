@@ -155,7 +155,17 @@ Example of _UML package diagram_ showing a _logical view_ of the Eletronic Ticke
 ### Physical architecture
 ![UML Physical architeture](app/images/UMLPhysicalArchitetures.png)
 
-The physical architecture diagram presents five main nodes. The first node is the Smartphone, which represents the user's mobile device running the Flutter application (APK/IPA) and interacting with the citizen. It also integrates Google ML Kit locally to scan and classify images without needing network requests. The second node is the Supabase Cloud, which acts as the core backend of the application. It manages user authentication, stores structured data (PostgreSQL) and media files (Storage), and runs server-side logic through Edge Functions. The third node is the OpenStreetMap Server, which provides map rendering and geocoding services directly to the mobile app. The fourth node is the Firebase Cloud, responsible for delivering push notifications to the users. Finally, the fifth node is the Resend Server, an external email infrastructure that receives commands from the Supabase Edge Functions to send automated alerts directly to the municipalities.
+The physical architecture diagram presents five main nodes: 
+
+* **The Smartphone:** represents the user's mobile device running the Flutter application (APK/IPA) and interacting with the citizen. It also integrates Google ML Kit locally to scan and classify images without needing network requests. 
+
+* **The Supabase Cloud:** acts as the core backend of the application. It manages user authentication, stores structured data (PostgreSQL) and media files (Storage), and runs server-side logic through Edge Functions. 
+
+* **The OpenStreetMap Server:** provides map rendering and geocoding services directly to the mobile app. 
+
+* **The Firebase Cloud:** responsible for delivering push notifications to the users. 
+
+* **The Resend Server:** an external email infrastructure that receives commands from the Supabase Edge Functions to send automated alerts directly to the municipalities.
 
 
 ### Functional prototype
