@@ -3,9 +3,17 @@ name: Flutter CI/CD Pipeline
 on:
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+      - 'README.md'
+      - 'app/.gitignore'
+      - '.idea/**'
 
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - 'README.md'
+      - 'app/.gitignore'
+      - '.idea/**'
 
 jobs:
 
