@@ -1,5 +1,5 @@
+import 'package:app/pages/details_page.dart';
 import 'package:flutter/material.dart';
-
 import '../widgets/app_scaffold.dart';
 
 class CategoryItem {
@@ -71,13 +71,20 @@ class SelectCategory extends StatelessWidget {
               children: <Widget>[
                 Text(
                   'Criar Denúncia',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F2937),
+                  ),
                 ),
                 SizedBox(height: 8),
                 Text(
                   'Selecione a categoria da sua denúncia',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Color(0xFF4B5563)),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF4B5563),
+                  ),
                 ),
               ],
             ),
@@ -95,9 +102,17 @@ class SelectCategory extends StatelessWidget {
             ),
             itemBuilder: (BuildContext context, int index) {
               final CategoryItem category = _categories[index];
+
               return InkWell(
                 borderRadius: BorderRadius.circular(24),
-                onTap: () => Navigator.pushNamed(context, '/details', arguments: category.name),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DetailsPage(category: category.name),
+                    ),
+                  );
+                },
                 child: Ink(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -122,13 +137,21 @@ class SelectCategory extends StatelessWidget {
                             color: category.backgroundColor,
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(category.icon, size: 32, color: category.iconColor),
+                          child: Icon(
+                            category.icon,
+                            size: 32,
+                            color: category.iconColor,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Text(
                           category.name,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF374151)),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF374151),
+                          ),
                         ),
                       ],
                     ),

@@ -4,23 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'firebase_options.dart';
-import 'pages/login_page.dart';
-import 'pages/home_page.dart';
-import 'pages/email_test_page.dart';
-import 'pages/recycling_scanner_page.dart';
+import 'app.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  print('Background message: ${message.messageId}');
+  debugPrint('Background message: ${message.messageId}');
 }
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await dotenv.load(fileName: ".env");
+  await dotenv.load(fileName: '.env');
 
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL']!,
@@ -34,20 +31,4 @@ Future<void> main() async {
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final supabase = Supabase.instance.client;
-    final user = supabase.auth.currentUser;
-
-    return MaterialApp(
-      home: user != null ? const HomePage() : const LoginPage(),
-      //home : const EmailTestPage(),
-      //home: const RecyclingScannerPage(),
-    );
-  }
 }
