@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/report_data.dart';
 import '../widgets/app_scaffold.dart';
@@ -19,12 +21,15 @@ class AdjustLocationPage extends StatefulWidget {
 
 class _AdjustLocationPageState extends State<AdjustLocationPage> {
   static const LatLng _defaultCenter = LatLng(41.1579, -8.6291); // Porto
+  static const String _appPackageName = 'com.example.app';
 
   late final MapController _mapController;
 
   LatLng? _selectedLocation;
   bool _isGettingCurrentLocation = false;
   String? _errorMessage;
+
+  String get _stadiaApiKey => dotenv.env['STADIA_MAPS_API_KEY'] ?? '';
 
   @override
   void initState() {
@@ -48,8 +53,7 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
     });
 
     try {
-      final bool serviceEnabled =
-          await Geolocator.isLocationServiceEnabled();
+      final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         throw Exception('Os serviços de localização estão desativados.');
       }
@@ -106,6 +110,13 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
     });
   }
 
+  Future<void> _openOsmCopyright() async {
+    final Uri uri = Uri.parse('https://www.openstreetmap.org/copyright');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   void _confirmLocation() {
     if (_selectedLocation == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -131,6 +142,8 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool missingApiKey = _stadiaApiKey.isEmpty;
+
     return AppScaffold(
       title: 'Ajustar Localização',
       subtitle: 'Toque no mapa para escolher o local exato',
@@ -142,37 +155,60 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
             child: SizedBox(
               height: 360,
               width: double.infinity,
-              child: FlutterMap(
-                mapController: _mapController,
-                options: MapOptions(
-                  initialCenter: _initialCenter,
-                  initialZoom: 16,
-                  onTap: _onMapTap,
-                ),
-                children: <Widget>[
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.example.app',
-                  ),
-                  MarkerLayer(
-                    markers: _selectedLocation == null
-                        ? <Marker>[]
-                        : <Marker>[
-                            Marker(
-                              point: _selectedLocation!,
-                              width: 50,
-                              height: 50,
-                              child: const Icon(
-                                Icons.location_pin,
-                                size: 50,
-                                color: Colors.red,
-                              ),
+              child: missingApiKey
+                  ? Container(
+                      color: const Color(0xFFF3F4F6),
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.all(24),
+                      child: const Text(
+                        'A chave STADIA_MAPS_API_KEY não foi encontrada no ficheiro .env.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Color(0xFF374151),
+                          fontSize: 16,
+                        ),
+                      ),
+                    )
+                  : FlutterMap(
+                      mapController: _mapController,
+                      options: MapOptions(
+                        initialCenter: _initialCenter,
+                        initialZoom: 16,
+                        onTap: _onMapTap,
+                      ),
+                      children: <Widget>[
+                        TileLayer(
+                          urlTemplate:
+                              'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=$_stadiaApiKey',
+                          userAgentPackageName: _appPackageName,
+                        ),
+                        MarkerLayer(
+                          markers: _selectedLocation == null
+                              ? <Marker>[]
+                              : <Marker>[
+                                  Marker(
+                                    point: _selectedLocation!,
+                                    width: 50,
+                                    height: 50,
+                                    child: const Icon(
+                                      Icons.location_pin,
+                                      size: 50,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ],
+                        ),
+                        RichAttributionWidget(
+                          attributions: <SourceAttribution>[
+                            TextSourceAttribution(
+                              '© OpenStreetMap contributors',
+                              onTap: _openOsmCopyright,
                             ),
+                            const TextSourceAttribution('© Stadia Maps'),
                           ],
-                  ),
-                ],
-              ),
+                        ),
+                      ],
+                    ),
             ),
           ),
           const SizedBox(height: 16),
@@ -223,8 +259,9 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
             children: <Widget>[
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed:
-                      _isGettingCurrentLocation ? null : _useCurrentLocation,
+                  onPressed: _isGettingCurrentLocation || missingApiKey
+                      ? null
+                      : _useCurrentLocation,
                   icon: _isGettingCurrentLocation
                       ? const SizedBox(
                           width: 18,
