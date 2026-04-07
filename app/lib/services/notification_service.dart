@@ -1,4 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'dart:developer';
 
 class NotificationService {
   final FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -10,18 +11,18 @@ class NotificationService {
       sound: true,
     );
 
-    print('Notification permission: ${settings.authorizationStatus}');
+    log('Notification permission: ${settings.authorizationStatus}');
 
     final token = await messaging.getToken();
-    print('FCM token: $token');
+    log('FCM token: $token');
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('Foreground message title: ${message.notification?.title}');
-      print('Foreground message body: ${message.notification?.body}');
+      log('Foreground message title: ${message.notification?.title}');
+      log('Foreground message body: ${message.notification?.body}');
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('Notification opened app: ${message.messageId}');
+      log('Notification opened app: ${message.messageId}');
     });
   }
 }
