@@ -1,6 +1,5 @@
-/*import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-
 import '../models/report_data.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/primary_button.dart';
@@ -27,35 +26,52 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
   }
 
   Future<void> _detectLocation() async {
+    setState(() {
+      _detecting = true;
+      _error = '';
+    });
+
     try {
+      final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Os serviços de localização estão desativados.');
+      }
+
       LocationPermission permission = await Geolocator.checkPermission();
+
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
 
-      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-        throw Exception('Não foi possível obter sua localização');
+      if (permission == LocationPermission.denied) {
+        throw Exception('Permissão de localização negada.');
       }
 
-      final Position position = await Geolocator.getCurrentPosition();
-      if (!mounted) {
-        return;
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception(
+          'Permissão de localização negada permanentemente. Ative-a nas definições do dispositivo.',
+        );
       }
+
+      final Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      if (!mounted) return;
 
       setState(() {
         _latitude = position.latitude;
         _longitude = position.longitude;
         _detecting = false;
+        _error = '';
       });
-    } catch (_) {
-      if (!mounted) {
-        return;
-      }
+    } catch (e) {
+      if (!mounted) return;
 
       setState(() {
-        _error = 'Não foi possível obter sua localização';
-        _latitude = 38.7223;
-        _longitude = -9.1393;
+        _error = e.toString().replaceFirst('Exception: ', '');
+        _latitude = null;
+        _longitude = null;
         _detecting = false;
       });
     }
@@ -140,13 +156,18 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
           ],
           const SizedBox(height: 24),
           PrimaryButton(
-            label: 'Continuar',
-            enabled: !_detecting && _latitude != null && _longitude != null,
+            label: _latitude != null && _longitude != null
+                ? 'Continuar'
+                : 'Escolher manualmente',
+            enabled: !_detecting,
             onPressed: () {
               Navigator.pushNamed(
                 context,
                 '/adjust-location',
-                arguments: widget.report.copyWith(latitude: _latitude, longitude: _longitude),
+                arguments: widget.report.copyWith(
+                  latitude: _latitude,
+                  longitude: _longitude,
+                ),
               );
             },
           ),
@@ -155,4 +176,3 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
     );
   }
 }
-*/

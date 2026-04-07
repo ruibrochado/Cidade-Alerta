@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../models/report_data.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/primary_button.dart';
+import 'details_page.dart';
 
 class PhotoPage extends StatefulWidget {
   const PhotoPage({super.key, required this.report});
@@ -136,7 +137,7 @@ class _PhotoPageState extends State<PhotoPage> {
             ),
           ),
           const SizedBox(height: 24),
-          /*PrimaryButton(
+          PrimaryButton(
             label: 'Continuar',
             onPressed: () {
               final updatedReport = widget.report.copyWith(photos: _photos);
@@ -144,12 +145,12 @@ class _PhotoPageState extends State<PhotoPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => MapPage(),
+                  builder: (_) => DetectLocationPage(report: updatedReport),
                 ),
               );
             },
           ),
-        */],
+        ],
       ),
     );
   }
