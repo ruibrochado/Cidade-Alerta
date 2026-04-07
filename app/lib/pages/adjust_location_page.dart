@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import '../models/report_data.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/primary_button.dart';
+import 'confirm_report_page.dart';
 
 class AdjustLocationPage extends StatefulWidget {
   const AdjustLocationPage({super.key, required this.report});
@@ -113,12 +114,15 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
       return;
     }
 
-    Navigator.pushNamed(
+    Navigator.push(
       context,
-      '/confirm',
-      arguments: widget.report.copyWith(
-        latitude: _selectedLocation!.latitude,
-        longitude: _selectedLocation!.longitude,
+      MaterialPageRoute(
+        builder: (_) => ConfirmPage(
+          report: widget.report.copyWith(
+            latitude: _selectedLocation!.latitude,
+            longitude: _selectedLocation!.longitude,
+          ),
+        ),
       ),
     );
   }
