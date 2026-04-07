@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
         isDatabaseConnected = true;
       });
     } catch (e) {
-      print('Error loading issues: $e');
+      debugPrint('Error loading issues: $e');
 
       if (!mounted) return;
       setState(() {
@@ -82,7 +82,7 @@ class _HomePageState extends State<HomePage> {
 
       loadIssues();
     } catch (e) {
-      print('Error creating issue: $e');
+      debugPrint('Error creating issue: $e');
     }
   }
 

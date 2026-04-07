@@ -5,15 +5,17 @@ on:
     branches: [ "main" ]
     paths-ignore:
       - 'README.md'
-      - 'app/.gitignore'
+      - '**/*.md'
       - '.idea/**'
+      - 'app/images/**'
 
   push:
     branches: [ "main" ]
     paths-ignore:
       - 'README.md'
-      - 'app/.gitignore'
+      - '**/*.md'
       - '.idea/**'
+      - 'app/images/**'
 
 jobs:
 
