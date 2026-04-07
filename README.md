@@ -3,11 +3,11 @@
 
 > [!NOTE] In this file, you will find the structure you should follow to document your mobile app in the README.md file for LEIC-ES-2025-26. It is a single file with guidelines, as comments, only seen in Edit mode, not in Preview mode. You can add more sections, but for assessment reasons and automation, please make sure to include all sections of this template. Your professors will clarify about specificities of your app.
 
-# _[your product name]_ Development Report
+# _Cidade Alerta_ Development Report
 
-Welcome to the documentation of _[your product name]_!
+Welcome to the documentation of _Cidade Alerta_!
 
-This Software Development Report, tailored for LEIC-ES-2025-26, provides comprehensive details about _[your product name]_, starting from an high-level vision and going into low-level implementation decisions. 
+This Software Development Report, tailored for LEIC-ES-2025-26, provides comprehensive details about _Cidade Alerta_, starting from an high-level vision and going into low-level implementation decisions. 
 
 It is organised by the following activities: 
 
