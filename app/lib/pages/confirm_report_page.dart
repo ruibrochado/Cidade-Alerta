@@ -23,6 +23,8 @@ class _ConfirmPageState extends State<ConfirmPage> {
   bool _sent = false;
 
   Future<void> _handleSend() async {
+    if (_sending) return;
+
     setState(() {
       _sending = true;
     });
