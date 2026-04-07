@@ -155,22 +155,34 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
             ),
           ],
           const SizedBox(height: 24),
-          PrimaryButton(
-            label: _latitude != null && _longitude != null
-                ? 'Continuar'
-                : 'Escolher manualmente',
-            enabled: !_detecting,
-            onPressed: () {
-              Navigator.pushNamed(
-                context,
-                '/adjust-location',
-                arguments: widget.report.copyWith(
-                  latitude: _latitude,
-                  longitude: _longitude,
-                ),
-              );
-            },
+PrimaryButton(
+  label: _latitude != null && _longitude != null
+      ? 'Continuar'
+      : 'Escolher no mapa',
+  enabled: !_detecting,
+  onPressed: () {
+    final hasLocation = _latitude != null && _longitude != null;
+
+    if (!hasLocation) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Não foi possível obter a sua localização. Escolha no mapa.',
           ),
+        ),
+      );
+    }
+
+    Navigator.pushNamed(
+      context,
+      '/adjust-location',
+      arguments: widget.report.copyWith(
+        latitude: _latitude,
+        longitude: _longitude,
+      ),
+    );
+  },
+)
         ],
       ),
     );
