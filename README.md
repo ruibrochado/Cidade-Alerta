@@ -39,7 +39,7 @@ Thank you!
 * André Sousa (<u>up202404210@up.pt</u>)
 * Pedro Domingos (<u>up202404098@up.pt</u>)
 * Ricardo Alves (<u>up202404099@up.pt</u>)
-* Rui Brochado (<u>oh rui põe aqui o teu número</u>)
+* Rui Brochado (<u>up202405335@up.pt</u>)
 
 ---
 ## Business Modelling
