@@ -7,6 +7,7 @@ import '../models/report_data.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/info_card.dart';
 import '../widgets/primary_button.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ConfirmPage extends StatefulWidget {
   const ConfirmPage({super.key, required this.report});
@@ -26,22 +27,42 @@ class _ConfirmPageState extends State<ConfirmPage> {
       _sending = true;
     });
 
-    await Future<void>.delayed(const Duration(seconds: 2));
-    if (!mounted) {
-      return;
+    try {
+      final supabase = Supabase.instance.client;
+
+      await supabase.from('issues').insert({
+        'category': widget.report.category,
+        'title': widget.report.title,
+        'description': widget.report.description,
+        'latitude': widget.report.latitude,
+        'longitude': widget.report.longitude,
+      });
+
+      if (!mounted) return;
+
+      setState(() {
+        _sending = false;
+        _sent = true;
+      });
+
+      await Future<void>.delayed(const Duration(seconds: 2));
+      if (!mounted) return;
+
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/home',
+        (Route<dynamic> route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _sending = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao guardar denúncia: $e')),
+      );
     }
-
-    setState(() {
-      _sending = false;
-      _sent = true;
-    });
-
-    await Future<void>.delayed(const Duration(seconds: 2));
-    if (!mounted) {
-      return;
-    }
-
-    Navigator.of(context).pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);
   }
 
   @override
