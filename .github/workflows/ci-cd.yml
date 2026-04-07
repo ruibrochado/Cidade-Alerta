@@ -33,9 +33,11 @@ jobs:
           cache: true
 
       - name: Install dependencies
+        working-directory: ./app
         run: flutter pub get
 
       - name: Quality Evaluation
+        working-directory: ./app
         run: flutter analyze
 
       # For tests(not implemented yet)
@@ -73,9 +75,11 @@ jobs:
           cache: true
 
       - name: Install dependencies
+        working-directory: ./app
         run: flutter pub get
 
       - name: Build Android APK
+        working-directory: ./app
         run: flutter build apk --release
 
       - name: Upload APK artifact
