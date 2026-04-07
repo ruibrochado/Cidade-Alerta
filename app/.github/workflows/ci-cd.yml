@@ -1,0 +1,77 @@
+name: Flutter CI/CD Pipeline
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+  push:
+    branches: [ "main" ]
+
+jobs:
+
+
+  quality_checks:
+    name: Quality & Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Quality Evaluation
+        run: flutter analyze
+
+      # For tests(not implemented yet)
+      # - name: Run tests
+      #   run: flutter test
+
+      #idk maybe??
+      # - name: Generate Coverage Report
+      #   run: flutter test --coverage
+
+      # - name: Run Gherkin Acceptance Tests
+      #   run: flutter drive --target=test_driver/app.dart
+
+      # - name: Run Integration Tests
+      #   run: flutter test integration_test
+
+
+
+
+
+  build_and_deploy:
+    name: Build & Deploy
+    needs: quality_checks
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cidade-alerta-app-release
+          path: build/app/outputs/flutter-apk/app-release.apk
