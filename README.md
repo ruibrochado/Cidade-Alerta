@@ -48,6 +48,7 @@ Business modeling in software development involves defining the product's vision
 
 ### Product Vision
 
+For frustrated residents, "Cidade Alerta" is a civic action app that transforms photos of urban issues into direct municipal solutions. Unlike slow government portals, we bypass bureaucracy by routing verified reports directly to authorities with total transparency of the resolution status to the users.
 <!-- 
 Start by defining a clear and concise product vision for your app, to help members of the team, contributors, and users into focusing their often disparate views into a concise, visual, and short textual form. 
 
