@@ -71,7 +71,9 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
       }
 
       final Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
       final LatLng currentLatLng = LatLng(

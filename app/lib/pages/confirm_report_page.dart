@@ -172,7 +172,7 @@ class _ConfirmPageState extends State<ConfirmPage> {
                               width: 64,
                               height: 64,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
+                              errorBuilder: (context, error, stackTrace) => Container(
                                 width: 64,
                                 height: 64,
                                 color: Colors.grey.shade200,

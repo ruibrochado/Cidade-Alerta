@@ -7,7 +7,6 @@ import 'package:image_picker/image_picker.dart';
 import '../models/report_data.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/primary_button.dart';
-import 'details_page.dart';
 
 class PhotoPage extends StatefulWidget {
   const PhotoPage({super.key, required this.report});
@@ -69,7 +68,7 @@ class _PhotoPageState extends State<PhotoPage> {
                         fit: BoxFit.cover,
                         width: double.infinity,
                         height: double.infinity,
-                        errorBuilder: (_, __, ___) => Container(
+                        errorBuilder: (context, error, stackTrace) => Container(
                           decoration: BoxDecoration(
                             color: Colors.grey.shade200,
                             borderRadius: BorderRadius.circular(16),
