@@ -1,7 +1,36 @@
+import 'dart:io';
+
+import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class IssueService {
-  final supabase = Supabase.instance.client;
+  IssueService();
+
+  final SupabaseClient supabase = Supabase.instance.client;
+
+  Future<String?> _uploadPhoto(String localPhotoPath, String userId) async {
+    final File file = File(localPhotoPath);
+
+    if (!file.existsSync()) {
+      throw Exception('Photo file does not exist.');
+    }
+
+    final String fileExtension = path.extension(localPhotoPath).toLowerCase();
+    final String fileName =
+        '${DateTime.now().millisecondsSinceEpoch}$fileExtension';
+    final String storagePath = '$userId/$fileName';
+
+    await supabase.storage.from('issue-images').upload(
+          storagePath,
+          file,
+          fileOptions: const FileOptions(upsert: false),
+        );
+
+    final String publicUrl =
+        supabase.storage.from('issue-images').getPublicUrl(storagePath);
+
+    return publicUrl;
+  }
 
   Future<void> createIssue({
     required String title,
@@ -9,14 +38,21 @@ class IssueService {
     required String category,
     required double latitude,
     required double longitude,
+    String? photoPath,
   }) async {
-    final user = supabase.auth.currentUser;
+    final User? user = supabase.auth.currentUser;
 
     if (user == null) {
       throw Exception('User not logged in');
     }
 
     try {
+      String? uploadedPhotoUrl;
+
+      if (photoPath != null && photoPath.isNotEmpty) {
+        uploadedPhotoUrl = await _uploadPhoto(photoPath, user.id);
+      }
+
       await supabase.from('issues').insert({
         'user_id': user.id,
         'title': title,
@@ -24,20 +60,22 @@ class IssueService {
         'category': category,
         'latitude': latitude,
         'longitude': longitude,
+        'photo_url': uploadedPhotoUrl,
       });
-    } 
-    catch (e) {
+    } catch (e) {
       throw Exception('Error creating issue: $e');
     }
   }
 
   Future<List<Map<String, dynamic>>> fetchIssues() async {
     try {
-      final data = await supabase.from('issues').select().order('created_at', ascending: false);
+      final data = await supabase
+          .from('issues')
+          .select()
+          .order('created_at', ascending: false);
 
       return List<Map<String, dynamic>>.from(data);
-    }
-    catch (e) {
+    } catch (e) {
       throw Exception('Error fetching issues: $e');
     }
   }

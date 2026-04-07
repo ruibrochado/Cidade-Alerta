@@ -233,17 +233,31 @@ class _HomePageState extends State<HomePage> {
                     : issues.isEmpty
                         ? const Center(child: Text('No issues found'))
                         : ListView.builder(
-                            itemCount: issues.length,
-                            itemBuilder: (context, index) {
-                              final issue = issues[index];
+                          itemCount: issues.length,
+                          itemBuilder: (context, index) {
+                            final issue = issues[index];
+                            final String? photoUrl = issue['photo_url'] as String?;
 
-                              return ListTile(
-                                leading: const Icon(Icons.location_on),
-                                title: Text(issue['title'] ?? 'No title'),
-                                subtitle: Text(issue['category'] ?? 'No category'),
-                              );
-                            },
-                          ),
+                            return ListTile(
+                              leading: photoUrl != null && photoUrl.isNotEmpty
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        photoUrl,
+                                        width: 56,
+                                        height: 56,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return const Icon(Icons.broken_image);
+                                        },
+                                      ),
+                                    )
+                                  : const Icon(Icons.location_on),
+                              title: Text(issue['title'] ?? 'No title'),
+                              subtitle: Text(issue['category'] ?? 'No category'),
+                            );
+                          },
+                        )
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),

@@ -19,94 +19,130 @@ class PhotoPage extends StatefulWidget {
 
 class _PhotoPageState extends State<PhotoPage> {
   final ImagePicker _picker = ImagePicker();
-  late List<String> _photos;
+
+  String? _photo;
+  bool _isTakingPhoto = false;
 
   @override
   void initState() {
     super.initState();
-    _photos = List<String>.from(widget.report.photos);
+    _photo = widget.report.photos.isNotEmpty ? widget.report.photos.first : null;
   }
 
-  Future<void> _pickPhotos() async {
-    final List<XFile> files = await _picker.pickMultiImage(imageQuality: 85);
-    if (files.isEmpty) {
+  Future<void> _takePhoto() async {
+    try {
+      setState(() {
+        _isTakingPhoto = true;
+      });
+
+      final XFile? file = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 85,
+      );
+
+      if (file == null) {
+        return;
+      }
+
+      setState(() {
+        _photo = file.path;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível tirar a foto.'),
+        ),
+      );
+    } finally {
+      if (!mounted) return;
+
+      setState(() {
+        _isTakingPhoto = false;
+      });
+    }
+  }
+
+  void _continue() {
+    if (_photo == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tire uma foto antes de continuar.'),
+        ),
+      );
       return;
     }
 
-    setState(() {
-      _photos.addAll(files.map((XFile file) => file.path));
-    });
+    final updatedReport = widget.report.copyWith(
+      photos: <String>[_photo!],
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DetectLocationPage(report: updatedReport),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: 'Adicionar Fotos',
-      subtitle: 'Tire fotos do problema',
+      title: 'Adicionar Foto',
+      subtitle: 'Tire uma foto do problema',
       showBackButton: true,
       child: Column(
         children: <Widget>[
-          if (_photos.isNotEmpty)
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _photos.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 1,
-              ),
-              itemBuilder: (BuildContext context, int index) {
-                final String photo = _photos[index];
-                return Stack(
-                  children: <Widget>[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.file(
-                        File(photo),
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Center(
-                            child: Icon(Icons.image, size: 40),
-                          ),
+          if (_photo != null)
+            Stack(
+              children: <Widget>[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 240,
+                    child: Image.file(
+                      File(_photo!),
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Center(
+                          child: Icon(Icons.image, size: 40),
                         ),
                       ),
                     ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: InkWell(
-                        onTap: () => setState(() => _photos.removeAt(index)),
-                        child: Container(
-                          width: 28,
-                          height: 28,
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.close,
-                            size: 18,
-                            color: Colors.white,
-                          ),
-                        ),
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: InkWell(
+                    onTap: () => setState(() => _photo = null),
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close,
+                        size: 18,
+                        color: Colors.white,
                       ),
                     ),
-                  ],
-                );
-              },
+                  ),
+                ),
+              ],
             ),
-          if (_photos.isNotEmpty) const SizedBox(height: 16),
+          if (_photo != null) const SizedBox(height: 16),
           InkWell(
             borderRadius: BorderRadius.circular(16),
-            onTap: _pickPhotos,
+            onTap: _isTakingPhoto ? null : _takePhoto,
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 16),
@@ -115,9 +151,9 @@ class _PhotoPageState extends State<PhotoPage> {
                 borderRadius: BorderRadius.circular(16),
                 color: const Color(0xFFFDFDFD),
               ),
-              child: const Column(
+              child: Column(
                 children: <Widget>[
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 32,
                     backgroundColor: Color(0xFFDCFCE7),
                     child: Icon(
@@ -126,10 +162,14 @@ class _PhotoPageState extends State<PhotoPage> {
                       color: Color(0xFF16A34A),
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Text(
-                    'Tirar Foto',
-                    style: TextStyle(color: Color(0xFF4B5563)),
+                    _isTakingPhoto
+                        ? 'A abrir câmara...'
+                        : _photo == null
+                            ? 'Tirar Foto'
+                            : 'Tirar Nova Foto',
+                    style: const TextStyle(color: Color(0xFF4B5563)),
                   ),
                 ],
               ),
@@ -138,16 +178,7 @@ class _PhotoPageState extends State<PhotoPage> {
           const SizedBox(height: 24),
           PrimaryButton(
             label: 'Continuar',
-            onPressed: () {
-              final updatedReport = widget.report.copyWith(photos: _photos);
-
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => DetectLocationPage(report: updatedReport),
-                ),
-              );
-            },
+            onPressed: _continue,
           ),
         ],
       ),
