@@ -4,9 +4,11 @@ import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class IssueService {
-  IssueService();
+  
+  final SupabaseClient supabase;
 
-  final SupabaseClient supabase = Supabase.instance.client;
+  IssueService({SupabaseClient? client}) 
+      : supabase = client ?? Supabase.instance.client;
 
   Future<String?> _uploadPhoto(String localPhotoPath, String userId) async {
     final File file = File(localPhotoPath);

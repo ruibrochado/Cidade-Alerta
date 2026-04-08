@@ -5,7 +5,7 @@ import 'package:app/pages/photo_page.dart';
 import 'package:app/widgets/primary_button.dart';
 
 void main() {
-  group('Details Page Tests', () {
+  group('Details Page Tests (Updated)', () {
 
     Future<void> setupPage(WidgetTester tester) async {
       await tester.pumpWidget(
@@ -20,25 +20,27 @@ void main() {
 
       final buttonFinder = find.byType(PrimaryButton);
       
-      // category is 0, title is 1 and desc is 2
-      final titleFinder = find.byType(TextField).at(1);
-      final descFinder = find.byType(TextField).at(2);
+      final titleFinder = find.byType(TextField).first;
+      final descFinder = find.byType(TextField).last;
 
-      expect(tester.widget<PrimaryButton>(buttonFinder).enabled, isFalse);
+      // checks if the button starts disabled (onPressed == null)
+      expect(tester.widget<PrimaryButton>(buttonFinder).onPressed, isNull);
 
+      // fills only the title section
       await tester.enterText(titleFinder, 'Buraco perigoso');
-      await tester.pump();
-      expect(tester.widget<PrimaryButton>(buttonFinder).enabled, isFalse);
+      await tester.pumpAndSettle(); // guarantees that the UI has been updated
+      expect(tester.widget<PrimaryButton>(buttonFinder).onPressed, isNull);
 
-      // the button should activate after both fields are filled
+      // fills the description section
       await tester.enterText(descFinder, 'Perto da escola.');
-      await tester.pump();
-      expect(tester.widget<PrimaryButton>(buttonFinder).enabled, isTrue); 
+      await tester.pumpAndSettle();
+      // the button should be active now
+      expect(tester.widget<PrimaryButton>(buttonFinder).onPressed, isNotNull); 
 
-      // the button should block when we remove one of the fields
+      // deletes the title (button should be disabled now)
       await tester.enterText(titleFinder, '');
-      await tester.pump();
-      expect(tester.widget<PrimaryButton>(buttonFinder).enabled, isFalse);
+      await tester.pumpAndSettle();
+      expect(tester.widget<PrimaryButton>(buttonFinder).onPressed, isNull);
     });
 
     testWidgets('Should navigate to PhotoPage with report data when Continue is tapped', (WidgetTester tester) async {
@@ -46,21 +48,21 @@ void main() {
 
       final buttonFinder = find.byType(PrimaryButton);
 
-      final titleFinder = find.byType(TextField).at(1);
-      final descFinder = find.byType(TextField).at(2);
+      final titleFinder = find.byType(TextField).first;
+      final descFinder = find.byType(TextField).last;
 
-      // fill the fields to activate the button
+      // activates the button
       await tester.enterText(titleFinder, 'Tubo partido');
       await tester.enterText(descFinder, 'Água a jorrar no passeio.');
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       await tester.ensureVisible(buttonFinder);
-      await tester.pumpAndSettle(); // wait for the test "bot" to find the button
+      await tester.pumpAndSettle(); 
 
       await tester.tap(buttonFinder);
       await tester.pumpAndSettle();
 
-      // confirm that we go to a PhotoPage
+      // confirms that we went to the PhotoPage
       expect(find.byType(PhotoPage), findsOneWidget);
     });
 

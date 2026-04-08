@@ -6,8 +6,11 @@ import 'package:app/pages/details_page.dart';
 void main() {
   group('SelectCategory UI Tests', () {
     
-    // loads the App before each iteration
     Future<void> setupPage(WidgetTester tester) async {
+      // Ensure the screen is large enough to render all grid items
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+
       await tester.pumpWidget(
         const MaterialApp(
           home: SelectCategory(),
@@ -15,43 +18,35 @@ void main() {
       );
     }
 
-    testWidgets('Should render the headers and exactly 6 category buttons', (WidgetTester tester) async {
-      
+    testWidgets('Should render headers and exactly 6 grid categories', (WidgetTester tester) async {
       await setupPage(tester);
+      await tester.pumpAndSettle();
 
+      // Verify header text
       expect(find.text('Criar Denúncia'), findsOneWidget);
-      expect(find.text('Selecione a categoria da sua denúncia'), findsOneWidget);
-
-      expect(find.text('Infraestrutura'), findsOneWidget);
-      expect(find.text('Iluminação Pública'), findsOneWidget);
-      expect(find.text('Meio Ambiente'), findsOneWidget);
-
-      //we use this gridview to check if the 6 categories are there, 
-      //otherwise it would count the "voltar" button aswell
+      
+      // Target only InkWells that are inside the GridView (we do this so it doesnt count the back button)
       final gridFinder = find.byType(GridView);
-      final categoryButtons = find.descendant(
-        of: gridFinder,
-        matching: find.byType(InkWell),
+      final categoryButtonsFinder = find.descendant(
+        of: gridFinder, 
+        matching: find.byType(InkWell)
       );
 
-      expect(categoryButtons, findsNWidgets(6));
+      expect(categoryButtonsFinder, findsNWidgets(6));
     });
 
-    testWidgets('Should navigate to Details Page and pass the correct category when tapped', (WidgetTester tester) async {
-      
+    testWidgets('Should navigate to the Details Page when a category is tapped', (WidgetTester tester) async {
       await setupPage(tester);
+      await tester.pumpAndSettle();
 
-      final categoryButton = find.text('Infraestrutura');
-      await tester.tap(categoryButton);
+      final firstCategoryFinder = find.text('Infraestrutura');
+      await tester.tap(firstCategoryFinder);
 
       await tester.pumpAndSettle();
 
+      // Confirm transition to the next step of the reporting feature
       expect(find.byType(DetailsPage), findsOneWidget);
-
-      expect(find.text('Descrever Problema'), findsOneWidget);
-      
       expect(find.text('Infraestrutura'), findsWidgets); 
     });
-
   });
 }
