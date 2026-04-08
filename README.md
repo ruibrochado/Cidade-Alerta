@@ -155,7 +155,7 @@ This package represents the core application running on the user's device, struc
 **2. External Services**
 This package groups the third-party platforms and APIs consumed by the application to expand its capabilities:
 * **Supabase Backend:** Acts as the primary backend-as-a-service (BaaS). It provides the database (PostgreSQL), file storage for images, and validates requests from the Authentication module. 
-* **OpenStreetMap API:** Consumed directly by the Business Logic to fetch map tiles and perform geocoding (translating raw GPS coordinates into street addresses).
+* **Stadia Maps API:** Consumed directly by the Business Logic to fetch high-quality map tiles and perform geocoding (translating raw GPS coordinates into street addresses).
 * **Firebase Cloud Messaging:** Used by the application to push real-time notifications to the users' smartphones (e.g., status updates on reported issues).
 * **Resend Email API:** An external mailing service. Unlike the other APIs, it is not called by the mobile app, but rather invoked directly by the Supabase Backend (via Edge Functions) to dispatch automated email alerts to the respective municipal authorities.
 
@@ -169,7 +169,7 @@ The physical architecture diagram presents five main nodes:
 
 * **The Supabase Cloud:** acts as the core backend of the application. It manages user authentication, stores structured data (PostgreSQL) and media files (Storage), and runs server-side logic through Edge Functions. 
 
-* **The OpenStreetMap Server:** provides map rendering and geocoding services directly to the mobile app. 
+* **The Stadia Cloud:** an external service that provides map rendering (map tiles) and geocoding services directly to the mobile app via API.
 
 * **The Firebase Cloud:** responsible for delivering push notifications to the users. 
 
