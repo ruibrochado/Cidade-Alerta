@@ -14,7 +14,7 @@ class ReportData {
   final List<String> photos;
   final double? latitude;
   final double? longitude;
-
+  
   ReportData copyWith({
     String? category,
     String? title,
