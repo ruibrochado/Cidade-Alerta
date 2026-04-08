@@ -32,7 +32,7 @@ class IssueService {
     return publicUrl;
   }
 
-  Future<void> createIssue({
+  Future<String> createIssue({
     required String title,
     required String description,
     required String category,
@@ -53,15 +53,28 @@ class IssueService {
         uploadedPhotoUrl = await _uploadPhoto(photoPath, user.id);
       }
 
-      await supabase.from('issues').insert({
-        'user_id': user.id,
-        'title': title,
-        'description': description,
-        'category': category,
-        'latitude': latitude,
-        'longitude': longitude,
-        'photo_url': uploadedPhotoUrl,
-      });
+      final Map<String, dynamic> insertedIssue = await supabase
+          .from('issues')
+          .insert({
+            'user_id': user.id,
+            'title': title,
+            'description': description,
+            'category': category,
+            'latitude': latitude,
+            'longitude': longitude,
+            'photo_url': uploadedPhotoUrl,
+          })
+          .select('ticket_number')
+          .single();
+
+      final String? ticketNumber =
+          insertedIssue['ticket_number'] as String?;
+
+      if (ticketNumber == null || ticketNumber.isEmpty) {
+        throw Exception('Ticket number was not generated.');
+      }
+
+      return ticketNumber;
     } catch (e) {
       throw Exception('Error creating issue: $e');
     }

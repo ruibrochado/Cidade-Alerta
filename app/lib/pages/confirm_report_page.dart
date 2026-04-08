@@ -116,18 +116,16 @@ class _ConfirmPageState extends State<ConfirmPage> {
 
     try {
       final issueService = IssueService();
-      final String ticketNumber = _generateTicketNumber();
 
-      await issueService.createIssue(
+      final String ticketNumber = await issueService.createIssue(
         title: widget.report.title,
         description: widget.report.description,
         category: widget.report.category,
         latitude: widget.report.latitude!,
         longitude: widget.report.longitude!,
-        photoPath:
-            widget.report.photos.isNotEmpty ? widget.report.photos.first : null,
+        photoPath: widget.report.photos.isNotEmpty ? widget.report.photos.first : null,
       );
-
+      
       if (!mounted) return;
 
       setState(() {
