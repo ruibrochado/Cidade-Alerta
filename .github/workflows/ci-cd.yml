@@ -4,18 +4,18 @@ on:
   pull_request:
     branches: [ "main" ]
     paths-ignore:
-      - 'README.md'
       - '**/*.md'
       - '.idea/**'
       - 'app/images/**'
+      - 'app/docs/**'
 
   push:
     branches: [ "main" ]
     paths-ignore:
-      - 'README.md'
       - '**/*.md'
       - '.idea/**'
       - 'app/images/**'
+      - 'app/docs/**'
 
 jobs:
 
