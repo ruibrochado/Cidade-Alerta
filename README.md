@@ -166,15 +166,15 @@ This package groups the third-party platforms and APIs consumed by the applicati
 
 The physical architecture diagram presents five main nodes: 
 
-* **The Smartphone:** represents the user's mobile device running the Flutter application (APK/IPA) and interacting with the citizen. It also integrates Google ML Kit locally to scan and classify images without needing network requests. 
+* **Smartphone:** represents the user's mobile device running the Flutter application (APK/IPA) and interacting with the citizen. It also integrates Google ML Kit locally to scan and classify images without needing network requests. 
 
-* **The Supabase Cloud:** acts as the core backend of the application. It manages user authentication, stores structured data (PostgreSQL) and media files (Storage), and runs server-side logic through Edge Functions. 
+* **Supabase Cloud:** acts as the core backend of the application. It manages user authentication, stores structured data (PostgreSQL) and media files (Storage), and runs server-side logic through Edge Functions. 
 
-* **The OpenStreetMap Server:** provides map rendering and geocoding services directly to the mobile app. 
+* **OpenStreetMap Server:** provides map rendering and geocoding services directly to the mobile app. 
 
-* **The Firebase Cloud:** responsible for delivering push notifications to the users. 
+* **Firebase Cloud:** responsible for delivering push notifications to the users. 
 
-* **The Resend Server:** an external email infrastructure that receives commands from the Supabase Edge Functions to send automated alerts directly to the municipalities.
+* **Resend Server:** an external email infrastructure that receives commands from the Supabase Edge Functions to send automated alerts directly to the municipalities.
 
 
 
