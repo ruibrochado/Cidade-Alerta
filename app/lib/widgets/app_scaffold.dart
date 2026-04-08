@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+const double kAppHeaderMinHeight = 180;
+
 class AppScaffold extends StatelessWidget {
   const AppScaffold({
     super.key,
@@ -24,6 +26,9 @@ class AppScaffold extends StatelessWidget {
           children: <Widget>[
             Container(
               width: double.infinity,
+              constraints: const BoxConstraints(
+                minHeight: kAppHeaderMinHeight,
+              ),
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
               decoration: const BoxDecoration(
                 color: Color(0xFFCDE5CB),
@@ -71,7 +76,10 @@ class AppScaffold extends StatelessWidget {
                           height: 48,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFF2E7D32), width: 4),
+                            border: Border.all(
+                              color: const Color(0xFF2E7D32),
+                              width: 4,
+                            ),
                           ),
                           child: const Center(
                             child: Text(
