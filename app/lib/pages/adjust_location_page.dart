@@ -1,14 +1,13 @@
+import 'package:app/pages/confirm_report_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../models/report_data.dart';
-import '../widgets/app_scaffold.dart';
 import '../widgets/primary_button.dart';
-import 'confirm_report_page.dart';
 
 class AdjustLocationPage extends StatefulWidget {
   const AdjustLocationPage({super.key, required this.report});
@@ -20,270 +19,376 @@ class AdjustLocationPage extends StatefulWidget {
 }
 
 class _AdjustLocationPageState extends State<AdjustLocationPage> {
-  static const LatLng _defaultCenter = LatLng(41.1579, -8.6291); // Porto
-  static const String _appPackageName = 'com.example.app';
-
   late final MapController _mapController;
+  late LatLng _selectedLocation;
 
-  LatLng? _selectedLocation;
-  bool _isGettingCurrentLocation = false;
-  String? _errorMessage;
+  bool _loadingAddress = true;
+  String _error = '';
 
-  String get _stadiaApiKey => dotenv.env['STADIA_MAPS_API_KEY'] ?? '';
+  String? _street;
+  String? _city;
+  String? _country;
 
   @override
   void initState() {
     super.initState();
     _mapController = MapController();
 
-    if (widget.report.latitude != null && widget.report.longitude != null) {
-      _selectedLocation = LatLng(
-        widget.report.latitude!,
-        widget.report.longitude!,
-      );
-    }
+    _selectedLocation = LatLng(
+      widget.report.latitude ?? 38.7223,
+      widget.report.longitude ?? -9.1393,
+    );
+
+    _loadAddressForSelectedLocation();
   }
 
-  LatLng get _initialCenter => _selectedLocation ?? _defaultCenter;
-
-  Future<void> _useCurrentLocation() async {
+  Future<void> _loadAddressForSelectedLocation() async {
     setState(() {
-      _isGettingCurrentLocation = true;
-      _errorMessage = null;
+      _loadingAddress = true;
+      _error = '';
     });
 
     try {
-      final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        throw Exception('Os serviços de localização estão desativados.');
-      }
-
-      LocationPermission permission = await Geolocator.checkPermission();
-
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-
-      if (permission == LocationPermission.denied) {
-        throw Exception('Permissão de localização negada.');
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        throw Exception(
-          'Permissão negada permanentemente. Ative-a nas definições do dispositivo.',
-        );
-      }
-
-      final Position position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
+      final List<Placemark> placemarks = await placemarkFromCoordinates(
+        _selectedLocation.latitude,
+        _selectedLocation.longitude,
       );
 
-      final LatLng currentLatLng = LatLng(
-        position.latitude,
-        position.longitude,
-      );
+      final Placemark? place = placemarks.isNotEmpty ? placemarks.first : null;
+
+      final String street = <String?>[
+        place?.street,
+        place?.subThoroughfare,
+      ]
+          .where((String? value) => value != null && value.trim().isNotEmpty)
+          .cast<String>()
+          .join(', ');
+
+      final List<String> cityCandidates = <String?>[
+        place?.locality,
+        place?.subAdministrativeArea,
+        place?.administrativeArea,
+      ]
+          .where((String? value) => value != null && value.trim().isNotEmpty)
+          .cast<String>()
+          .toList();
 
       if (!mounted) return;
 
       setState(() {
-        _selectedLocation = currentLatLng;
-        _isGettingCurrentLocation = false;
+        _street = street.isEmpty ? null : street;
+        _city = cityCandidates.isEmpty ? null : cityCandidates.first;
+        _country = place?.country;
+        _loadingAddress = false;
       });
-
-      _mapController.move(currentLatLng, 17);
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
 
       setState(() {
-        _errorMessage = e.toString().replaceFirst('Exception: ', '');
-        _isGettingCurrentLocation = false;
+        _street = null;
+        _city = null;
+        _country = null;
+        _loadingAddress = false;
+        _error = 'Não foi possível obter a morada desta localização.';
       });
     }
   }
 
-  void _onMapTap(TapPosition tapPosition, LatLng latLng) {
+  Future<void> _updateSelectedLocation(LatLng newLocation) async {
     setState(() {
-      _selectedLocation = latLng;
-      _errorMessage = null;
+      _selectedLocation = newLocation;
     });
-  }
 
-  Future<void> _openOsmCopyright() async {
-    final Uri uri = Uri.parse('https://www.openstreetmap.org/copyright');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+    await _loadAddressForSelectedLocation();
   }
 
   void _confirmLocation() {
-    if (_selectedLocation == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Escolha uma localização no mapa primeiro.'),
-        ),
-      );
-      return;
-    }
+    final ReportData updatedReport = widget.report.copyWith(
+      latitude: _selectedLocation.latitude,
+      longitude: _selectedLocation.longitude,
+    );
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ConfirmPage(
-          report: widget.report.copyWith(
-            latitude: _selectedLocation!.latitude,
-            longitude: _selectedLocation!.longitude,
-          ),
-        ),
+        builder: (_) => ConfirmPage(report: updatedReport),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool missingApiKey = _stadiaApiKey.isEmpty;
+    const Color headerGreen = Color(0xFFCDE5CB);
+    final String stadiaApiKey = dotenv.env['STADIA_MAPS_API_KEY'] ?? '';
 
-    return AppScaffold(
-      title: 'Ajustar Localização',
-      subtitle: 'Toque no mapa para escolher o local exato',
-      showBackButton: true,
-      child: Column(
-        children: <Widget>[
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: SizedBox(
-              height: 360,
-              width: double.infinity,
-              child: missingApiKey
-                  ? Container(
-                      color: const Color(0xFFF3F4F6),
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.all(24),
-                      child: const Text(
-                        'A chave STADIA_MAPS_API_KEY não foi encontrada no ficheiro .env.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Color(0xFF374151),
-                          fontSize: 16,
-                        ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: headerGreen,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+      child: Scaffold(
+        backgroundColor: headerGreen,
+        body: Stack(
+          children: <Widget>[
+            Column(
+              children: <Widget>[
+                Container(
+                  height: 300,
+                  width: double.infinity,
+                  color: headerGreen,
+                ),
+                Expanded(
+                  child: Container(
+                    color: const Color(0xFFF8F8F8),
+                  ),
+                ),
+              ],
+            ),
+            SafeArea(
+              child: Stack(
+                children: <Widget>[
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: IconButton(
+                      onPressed: () => Navigator.of(context).maybePop(),
+                      icon: const Icon(Icons.arrow_back),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.white.withValues(alpha: 0.85),
                       ),
-                    )
-                  : FlutterMap(
-                      mapController: _mapController,
-                      options: MapOptions(
-                        initialCenter: _initialCenter,
-                        initialZoom: 16,
-                        onTap: _onMapTap,
-                      ),
+                    ),
+                  ),
+                  const Positioned(
+                    top: 74,
+                    left: 24,
+                    right: 24,
+                    child: Column(
                       children: <Widget>[
-                        TileLayer(
-                          urlTemplate:
-                              'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=$_stadiaApiKey',
-                          userAgentPackageName: _appPackageName,
+                        Text(
+                          'Ajustar Localização',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1F2937),
+                          ),
                         ),
-                        MarkerLayer(
-                          markers: _selectedLocation == null
-                              ? <Marker>[]
-                              : <Marker>[
-                                  Marker(
-                                    point: _selectedLocation!,
-                                    width: 50,
-                                    height: 50,
-                                    child: const Icon(
-                                      Icons.location_pin,
-                                      size: 50,
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                ],
-                        ),
-                        RichAttributionWidget(
-                          attributions: <SourceAttribution>[
-                            TextSourceAttribution(
-                              '© OpenStreetMap contributors',
-                              onTap: _openOsmCopyright,
-                            ),
-                            const TextSourceAttribution('© Stadia Maps'),
-                          ],
+                        SizedBox(height: 8),
+                        Text(
+                          'Confirme ou ajuste o ponto no mapa',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF4B5563),
+                          ),
                         ),
                       ],
                     ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF3F4F6),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: _selectedLocation == null
-                ? const Text(
-                    'Nenhuma localização selecionada.',
-                    style: TextStyle(color: Color(0xFF6B7280)),
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      const Text(
-                        'Coordenadas selecionadas:',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF6B7280),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${_selectedLocation!.latitude.toStringAsFixed(6)}, '
-                        '${_selectedLocation!.longitude.toStringAsFixed(6)}',
-                        style: const TextStyle(
-                          fontFamily: 'monospace',
-                          color: Color(0xFF1F2937),
-                        ),
-                      ),
-                    ],
                   ),
-          ),
-          if (_errorMessage != null) ...<Widget>[
-            const SizedBox(height: 12),
-            Text(
-              _errorMessage!,
-              style: const TextStyle(color: Colors.red),
-              textAlign: TextAlign.center,
+                  Positioned(
+                    top: 175,
+                    left: 16,
+                    right: 16,
+                    bottom: 16,
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: const <BoxShadow>[
+                          BoxShadow(
+                            color: Color(0x14000000),
+                            blurRadius: 24,
+                            offset: Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: LayoutBuilder(
+                        builder: (BuildContext context, BoxConstraints constraints) {
+                          return SingleChildScrollView(
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight,
+                              ),
+                              child: IntrinsicHeight(
+                                child: Column(
+                                  children: <Widget>[
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: SizedBox(
+                                        height: 280,
+                                        width: double.infinity,
+                                        child: stadiaApiKey.isEmpty
+                                            ? Container(
+                                                color: const Color(0xFFF3F4F6),
+                                                child: const Center(
+                                                  child: Padding(
+                                                    padding: EdgeInsets.all(24),
+                                                    child: Text(
+                                                      'STADIA_MAPS_API_KEY não encontrada no .env',
+                                                      textAlign: TextAlign.center,
+                                                      style: TextStyle(
+                                                        color: Colors.red,
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                            : FlutterMap(
+                                                mapController: _mapController,
+                                                options: MapOptions(
+                                                  initialCenter: _selectedLocation,
+                                                  initialZoom: 17,
+                                                  onTap: (TapPosition _, LatLng point) {
+                                                    _updateSelectedLocation(point);
+                                                  },
+                                                ),
+                                                children: <Widget>[
+                                                  TileLayer(
+                                                    urlTemplate:
+                                                        'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=$stadiaApiKey',
+                                                    userAgentPackageName: 'com.example.app',
+                                                    retinaMode:
+                                                        MediaQuery.of(context).devicePixelRatio > 1.0,
+                                                  ),
+                                                  MarkerLayer(
+                                                    markers: <Marker>[
+                                                      Marker(
+                                                        point: _selectedLocation,
+                                                        width: 46,
+                                                        height: 46,
+                                                        child: const Icon(
+                                                          Icons.location_on,
+                                                          size: 42,
+                                                          color: Color(0xFF16A34A),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        'Toque no mapa para ajustar a localização.',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF3F4F6),
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          if (_loadingAddress) ...<Widget>[
+                                            const Text(
+                                              'A obter morada...',
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: Color(0xFF6B7280),
+                                              ),
+                                            ),
+                                          ] else ...<Widget>[
+                                            if (_street != null && _street!.isNotEmpty) ...<Widget>[
+                                              const Text(
+                                                'Rua:',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Color(0xFF6B7280),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                _street!,
+                                                style: const TextStyle(
+                                                  color: Color(0xFF1F2937),
+                                                ),
+                                              ),
+                                            ],
+                                            if (_city != null && _city!.isNotEmpty) ...<Widget>[
+                                              const SizedBox(height: 12),
+                                              const Text(
+                                                'Cidade:',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Color(0xFF6B7280),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                _city!,
+                                                style: const TextStyle(
+                                                  color: Color(0xFF1F2937),
+                                                ),
+                                              ),
+                                            ],
+                                            if (_country != null && _country!.isNotEmpty) ...<Widget>[
+                                              const SizedBox(height: 12),
+                                              const Text(
+                                                'País:',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Color(0xFF6B7280),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                _country!,
+                                                style: const TextStyle(
+                                                  color: Color(0xFF1F2937),
+                                                ),
+                                              ),
+                                            ],
+                                            if (_error.isNotEmpty) ...<Widget>[
+                                              const SizedBox(height: 12),
+                                              Text(
+                                                _error,
+                                                style: const TextStyle(
+                                                  fontSize: 13,
+                                                  color: Colors.red,
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    const SizedBox(height: 20),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: PrimaryButton(
+                                        label: 'Confirmar localização',
+                                        onPressed: _confirmLocation,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
-          const SizedBox(height: 16),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _isGettingCurrentLocation || missingApiKey
-                      ? null
-                      : _useCurrentLocation,
-                  icon: _isGettingCurrentLocation
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.my_location),
-                  label: Text(
-                    _isGettingCurrentLocation
-                        ? 'A obter...'
-                        : 'Usar localização atual',
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          PrimaryButton(
-            label: 'Confirmar Localização',
-            onPressed: _confirmLocation,
-          ),
-        ],
+        ),
       ),
     );
   }
