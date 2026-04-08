@@ -1,7 +1,10 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class IssueService {
-  final supabase = Supabase.instance.client;
+  final SupabaseClient supabase;
+
+  IssueService({SupabaseClient? client}) 
+      : supabase = client ?? Supabase.instance.client;
 
   Future<void> createIssue({
     required String title,
