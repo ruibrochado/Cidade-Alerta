@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:app/models/report_data.dart';
 import 'package:app/pages/photo_page.dart';
-import 'package:app/pages/detect_location_page.dart';
 import 'package:app/widgets/primary_button.dart';
 
 void main() {

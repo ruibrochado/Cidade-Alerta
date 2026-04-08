@@ -40,25 +40,18 @@ jobs:
 
       - name: Create dummy .env for Analyzer
         working-directory: ./app
-        run: touch .env
+        run: echo "STADIA_MAPS_API_KEY=test_key_123" > .env
 
       - name: Quality Evaluation
         working-directory: ./app
         run: flutter analyze
 
-      # For tests(not implemented yet)
-      # - name: Run tests
-      #   run: flutter test
 
-      #idk maybe??
-      # - name: Generate Coverage Report
-      #   run: flutter test --coverage
+      - name: Run tests
+        working-directory: ./app
+        run: flutter test
 
-      # - name: Run Gherkin Acceptance Tests
-      #   run: flutter drive --target=test_driver/app.dart
 
-      # - name: Run Integration Tests
-      #   run: flutter test integration_test
 
 
 
@@ -96,4 +89,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cidade-alerta-app-release
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: app/build/app/outputs/flutter-apk/app-release.apk
