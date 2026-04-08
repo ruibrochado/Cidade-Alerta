@@ -1,0 +1,2 @@
+-dontwarn com.google.firebase.iid.FirebaseInstanceId
+-keep class com.google.firebase.iid.FirebaseInstanceId { *; }
