@@ -1,7 +1,8 @@
 # 2LEIC11T5
 <!-- Template file for README.md for LEIC-ES-2025-26 -->
+<!-- [!NOTE] In this file, you will find the structure you should follow to document your mobile app in the README.md file for LEIC-ES-2025-26. It is a single file with guidelines, as comments, only seen in Edit mode, not in Preview mode. You can add more sections, but for assessment reasons and automation, please make sure to include all sections of this template. Your professors will clarify about specificities of your app.-->
 
-> [!NOTE] In this file, you will find the structure you should follow to document your mobile app in the README.md file for LEIC-ES-2025-26. It is a single file with guidelines, as comments, only seen in Edit mode, not in Preview mode. You can add more sections, but for assessment reasons and automation, please make sure to include all sections of this template. Your professors will clarify about specificities of your app.
+<img width="6912" height="1815" alt="cidadealerta_banner1" src="https://github.com/user-attachments/assets/9c28bb5b-b0e9-4f2e-bb0b-384e5470fcd4" />
 
 # _Cidade Alerta_ Development Report
 
@@ -165,15 +166,15 @@ This package groups the third-party platforms and APIs consumed by the applicati
 
 The physical architecture diagram presents five main nodes: 
 
-* **The Smartphone:** represents the user's mobile device running the Flutter application (APK/IPA) and interacting with the citizen. It also integrates Google ML Kit locally to scan and classify images without needing network requests. 
+* **Smartphone:** represents the user's mobile device running the Flutter application (APK/IPA) and interacting with the citizen. It also integrates Google ML Kit locally to scan and classify images without needing network requests. 
 
-* **The Supabase Cloud:** acts as the core backend of the application. It manages user authentication, stores structured data (PostgreSQL) and media files (Storage), and runs server-side logic through Edge Functions. 
+* **Supabase Cloud:** acts as the core backend of the application. It manages user authentication, stores structured data (PostgreSQL) and media files (Storage), and runs server-side logic through Edge Functions. 
 
-* **The Stadia Cloud:** an external service that provides map rendering (map tiles) and geocoding services directly to the mobile app via API.
+* **Stadia Cloud:** an external service that provides map rendering (map tiles) and geocoding services directly to the mobile app via API.
 
-* **The Firebase Cloud:** responsible for delivering push notifications to the users. 
+* **Firebase Cloud:** responsible for delivering push notifications to the users. 
 
-* **The Resend Server:** an external email infrastructure that receives commands from the Supabase Edge Functions to send automated alerts directly to the municipalities.
+* **Resend Server:** an external email infrastructure that receives commands from the Supabase Edge Functions to send automated alerts directly to the municipalities.
 
 
 

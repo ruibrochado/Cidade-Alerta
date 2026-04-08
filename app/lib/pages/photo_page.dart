@@ -56,11 +56,11 @@ class _PhotoPageState extends State<PhotoPage> {
         ),
       );
     } finally {
-      if (!mounted) return;
-
-      setState(() {
-        _isTakingPhoto = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isTakingPhoto = false;
+        });
+      }
     }
   }
 

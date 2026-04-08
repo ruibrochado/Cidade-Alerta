@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
+//import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -92,6 +92,8 @@ class _ConfirmPageState extends State<ConfirmPage> {
     }
   }
 
+
+  /*
   String _generateTicketNumber() {
     final DateTime now = DateTime.now();
     final Random random = Random();
@@ -107,6 +109,8 @@ class _ConfirmPageState extends State<ConfirmPage> {
     return 'TKT-$year$month$day-$hour$minute-$randomPart';
   }
 
+   */
+
   Future<void> _handleSend() async {
     if (_sending) return;
 
@@ -116,18 +120,16 @@ class _ConfirmPageState extends State<ConfirmPage> {
 
     try {
       final issueService = IssueService();
-      final String ticketNumber = _generateTicketNumber();
 
-      await issueService.createIssue(
+      final String ticketNumber = await issueService.createIssue(
         title: widget.report.title,
         description: widget.report.description,
         category: widget.report.category,
         latitude: widget.report.latitude!,
         longitude: widget.report.longitude!,
-        photoPath:
-            widget.report.photos.isNotEmpty ? widget.report.photos.first : null,
+        photoPath: widget.report.photos.isNotEmpty ? widget.report.photos.first : null,
       );
-
+      
       if (!mounted) return;
 
       setState(() {
