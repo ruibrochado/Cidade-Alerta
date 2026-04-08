@@ -1,7 +1,8 @@
 # 2LEIC11T5
 <!-- Template file for README.md for LEIC-ES-2025-26 -->
+<!-- [!NOTE] In this file, you will find the structure you should follow to document your mobile app in the README.md file for LEIC-ES-2025-26. It is a single file with guidelines, as comments, only seen in Edit mode, not in Preview mode. You can add more sections, but for assessment reasons and automation, please make sure to include all sections of this template. Your professors will clarify about specificities of your app.-->
 
-> [!NOTE] In this file, you will find the structure you should follow to document your mobile app in the README.md file for LEIC-ES-2025-26. It is a single file with guidelines, as comments, only seen in Edit mode, not in Preview mode. You can add more sections, but for assessment reasons and automation, please make sure to include all sections of this template. Your professors will clarify about specificities of your app.
+<img width="6912" height="1815" alt="cidadealerta_banner1" src="https://github.com/user-attachments/assets/9c28bb5b-b0e9-4f2e-bb0b-384e5470fcd4" />
 
 # _Cidade Alerta_ Development Report
 
