@@ -7,6 +7,7 @@ import '../models/report_data.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/info_card.dart';
 import '../widgets/primary_button.dart';
+import '../services/issue_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ConfirmPage extends StatefulWidget {
@@ -22,50 +23,52 @@ class _ConfirmPageState extends State<ConfirmPage> {
   bool _sending = false;
   bool _sent = false;
 
-  Future<void> _handleSend() async {
-    if (_sending) return;
+Future<void> _handleSend() async {
+  if (_sending) return;
+
+  setState(() {
+    _sending = true;
+  });
+
+  try {
+    final issueService = IssueService();
+
+    await issueService.createIssue(
+      title: widget.report.title,
+      description: widget.report.description,
+      category: widget.report.category,
+      latitude: widget.report.latitude!,
+      longitude: widget.report.longitude!,
+      photoPath:
+          widget.report.photos.isNotEmpty ? widget.report.photos.first : null,
+    );
+
+    if (!mounted) return;
 
     setState(() {
-      _sending = true;
+      _sending = false;
+      _sent = true;
     });
 
-    try {
-      final supabase = Supabase.instance.client;
+    await Future<void>.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
 
-      await supabase.from('issues').insert({
-        'category': widget.report.category,
-        'title': widget.report.title,
-        'description': widget.report.description,
-        'latitude': widget.report.latitude,
-        'longitude': widget.report.longitude,
-      });
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      '/home',
+      (Route<dynamic> route) => false,
+    );
+  } catch (e) {
+    if (!mounted) return;
 
-      if (!mounted) return;
+    setState(() {
+      _sending = false;
+    });
 
-      setState(() {
-        _sending = false;
-        _sent = true;
-      });
-
-      await Future<void>.delayed(const Duration(seconds: 2));
-      if (!mounted) return;
-
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        '/home',
-        (Route<dynamic> route) => false,
-      );
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        _sending = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao guardar denúncia: $e')),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Erro ao guardar denúncia: $e')),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
