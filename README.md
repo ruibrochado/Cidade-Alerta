@@ -210,7 +210,28 @@ You can find below information and references related with the project managemen
 -->
 
 ### Sprint 0
+**Project Board**
 
+<p align="center">Start of Sprint 0</p>
+
+<img width="1906" height="903" alt="sprint0_initial" src="https://github.com/user-attachments/assets/110a7918-cee9-42fb-9931-083cc80b8e59" />
+
+<p align="center">End of Sprint 0</p>
+
+<img width="1907" height="903" alt="sprint0_final" src="https://github.com/user-attachments/assets/4ad69bd3-7024-46ce-8919-71a43c2c5bad" />
+
+**Sprint Retrospective:**
+
+* Did well:
+  * S
+  * S
+  * A
+* Do differently:
+  * B
+  * A
+* Puzzles:
+  * B
+ 
 ### Sprint 1
 
 ### Sprint 2
