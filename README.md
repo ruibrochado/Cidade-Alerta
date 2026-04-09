@@ -273,6 +273,10 @@ This prototype already integrates important project technologies, including Supa
 
 
 
+https://github.com/user-attachments/assets/b04837a8-2f4d-4807-a654-42710cd514ee
+
+
+
 ## Project management
 <!--
 Software project management is the art and science of planning and leading software projects, in which they are planned, implemented, monitored and controlled.
