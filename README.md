@@ -79,8 +79,6 @@ Indicate an  initial/tentative list of high-level features - high-level capabili
 Optionally, indicate an initial/tentative list of assumptions that you are doing about the app and dependencies of the app to other systems.
 -->
 
-### Features and Assumptions
-
 **Features**
 
 - Report Submission: Create and submit public issue reports.
