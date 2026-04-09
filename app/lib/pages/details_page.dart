@@ -63,6 +63,8 @@ class _DetailsPageState extends State<DetailsPage> {
         _titleController.text.trim().isNotEmpty &&
         _descriptionController.text.trim().isNotEmpty;
 
+    final double keyboardInset = MediaQuery.of(context).viewInsets.bottom;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: headerGreen,
@@ -71,40 +73,44 @@ class _DetailsPageState extends State<DetailsPage> {
       ),
       child: Scaffold(
         backgroundColor: headerGreen,
-        body: Stack(
-          children: <Widget>[
-            Column(
-              children: <Widget>[
-                Container(
-                  height: 300,
-                  width: double.infinity,
-                  color: headerGreen,
-                ),
-                Expanded(
-                  child: Container(
-                    color: const Color(0xFFF8F8F8),
-                  ),
-                ),
-              ],
-            ),
-            SafeArea(
-              child: Stack(
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
+          child: Stack(
+            children: <Widget>[
+              Column(
                 children: <Widget>[
-                  Positioned(
-                    top: 16,
-                    left: 16,
-                    child: IconButton(
-                      onPressed: () => Navigator.of(context).maybePop(),
-                      icon: const Icon(Icons.arrow_back),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.white.withValues(alpha: 0.85),
-                      ),
+                  Container(
+                    height: 220,
+                    width: double.infinity,
+                    color: headerGreen,
+                  ),
+                  Expanded(
+                    child: Container(
+                      color: const Color(0xFFF8F8F8),
                     ),
                   ),
-                  const Positioned(
-                    top: 74,
-                    left: 24,
-                    right: 24,
+                ],
+              ),
+
+              Column(
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: Row(
+                      children: <Widget>[
+                        IconButton(
+                          onPressed: () => Navigator.of(context).maybePop(),
+                          icon: const Icon(Icons.arrow_back),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.white.withOpacity(0.85),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(24, 8, 24, 0),
                     child: Column(
                       children: <Widget>[
                         Text(
@@ -128,144 +134,170 @@ class _DetailsPageState extends State<DetailsPage> {
                       ],
                     ),
                   ),
-                  Positioned(
-                    top: 175,
-                    left: 16,
-                    right: 16,
-                    bottom: 16,
-                    child: Container(
-                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(28),
-                        boxShadow: const <BoxShadow>[
-                          BoxShadow(
-                            color: Color(0x14000000),
-                            blurRadius: 24,
-                            offset: Offset(0, 10),
-                          ),
-                        ],
+
+                  const SizedBox(height: 24),
+
+                  Expanded(
+                    child: AnimatedPadding(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOut,
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        0,
+                        16,
+                        keyboardInset > 0 ? 12 : 16,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          const Text(
-                            'Categoria',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF374151),
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(28),
+                          boxShadow: const <BoxShadow>[
+                            BoxShadow(
+                              color: Color(0x14000000),
+                              blurRadius: 24,
+                              offset: Offset(0, 10),
                             ),
+                          ],
+                        ),
+                        child: SingleChildScrollView(
+                          keyboardDismissBehavior:
+                              ScrollViewKeyboardDismissBehavior.onDrag,
+                          padding: EdgeInsets.fromLTRB(
+                            20,
+                            24,
+                            20,
+                            20 + keyboardInset,
                           ),
-                          const SizedBox(height: 10),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 16,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF3F4F6),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: const Color(0xFFE5E7EB),
-                              ),
-                            ),
-                            child: Text(
-                              widget.category,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Color(0xFF9CA3AF),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          const Text(
-                            'Título',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF374151),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          TextField(
-                            controller: _titleController,
-                            decoration: const InputDecoration(
-                              hintText: 'Ex: Buraco na rua...',
-                              hintStyle: TextStyle(
-                                color: Color(0xFF6B7280),
-                              ),
-                              isDense: true,
-                              contentPadding: EdgeInsets.symmetric(
-                                vertical: 10,
-                              ),
-                              enabledBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Color(0xFF6B7280),
-                                ),
-                              ),
-                              focusedBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              const Text(
+                                'Categoria',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
                                   color: Color(0xFF374151),
-                                  width: 1.5,
                                 ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          const Text(
-                            'Descrição',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF374151),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Expanded(
-                            child: TextField(
-                              controller: _descriptionController,
-                              expands: true,
-                              maxLines: null,
-                              minLines: null,
-                              textAlignVertical: TextAlignVertical.top,
-                              decoration: const InputDecoration(
-                                hintText: 'Descreva o problema em detalhes...',
-                                hintStyle: TextStyle(
-                                  color: Color(0xFF6B7280),
+                              const SizedBox(height: 10),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 16,
                                 ),
-                                alignLabelWithHint: true,
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF3F4F6),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: const Color(0xFFE5E7EB),
+                                  ),
+                                ),
+                                child: Text(
+                                  widget.category,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Color(0xFF9CA3AF),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              const Text(
+                                'Título',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF374151),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              TextField(
+                                controller: _titleController,
+                                textInputAction: TextInputAction.next,
+                                decoration: const InputDecoration(
+                                  hintText: 'Ex: Buraco na rua...',
+                                  hintStyle: TextStyle(
                                     color: Color(0xFF6B7280),
                                   ),
-                                ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0xFF374151),
-                                    width: 1.5,
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.symmetric(
+                                    vertical: 10,
+                                  ),
+                                  enabledBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Color(0xFF6B7280),
+                                    ),
+                                  ),
+                                  focusedBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Color(0xFF374151),
+                                      width: 1.5,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
+                              const SizedBox(height: 18),
+                              const Text(
+                                'Descrição',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF374151),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  minHeight: 140,
+                                  maxHeight: 220,
+                                ),
+                                child: TextField(
+                                  controller: _descriptionController,
+                                  keyboardType: TextInputType.multiline,
+                                  textInputAction: TextInputAction.newline,
+                                  minLines: 6,
+                                  maxLines: null,
+                                  textAlignVertical: TextAlignVertical.top,
+                                  decoration: const InputDecoration(
+                                    hintText:
+                                        'Descreva o problema em detalhes...',
+                                    hintStyle: TextStyle(
+                                      color: Color(0xFF6B7280),
+                                    ),
+                                    alignLabelWithHint: true,
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Color(0xFF6B7280),
+                                      ),
+                                    ),
+                                    focusedBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Color(0xFF374151),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              SizedBox(
+                                width: double.infinity,
+                                child: PrimaryButton(
+                                  label: 'Continuar',
+                                  onPressed: canContinue ? _handleContinue : null,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            width: double.infinity,
-                            child: PrimaryButton(
-                              label: 'Continuar',
-                              onPressed: canContinue ? _handleContinue : null,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
