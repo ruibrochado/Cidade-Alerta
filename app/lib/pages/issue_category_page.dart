@@ -86,7 +86,6 @@ class SelectCategory extends StatelessWidget {
                 ),
               ],
             ),
-
             SafeArea(
               child: Stack(
                 children: <Widget>[
@@ -101,7 +100,6 @@ class SelectCategory extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   Positioned(
                     top: 40,
                     left: 0,
@@ -128,7 +126,7 @@ class SelectCategory extends StatelessWidget {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: const Color(0xFF2E7D32),
+                                color: Color(0xFF2E7D32),
                                 width: 4,
                               ),
                             ),
@@ -147,7 +145,6 @@ class SelectCategory extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   Positioned(
                     top: 175,
                     left: 16,
@@ -194,7 +191,7 @@ class SelectCategory extends StatelessWidget {
                                     crossAxisCount: 2,
                                     mainAxisSpacing: 16,
                                     crossAxisSpacing: 16,
-                                    childAspectRatio: 1,
+                                    childAspectRatio: 0.82,
                                   ),
                               itemBuilder: (BuildContext context, int index) {
                                 final CategoryItem category = _categories[index];
@@ -224,6 +221,7 @@ class SelectCategory extends StatelessWidget {
                                       child: Column(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
                                         children: <Widget>[
                                           Container(
                                             width: 64,
@@ -238,14 +236,18 @@ class SelectCategory extends StatelessWidget {
                                               color: category.iconColor,
                                             ),
                                           ),
-                                          const SizedBox(height: 12),
-                                          Text(
-                                            category.name,
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                              color: Color(0xFF374151),
+                                          const SizedBox(height: 10),
+                                          Flexible(
+                                            child: Text(
+                                              category.name,
+                                              textAlign: TextAlign.center,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                                color: Color(0xFF374151),
+                                              ),
                                             ),
                                           ),
                                         ],
