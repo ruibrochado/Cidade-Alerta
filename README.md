@@ -79,6 +79,35 @@ Indicate an  initial/tentative list of high-level features - high-level capabili
 Optionally, indicate an initial/tentative list of assumptions that you are doing about the app and dependencies of the app to other systems.
 -->
 
+### Features and Assumptions
+
+**Features**
+
+- Report Submission: Create and submit public issue reports.
+- Issue Categorization: Classify reports by category.
+- Report Details: Add a title and description to each report.
+- Photo Upload: Attach photos to support a report.
+- Automatic Location Detection: Detect the user's current location automatically.
+- Map Location Confirmation: Confirm or adjust the report location on a map.
+- Report Review: Check all report information before submission.
+- Report Tracking: Monitor the status of submitted reports.
+- Notifications: Receive updates on report progress.
+- User Authentication: Create an account, sign in, access the app securely, and log out.
+- Report Management for Authorities: Review and manage submitted reports.
+
+**Assumptions**
+
+- Location Services: The app requires access to the user's device location services.
+- Internet Access: The app requires an internet connection to send and retrieve report data.
+
+**Dependencies**
+
+- Supabase: used for database, authentication and storage.
+- Stadia: used for map display and location confirmation.
+- Resend: used to send emails for the user and corresponding municipality.
+- Firebase: used for push notifications.
+- Google ML Kit: used for image scanning and item recognition.
+
 ## Requirements
 
 ### User Stories
@@ -109,6 +138,9 @@ For each user story you should write also the acceptance tests (textually in [Gh
 At the end, it is good to add a rough indication of the value of the user story to the customers (e.g. [MoSCoW](https://en.wikipedia.org/wiki/MoSCoW_method) method) and the team should add an estimation of the effort to implement it using points in a kind-of-a Fibonnacci scale (1,2,3,5,8,13,20,40, no idea).
 
 -->
+
+
+
 
 ### Domain model
 ![UML Domain model](app/images/UMLDomainModel.png)
