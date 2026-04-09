@@ -137,10 +137,16 @@ At the end, it is good to add a rough indication of the value of the user story 
 
 -->
 
+The requirements of the module are documented as user stories, covering the main needs of both **citizens** and **municipality workers**.
 
+For citizens, the user stories focus on the complete reporting flow, including capturing a photo, automatically detecting and adjusting the location, selecting an issue category, adding a description, and submitting the report. They also cover features for interacting with reports after submission, such as tracking report status, receiving notifications, filtering issues by city or category, viewing issues ordered by priority, voting on reports, and commenting on existing reports. In addition, some user stories address recycling support features, such as identifying recyclable materials and viewing recycling bins on a map.
 
+For municipality workers, the user stories focus on dashboard access and report management. These include secure login, viewing reported city issues, receiving reports assigned to the correct municipality, filtering issues by category, updating issue status, archiving resolved issues, and accessing statistics to support decision-making and city management.
+
+All user stories are maintained as items in the [GitHub Project board](https://github.com/orgs/LEIC-ES-2025-26-2LEIC11/projects/6). Each story includes supporting notes, mockups when applicable, acceptance tests written in Gherkin, and an estimation of value and implementation effort.
 
 ### Domain model
+
 ![UML Domain model](app/images/UMLDomainModel.png)
 
 Our application is a civic and environmental platform that connects citizens to municipal services to improve waste management and public spaces. The system allows a User to register pictures of Materials to learn how to handle them correctly (through Recycled Material categories with text suggestions) and direct them to the appropriate Recycling Bin.
@@ -206,8 +212,6 @@ The physical architecture diagram presents five main nodes:
 
 * **Resend Server:** an external email infrastructure that receives commands from the Supabase Edge Functions to send automated alerts directly to the municipalities.
 
-
-
 ### Functional prototype
 <!--
 To help on validating all the architectural, design and technological decisions made, we usually implement a functional prototype, a thin vertical slice of the system integrating as much technologies as we can.
@@ -216,6 +220,12 @@ In this subsection please describe which feature, or part of it, you have implem
 
 At this phase, instead of a complete user story, you can simply implement a small part of a feature that demonstrates thay you can use the technology, for example, show a screen with the app credits (name and authors).
 -->
+
+The functional prototype currently implements the main report submission flow of the application. Users can select a category, fill in report details, attach a photo, confirm the location, review the report information, and submit it.
+
+This prototype already integrates important project technologies, including Supabase for data, authentication, and photo storage, and Stadia Maps for map support. It was developed to confirm that the main technologies of the system work well together.
+
+
 
 ## Project management
 <!--
@@ -239,6 +249,15 @@ You can find below information and references related with the project managemen
 
 -->
 
+You can find below information and references related with the project management in our team:
+
+* Backlog management: Product backlog and Sprint backlog in a [Github Projects Board](https://github.com/orgs/LEIC-ES-2025-26-2LEIC11/projects/6)
+* Release management: [v0](https://github.com/LEIC-ES-2024-25/2LEIC06T1/releases/tag/v0)
+* Sprint planning and retrospectives:
+  * [Sprint 0](#sprint-0)
+* Git Workflow: Feature-branches workflow based on the `main` branch. Each feature or fix is developed on its own branch and merged via a pull request. Code reviews are required (using branch protection) to ensure code quality and consistency.
+* CI/CD - Github Actions: Every pull request triggers a workflow that verifies code formatting and linting rules. This helps maintain code consistency and prevents errors from reaching the main branch.
+
 ### Sprint 0
 **Project Board**
 
@@ -261,7 +280,8 @@ You can find below information and references related with the project managemen
   * A
 * Puzzles:
   * B
- 
+
+<!--
 ### Sprint 1
 
 ### Sprint 2
@@ -271,4 +291,4 @@ You can find below information and references related with the project managemen
 ### Sprint 4
 
 ### Final Release
-
+-->
