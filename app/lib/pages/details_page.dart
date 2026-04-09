@@ -102,7 +102,7 @@ class _DetailsPageState extends State<DetailsPage> {
                           onPressed: () => Navigator.of(context).maybePop(),
                           icon: const Icon(Icons.arrow_back),
                           style: IconButton.styleFrom(
-                            backgroundColor: Colors.white.withOpacity(0.85),
+                            backgroundColor: Colors.white.withValues(alpha: 0.85),
                           ),
                         ),
                       ],
