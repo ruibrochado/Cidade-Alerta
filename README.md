@@ -49,7 +49,34 @@ Business modeling in software development involves defining the product's vision
 
 ### Product Vision
 
-For frustrated residents, "Cidade Alerta" is a civic action app that transforms photos of urban issues into direct municipal solutions. Unlike slow government portals, we bypass bureaucracy by routing verified reports directly to authorities with total transparency of the resolution status to the users.
+For frustrated residents, who seek a fast and transparent way to resolve urban maintenance issues, Cidade Alerta is an innovative civic action platform, that promotes community accountability by enabling users to report infrastructure problems directly to municipal authorities.
+
+Unlike traditional government portals that are slow and bureaucratic, our product creates a direct-to-source reporting system with real-time transparency of the resolution status.
+
+#### The Problem
+
+In modern urban environments, residents often encounter infrastructure issues—such as broken streetlights, potholes, and illegal dumping—that compromise public safety. Many of these issues persist for months because existing reporting methods are convoluted and provide zero feedback to the reporter. Citizens often feel ignored by their own local government.
+
+Our application empowers citizens to act as active urban inspectors, streamlining the communication between the public and the city hall. By accelerating municipal responses, our platform aligns with two key Sustainable Development Goals (SDGs):
+
+* SDG 11: Sustainable Cities and Communities – Ensuring safe and functional infrastructure helps build more resilient and inclusive urban environments for all residents.
+
+<p align="center">
+   <img width="220" height="220" alt="image" src="https://github.com/user-attachments/assets/4ed1aa22-31ba-426c-82f3-75213b4196da" />
+</p>
+
+* SDG 16: Peace, Justice, and Strong Institutions – By providing a transparent tracking system, we promote institutional accountability and build trust between citizens and local government.
+
+<p align="center">
+  <img width="220" height="220" alt="image" src="https://github.com/user-attachments/assets/9ad62064-be61-4f31-b500-fead6e389602" />
+</p>
+
+##### Target Audience
+
+Our application is designed for civic-minded individuals who encounter maintenance failures in their daily lives and want to see immediate action. This includes:
+
+* Individuals tired of bureaucratic delays and seeking more responsive municipal services.
+* Daily commuters and pedestrians who want to ensure safe public spaces by reporting hazards while reducing community degradation.
 <!-- 
 Start by defining a clear and concise product vision for your app, to help members of the team, contributors, and users into focusing their often disparate views into a concise, visual, and short textual form. 
 
