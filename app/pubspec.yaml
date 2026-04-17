@@ -26,6 +26,14 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   mocktail: ^1.0.3
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "images/logo_app.png"
+  adaptive_icon_background: "#CDE5CB"
+  adaptive_icon_foreground: "images/logo_app.png"
 
 flutter:
   uses-material-design: true
