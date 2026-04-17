@@ -65,6 +65,7 @@ class _PhotoPageState extends State<PhotoPage> {
   }
 
   void _continue() {
+    /*
     if (_photo == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -73,9 +74,11 @@ class _PhotoPageState extends State<PhotoPage> {
       );
       return;
     }
+    */
 
     final updatedReport = widget.report.copyWith(
-      photos: <String>[_photo!],
+      //photos: <String>[_photo!],
+      photos: _photo != null ? <String>[_photo!] : <String>[],
     );
 
     Navigator.push(

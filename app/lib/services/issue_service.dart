@@ -4,10 +4,9 @@ import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class IssueService {
-  
   final SupabaseClient supabase;
 
-  IssueService({SupabaseClient? client}) 
+  IssueService({SupabaseClient? client})
       : supabase = client ?? Supabase.instance.client;
 
   Future<String?> _uploadPhoto(String localPhotoPath, String userId) async {
@@ -23,10 +22,10 @@ class IssueService {
     final String storagePath = '$userId/$fileName';
 
     await supabase.storage.from('issue-images').upload(
-          storagePath,
-          file,
-          fileOptions: const FileOptions(upsert: false),
-        );
+      storagePath,
+      file,
+      fileOptions: const FileOptions(upsert: false),
+    );
 
     final String publicUrl =
         supabase.storage.from('issue-images').getPublicUrl(storagePath);
@@ -40,6 +39,7 @@ class IssueService {
     required String category,
     required double latitude,
     required double longitude,
+    String? street,
     String? photoPath,
   }) async {
     final User? user = supabase.auth.currentUser;
@@ -64,16 +64,30 @@ class IssueService {
             'category': category,
             'latitude': latitude,
             'longitude': longitude,
+            'street': street,
             'photo_url': uploadedPhotoUrl,
           })
-          .select('ticket_number')
+          .select('id, ticket_number')
           .single();
 
-      final String? ticketNumber =
-          insertedIssue['ticket_number'] as String?;
+      final String issueId = insertedIssue['id'] as String;
+      final String? ticketNumber = insertedIssue['ticket_number'] as String?;
 
       if (ticketNumber == null || ticketNumber.isEmpty) {
         throw Exception('Ticket number was not generated.');
+      }
+
+      final FunctionResponse response = await supabase.functions.invoke(
+        'forward-issue-to-municipality',
+        body: {
+          'issue_id': issueId,
+        },
+      );
+
+      if (response.status != 200) {
+        throw Exception(
+          'Issue created but email sending failed: ${response.data}',
+        );
       }
 
       return ticketNumber;
@@ -84,7 +98,7 @@ class IssueService {
 
   Future<List<Map<String, dynamic>>> fetchIssues() async {
     try {
-      final data = await supabase
+      final List<dynamic> data = await supabase
           .from('issues')
           .select()
           .order('created_at', ascending: false);
