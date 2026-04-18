@@ -53,7 +53,6 @@ class FeedPage extends StatelessWidget {
                 ],
               ),
             ),
-
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
@@ -68,11 +67,8 @@ class FeedPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-
             _buildSearchBar(),
-
             const SizedBox(height: 25),
-
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -113,7 +109,6 @@ class FeedPage extends StatelessWidget {
                           Text('${reports.length} denúncias ativas',
                               style: const TextStyle(color: Colors.grey, fontSize: 14)),
                           const SizedBox(height: 20),
-
                           if (reports.isEmpty)
                             const Expanded(child: Center(child: Text('Nenhuma denúncia encontrada.')))
                           else
@@ -137,7 +132,6 @@ class FeedPage extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _buildSearchBar() {
     return Padding(
@@ -169,6 +163,25 @@ class FeedPage extends StatelessWidget {
     );
   }
 
+  // Função auxiliar para o fundo cinzento esticado
+  Widget _buildImagePlaceholder({required IconData icon, String? message}) {
+    return Container(
+      height: 180,
+      width: double.infinity, // Ocupa a largura toda
+      color: Colors.grey[200],
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 40, color: Colors.grey[400]),
+          if (message != null) ...[
+            const SizedBox(height: 8),
+            Text(message, style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+          ]
+        ],
+      ),
+    );
+  }
+
   Widget _buildCard(ReportData report) {
     return Container(
       decoration: BoxDecoration(
@@ -185,10 +198,18 @@ class FeedPage extends StatelessWidget {
             child: report.photos.isNotEmpty
                 ? Image.network(
               report.photos.first,
-              height: 180, width: double.infinity, fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(height: 180, color: Colors.grey[200], child: const Icon(Icons.broken_image)),
+              height: 180,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(
+                icon: Icons.broken_image,
+                message: 'Erro ao carregar imagem',
+              ),
             )
-                : Container(height: 180, color: Colors.grey[200], child: const Icon(Icons.image_not_supported)),
+                : _buildImagePlaceholder(
+              icon: Icons.image_not_supported,
+              message: 'Sem imagem disponível',
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(15),
