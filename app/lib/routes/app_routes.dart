@@ -20,7 +20,7 @@ class AppRoutes {
     '/scanner': (context) => const RecyclingScannerPage(),
     '/categories': (context) => const SelectCategory(),
     '/map': (context) => const MapPage(),
-    '/feed': (context) => const FeedPage(),
+    '/feed': (context) => FeedPage(),
     '/detect-location': (context) {
       final report = ModalRoute.of(context)!.settings.arguments as ReportData;
       return DetectLocationPage(report: report);
