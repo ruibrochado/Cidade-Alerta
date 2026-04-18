@@ -14,7 +14,20 @@ class ReportData {
   final List<String> photos;
   final double? latitude;
   final double? longitude;
-  
+
+  factory ReportData.fromMap(Map<String, dynamic> map) {
+    return ReportData(
+      category: map['category'] ?? 'Geral',
+      title: map['title'] ?? '',
+      description: map['description'] ?? '',
+      // Como na DB tens 'photo_url' (String) e no modelo tens 'photos' (List),
+      // metemos a URL dentro de uma lista
+      photos: map['photo_url'] != null ? [map['photo_url']] : [],
+      latitude: (map['latitude'] as num?)?.toDouble(),
+      longitude: (map['longitude'] as num?)?.toDouble(),
+    );
+  }
+
   ReportData copyWith({
     String? category,
     String? title,

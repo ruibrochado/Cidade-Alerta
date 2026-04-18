@@ -1,37 +1,13 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import '../models/report_data.dart'; // Importa o teu modelo
+import '../services/issue_service.dart';
+import '../models/report_data.dart';
 
 class FeedPage extends StatelessWidget {
   FeedPage({super.key});
 
   final authService = AuthService();
-
-
-  final List<ReportData> reportsDeTeste = [
-    const ReportData(
-      category: 'Infraestrutura',
-      title: 'Buraco na via',
-      description: 'Grande buraco no asfalto causando risco para motoristas e pedestres na zona central.',
-      photos: ['https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&q=80&w=500'],
-      latitude: 41.1579,
-      longitude: -8.6291,
-    ),
-    const ReportData(
-      category: 'Iluminação',
-      title: 'Poste avariado',
-      description: 'Rua completamente às escuras devido a falha no poste principal.',
-      photos: ['https://images.unsplash.com/photo-1509391366360-120000000000?auto=format&fit=crop&q=80&w=500'],
-      latitude: 41.1496,
-      longitude: -8.6109,
-    ),
-    const ReportData(
-      category: 'Sinalização',
-      title: 'Stop derrubado',
-      description: 'O sinal de stop no cruzamento foi derrubado após um acidente.',
-      photos: ['https://images.unsplash.com/photo-1596450514735-24d607983692?auto=format&fit=crop&q=80&w=500'],
-    ),
-  ];
+  final issueService = IssueService();
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +26,6 @@ class FeedPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: Row(
@@ -92,39 +67,11 @@ class FeedPage extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      height: 50,
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(25)),
-                      child: Row(
-                        children: const [
-                          SizedBox(width: 15),
-                          Icon(Icons.search, color: Colors.grey),
-                          SizedBox(width: 10),
-                          Text('Buscar denúncias...', style: TextStyle(color: Colors.grey, fontSize: 16)),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    height: 50, width: 50,
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15)),
-                    child: const Icon(Icons.tune, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
+            _buildSearchBar(),
 
             const SizedBox(height: 25),
-
 
             Expanded(
               child: Container(
@@ -135,30 +82,52 @@ class FeedPage extends StatelessWidget {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 25, 20, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          Text('Denúncias recentes', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF333333))),
-                          Text('Ver todas', style: TextStyle(color: Color(0xFF00D159), fontWeight: FontWeight.w600)),
+                  child: FutureBuilder<List<Map<String, dynamic>>>(
+                    future: issueService.fetchIssues(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator(color: Color(0xFF00D159)));
+                      }
+
+                      if (snapshot.hasError) {
+                        return Center(child: Text('Erro ao carregar denúncias: ${snapshot.error}'));
+                      }
+
+                      final List<ReportData> reports = (snapshot.data ?? [])
+                          .map((map) => ReportData.fromMap(map))
+                          .toList();
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: const [
+                              Text('Denúncias recentes',
+                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF333333))),
+                              Text('Ver todas',
+                                  style: TextStyle(color: Color(0xFF00D159), fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                          const SizedBox(height: 5),
+                          Text('${reports.length} denúncias ativas',
+                              style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                          const SizedBox(height: 20),
+
+                          if (reports.isEmpty)
+                            const Expanded(child: Center(child: Text('Nenhuma denúncia encontrada.')))
+                          else
+                            Expanded(
+                              child: ListView.separated(
+                                padding: const EdgeInsets.only(bottom: 20),
+                                itemCount: reports.length,
+                                separatorBuilder: (context, index) => const SizedBox(height: 20),
+                                itemBuilder: (context, index) => _buildCard(reports[index]),
+                              ),
+                            ),
                         ],
-                      ),
-                      const SizedBox(height: 5),
-                      Text('${reportsDeTeste.length} denúncias ativas', style: const TextStyle(color: Colors.grey, fontSize: 14)),
-                      const SizedBox(height: 20),
-
-
-                      Expanded(
-                        child: ListView.separated(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          itemCount: reportsDeTeste.length,
-                          separatorBuilder: (context, index) => const SizedBox(height: 20),
-                          itemBuilder: (context, index) => _buildCard(reportsDeTeste[index]),
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
                 ),
               ),
@@ -169,6 +138,36 @@ class FeedPage extends StatelessWidget {
     );
   }
 
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 50,
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(25)),
+              child: Row(
+                children: const [
+                  SizedBox(width: 15),
+                  Icon(Icons.search, color: Colors.grey),
+                  SizedBox(width: 10),
+                  Text('Buscar denúncias...', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Container(
+            height: 50, width: 50,
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15)),
+            child: const Icon(Icons.tune, color: Colors.grey),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildCard(ReportData report) {
     return Container(
@@ -181,13 +180,15 @@ class FeedPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Imagem
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: Image.network(
-              report.photos.isNotEmpty ? report.photos.first : 'https://via.placeholder.com/400x200',
-              height: 160, width: double.infinity, fit: BoxFit.cover,
-            ),
+            child: report.photos.isNotEmpty
+                ? Image.network(
+              report.photos.first,
+              height: 180, width: double.infinity, fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(height: 180, color: Colors.grey[200], child: const Icon(Icons.broken_image)),
+            )
+                : Container(height: 180, color: Colors.grey[200], child: const Icon(Icons.image_not_supported)),
           ),
           Padding(
             padding: const EdgeInsets.all(15),
@@ -200,30 +201,29 @@ class FeedPage extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: const [
-                    Icon(Icons.location_on, size: 16, color: Colors.green),
+                    Icon(Icons.location_on, size: 16, color: Color(0xFF00D159)),
                     SizedBox(width: 4),
-                    Text('Vila Nova de Gaia', style: TextStyle(fontSize: 12, color: Colors.grey)), // Fixa por enquanto
+                    Text('Localização registada', style: TextStyle(fontSize: 12, color: Colors.grey)),
                   ],
                 ),
                 const SizedBox(height: 15),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
-                      children: [
-                        const Icon(Icons.arrow_upward, size: 20, color: Colors.black54),
-                        const SizedBox(width: 5),
-                        const Text('12', style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(width: 10),
-                        const Icon(Icons.arrow_downward, size: 20, color: Colors.black54),
+                      children: const [
+                        Icon(Icons.arrow_upward, size: 20, color: Colors.black54),
+                        SizedBox(width: 5),
+                        Text('0', style: TextStyle(fontWeight: FontWeight.bold)),
+                        SizedBox(width: 10),
+                        Icon(Icons.arrow_downward, size: 20, color: Colors.black54),
                       ],
                     ),
                     Row(
                       children: const [
                         Icon(Icons.chat_bubble_outline, size: 20, color: Colors.black54),
                         SizedBox(width: 5),
-                        Text('4', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text('0', style: TextStyle(fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ],
