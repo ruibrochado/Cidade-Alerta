@@ -23,10 +23,11 @@ class AppRoutes {
 
     '/detect-location': (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
-      if (args is ReportData) return DetectLocationPage(report: args);
-
-      print("ERRO: /detect-location sem ReportData!");
-      return const HomePage();
+      if (args is ReportData) {
+        return DetectLocationPage(report: args);
+      }
+      print("Erro: ReportData não recebido no DetectLocation");
+      return DetectLocationPage(report: const ReportData(category: 'Geral'));
     },
 
     '/adjust-location': (context) {

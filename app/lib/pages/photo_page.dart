@@ -69,7 +69,7 @@ class _PhotoPageState extends State<PhotoPage> {
       photos: _photo != null ? <String>[_photo!] : <String>[],
     );
 
-    // FIX: Usa pushNamed com arguments para o app_routes conseguir ler os dados!
+    // FIX: Usa o pushNamed para passar pelo sistema de rotas correto
     Navigator.pushNamed(
       context,
       '/detect-location',
