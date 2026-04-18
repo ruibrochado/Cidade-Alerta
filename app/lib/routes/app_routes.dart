@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/report_data.dart';
 import '../pages/adjust_location_page.dart';
-//import '../pages/confirm_page.dart';
+import '../pages/confirm_report_page.dart';
 import '../pages/detect_location_page.dart';
 import '../pages/email_test_page.dart';
 import '../pages/home_page.dart';
@@ -31,10 +31,10 @@ class AppRoutes {
       return AdjustLocationPage(report: report);
     },
 
-    /*'/confirm': (context) {
+    '/confirm': (context) {
       final report = ModalRoute.of(context)!.settings.arguments as ReportData;
       return ConfirmPage(report: report);
     },
-    */
+
   };
 }
