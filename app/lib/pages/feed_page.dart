@@ -73,10 +73,10 @@ class FeedPage extends StatelessWidget {
                 'Viste algum problema\nna cidade?',
                 style: TextStyle(
                   fontSize: 28, // Aumentei um bocadinho para dar impacto
-                  fontWeight: FontWeight.w900, // O máximo de negrito possível!
+                  fontWeight: FontWeight.w700, // O máximo de negrito possível!
                   height: 1.15, // Aproximar as duas linhas de texto
                   letterSpacing: -1.0, // Este é o grande truque para parecer fonte de mockup
-                  color: Color(0xFF1A1A1A), // Quase preto
+                  color: Color(0xFF333333), // Quase preto
                 ),
               ),
             ),
@@ -103,7 +103,7 @@ class FeedPage extends StatelessWidget {
                               style: TextStyle(
                                 color: Colors.grey,
                                 fontSize: 16,
-                                letterSpacing: -0.3,
+                                letterSpacing: 0,
                               )
                           ),
                         ],
@@ -142,7 +142,7 @@ class FeedPage extends StatelessWidget {
                               'Denúncias recentes',
                               style: TextStyle(
                                 fontSize: 22,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w600,
                                 letterSpacing: -0.8,
                                 color: Color(0xFF1A1A1A),
                               )
