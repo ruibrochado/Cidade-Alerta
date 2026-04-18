@@ -121,19 +121,19 @@ class _ConfirmPageState extends State<ConfirmPage> {
     try {
       final issueService = IssueService();
 
-      // Criamos a string de morada para enviar para a nova coluna da DB
-      String? moradaFinal;
-      if (_street != null) {
-        moradaFinal = _city != null ? '$_street, $_city' : _street;
+      // Criamos a morada para a DB
+      String? moradaFinal = _street;
+      if (_city != null && _street != null) {
+        moradaFinal = '$_street, $_city';
       }
 
+      // Tenta criar a issue
       final String ticketNumber = await issueService.createIssue(
         title: widget.report.title,
         description: widget.report.description,
         category: widget.report.category,
         latitude: widget.report.latitude!,
         longitude: widget.report.longitude!,
-        // Passamos a morada que o teu código já detetou no initState
         street: moradaFinal,
         photoPath: widget.report.photos.isNotEmpty ? widget.report.photos.first : null,
       );
@@ -146,26 +146,36 @@ class _ConfirmPageState extends State<ConfirmPage> {
         _ticketNumber = ticketNumber;
       });
 
-      await Future<void>.delayed(const Duration(seconds: 3));
+      // SÓ SAI DAQUI SE TUDO DER CERTO
+      await Future.delayed(const Duration(seconds: 3));
       if (!mounted) return;
 
       Navigator.of(context).pushNamedAndRemoveUntil(
         '/home',
-            (Route<dynamic> route) => false,
+            (route) => false,
       );
     } catch (e) {
+      // FIX CRÍTICO: Se der erro, apenas paramos o loading.
+      // NÃO há comandos de Navigator aqui, logo a página NÃO VOLTA À HOME.
       if (!mounted) return;
 
       setState(() {
         _sending = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao guardar denúncia: $e')),
+      // Mostra o erro num popup para tu leres o que o Supabase rejeitou
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text("Erro Detectado"),
+          content: Text("A página não fechou porque deu este erro: $e"),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("OK"))
+          ],
+        ),
       );
     }
   }
-
   Widget _buildSectionCard({required Widget child}) {
     return Container(
       width: double.infinity,

@@ -32,8 +32,11 @@ class AppRoutes {
     },
 
     '/confirm': (context) {
-      final report = ModalRoute.of(context)!.settings.arguments as ReportData;
-      return ConfirmPage(report: report);
+      final args = ModalRoute.of(context)!.settings.arguments;
+      if (args is ReportData) {
+        return ConfirmPage(report: args);
+      }
+      return const HomePage(); // Se os dados não chegarem, ele volta à Home. É isto que te está a acontecer!
     },
 
   };
