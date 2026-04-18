@@ -24,12 +24,10 @@ class _FeedPageState extends State<FeedPage> {
       backgroundColor: const Color(0xFFCDE5CB),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Navegação para a página de categorias
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const SelectCategory()),
           ).then((_) {
-            // Quando voltares para o Feed, ele faz um refresh aos dados
             setState(() {});
           });
         },
@@ -89,7 +87,6 @@ class _FeedPageState extends State<FeedPage> {
                 width: double.infinity,
                 decoration: const BoxDecoration(
                   color: Colors.white,
-                  // Alterado de BorderRadius.only para BorderRadius.zero para margem reta
                   borderRadius: BorderRadius.zero,
                 ),
                 child: Padding(
@@ -236,10 +233,18 @@ class _FeedPageState extends State<FeedPage> {
                 Text(report.description, style: const TextStyle(fontSize: 14, color: Colors.grey), maxLines: 2, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 12),
                 Row(
-                  children: const [
-                    Icon(Icons.location_on, size: 16, color: Color(0xFF00D159)),
-                    SizedBox(width: 4),
-                    Text('Localização registada', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  children: [
+                    const Icon(Icons.location_on, size: 16, color: Color(0xFF00D159)),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        // USAR O ATRIBUTO DINÂMICO AQUI
+                        report.address ?? 'Localização registada',
+                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 15),
