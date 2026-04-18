@@ -10,7 +10,7 @@ import '../pages/issue_category_page.dart';
 import '../pages/login_page.dart';
 import '../pages/map_page.dart';
 import '../pages/recycling_scanner_page.dart';
-import '../pages/feed_page.dart';
+
 
 class AppRoutes {
   static Map<String, WidgetBuilder> routes = {
@@ -20,7 +20,6 @@ class AppRoutes {
     '/scanner': (context) => const RecyclingScannerPage(),
     '/categories': (context) => const SelectCategory(),
     '/map': (context) => const MapPage(),
-    '/feed': (context) => const FeedPage(),
     '/detect-location': (context) {
       final report = ModalRoute.of(context)!.settings.arguments as ReportData;
       return DetectLocationPage(report: report);

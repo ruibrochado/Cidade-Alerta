@@ -7,7 +7,6 @@ import 'recycling_scanner_page.dart';
 import 'login_page.dart';
 import 'map_page.dart';
 import 'issue_category_page.dart';
-import 'feed_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -127,14 +126,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void goToFeed() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const FeedPage(),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -281,12 +272,6 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          FloatingActionButton(
-            heroTag: 'feedBtn',
-            onPressed: goToFeed,
-            child: const Icon(Icons.dynamic_feed),
-          ),
-          const SizedBox(height: 16),
           FloatingActionButton(
             heroTag: 'testIssueBtn',
             onPressed: createTestIssue,
