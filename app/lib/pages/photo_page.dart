@@ -65,27 +65,15 @@ class _PhotoPageState extends State<PhotoPage> {
   }
 
   void _continue() {
-    /*
-    if (_photo == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Tire uma foto antes de continuar.'),
-        ),
-      );
-      return;
-    }
-    */
-
     final updatedReport = widget.report.copyWith(
-      //photos: <String>[_photo!],
       photos: _photo != null ? <String>[_photo!] : <String>[],
     );
 
-    Navigator.push(
+    // FIX: Usa pushNamed com arguments para o app_routes conseguir ler os dados!
+    Navigator.pushNamed(
       context,
-      MaterialPageRoute(
-        builder: (_) => DetectLocationPage(report: updatedReport),
-      ),
+      '/detect-location',
+      arguments: updatedReport,
     );
   }
 

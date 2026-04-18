@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../models/report_data.dart';
 import '../pages/adjust_location_page.dart';
 import '../pages/confirm_report_page.dart';
@@ -20,24 +19,29 @@ class AppRoutes {
     '/scanner': (context) => const RecyclingScannerPage(),
     '/categories': (context) => const SelectCategory(),
     '/map': (context) => const MapPage(),
-    '/feed': (context) => FeedPage(),
+    '/feed': (context) => const FeedPage(),
+
     '/detect-location': (context) {
-      final report = ModalRoute.of(context)!.settings.arguments as ReportData;
-      return DetectLocationPage(report: report);
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is ReportData) return DetectLocationPage(report: args);
+
+      print("ERRO: /detect-location sem ReportData!");
+      return const HomePage();
     },
 
     '/adjust-location': (context) {
-      final report = ModalRoute.of(context)!.settings.arguments as ReportData;
-      return AdjustLocationPage(report: report);
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is ReportData) return AdjustLocationPage(report: args);
+      return const HomePage();
     },
 
     '/confirm': (context) {
-      final args = ModalRoute.of(context)!.settings.arguments;
-      if (args is ReportData) {
-        return ConfirmPage(report: args);
-      }
-      return const HomePage(); // Se os dados não chegarem, ele volta à Home. É isto que te está a acontecer!
-    },
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is ReportData) return ConfirmPage(report: args);
 
+      // Se chegar aqui sem dados, avisa mas não crasha a rota
+      print("ERRO: /confirm sem ReportData!");
+      return const HomePage();
+    },
   };
 }
