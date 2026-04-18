@@ -76,7 +76,7 @@ class _FeedPageState extends State<FeedPage> {
                   fontSize: 26,
                   fontWeight: FontWeight.w700,
                   height: 1.2,
-                  letterSpacing: -0.8,
+                  letterSpacing: 0,
                   color: Color(0xFF333333),
                 ),
               ),
@@ -89,12 +89,12 @@ class _FeedPageState extends State<FeedPage> {
                 width: double.infinity,
                 decoration: const BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+                  // Alterado de BorderRadius.only para BorderRadius.zero para margem reta
+                  borderRadius: BorderRadius.zero,
                 ),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 25, 20, 0),
                   child: FutureBuilder<List<Map<String, dynamic>>>(
-                    // Forçamos a atualização sempre que o widget reconstrói
                     future: issueService.fetchIssues(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
