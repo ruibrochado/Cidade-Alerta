@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 
 class FeedPage extends StatelessWidget {
-  const FeedPage({super.key});
+  FeedPage({super.key});
+
+  final authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
+    final user = authService.getCurrentUser();
+    final userEmail = user?.email ?? 'Utilizador';
+
     return Scaffold(
       backgroundColor: const Color(0xFFCDE5CB),
 
@@ -25,17 +31,34 @@ class FeedPage extends StatelessWidget {
               padding: const EdgeInsets.all(20.0),
               child: Row(
                 children: [
-                  const CircleAvatar(
+                  // --- FOTO DEFAULT ---
+                  CircleAvatar(
                     radius: 25,
-                    backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=5'),
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.person, size: 35, color: Colors.grey[400]),
                   ),
                   const SizedBox(width: 15),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text('Olá,', style: TextStyle(fontSize: 16)),
-                      Text('Maria', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    ],
+
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Olá,',
+                          style: TextStyle(fontSize: 16, letterSpacing: -0.5),
+                        ),
+                        Text(
+                          userEmail,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.5,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -45,10 +68,16 @@ class FeedPage extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
                 'Viste algum problema\nna cidade?',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, height: 1.2),
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  height: 1.2,
+                  letterSpacing: -0.5,
+                ),
               ),
             ),
             const SizedBox(height: 20),
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
@@ -85,6 +114,7 @@ class FeedPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 25),
+
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -97,7 +127,7 @@ class FeedPage extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: const [
-                          Text('Denúncias recentes', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                          Text('Denúncias recentes', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: -0.5)),
                           Text('Ver todas', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
                         ],
                       ),
