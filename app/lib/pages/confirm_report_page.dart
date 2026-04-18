@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+//import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
@@ -90,7 +92,25 @@ class _ConfirmPageState extends State<ConfirmPage> {
     }
   }
 
-  // --- AQUI ESTÁ A MUDANÇA PRINCIPAL ---
+
+  /*
+  String _generateTicketNumber() {
+    final DateTime now = DateTime.now();
+    final Random random = Random();
+
+    final String year = now.year.toString();
+    final String month = now.month.toString().padLeft(2, '0');
+    final String day = now.day.toString().padLeft(2, '0');
+    final String hour = now.hour.toString().padLeft(2, '0');
+    final String minute = now.minute.toString().padLeft(2, '0');
+    final String randomPart =
+        random.nextInt(9000 + 1).toString().padLeft(4, '0');
+
+    return 'TKT-$year$month$day-$hour$minute-$randomPart';
+  }
+
+   */
+
   Future<void> _handleSend() async {
     if (_sending) return;
 
@@ -101,10 +121,10 @@ class _ConfirmPageState extends State<ConfirmPage> {
     try {
       final issueService = IssueService();
 
-      // Juntamos a rua e cidade para enviar como uma string única de morada
-      String? finalAddress;
+      // Criamos a string de morada para enviar para a nova coluna da DB
+      String? moradaFinal;
       if (_street != null) {
-        finalAddress = _city != null ? '$_street, $_city' : _street;
+        moradaFinal = _city != null ? '$_street, $_city' : _street;
       }
 
       final String ticketNumber = await issueService.createIssue(
@@ -113,7 +133,8 @@ class _ConfirmPageState extends State<ConfirmPage> {
         category: widget.report.category,
         latitude: widget.report.latitude!,
         longitude: widget.report.longitude!,
-        street: finalAddress, // AGORA PASSAMOS A RUA AQUI
+        // Passamos a morada que o teu código já detetou no initState
+        street: moradaFinal,
         photoPath: widget.report.photos.isNotEmpty ? widget.report.photos.first : null,
       );
 
@@ -195,7 +216,7 @@ class _ConfirmPageState extends State<ConfirmPage> {
                       onPressed: () => Navigator.of(context).maybePop(),
                       icon: const Icon(Icons.arrow_back),
                       style: IconButton.styleFrom(
-                        backgroundColor: Colors.white.withAlpha(217),
+                        backgroundColor: Colors.white.withValues(alpha: 0.85),
                       ),
                     ),
                   ),
@@ -246,7 +267,357 @@ class _ConfirmPageState extends State<ConfirmPage> {
                           ),
                         ],
                       ),
-                      child: _sent ? _buildSuccessView() : _buildConfirmView(),
+                      child: _sent
+                          ? Column(
+                              children: <Widget>[
+                                const SizedBox(height: 8),
+                                const CircleAvatar(
+                                  radius: 48,
+                                  backgroundColor: Color(0xFFDCFCE7),
+                                  child: Icon(
+                                    Icons.check_circle,
+                                    size: 56,
+                                    color: Color(0xFF16A34A),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                const Text(
+                                  'Denúncia Enviada!',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF1F2937),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Sua denúncia foi registrada e será analisada em breve.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Color(0xFF4B5563),
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF3F4F6),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Column(
+                                    children: <Widget>[
+                                      const Text(
+                                        'Ticket Number',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFF6B7280),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        _ticketNumber ?? '-',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF1F2937),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            )
+                          : LayoutBuilder(
+                              builder: (
+                                BuildContext context,
+                                BoxConstraints constraints,
+                              ) {
+                                return SingleChildScrollView(
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      minHeight: constraints.maxHeight,
+                                    ),
+                                    child: IntrinsicHeight(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          _buildSectionCard(
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: <Widget>[
+                                                const Padding(
+                                                  padding: EdgeInsets.only(
+                                                    top: 2,
+                                                  ),
+                                                  child: Icon(
+                                                    Icons.description_outlined,
+                                                    color: Color(0xFF4B5563),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.start,
+                                                    children: <Widget>[
+                                                      const Text(
+                                                        'Categoria',
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          color: Color(
+                                                            0xFF6B7280,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      Text(
+                                                        widget.report.category,
+                                                        style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          color: Color(
+                                                            0xFF1F2937,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          _buildSectionCard(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: <Widget>[
+                                                const Text(
+                                                  'Título',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Color(0xFF6B7280),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  widget.report.title,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Color(0xFF1F2937),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 12),
+                                                const Text(
+                                                  'Descrição',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Color(0xFF6B7280),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  widget.report.description,
+                                                  style: const TextStyle(
+                                                    color: Color(0xFF374151),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          if (widget.report.photos.isNotEmpty) ...<Widget>[
+                                            const SizedBox(height: 12),
+                                            _buildSectionCard(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: <Widget>[
+                                                  Row(
+                                                    children: <Widget>[
+                                                      const Icon(
+                                                        Icons
+                                                            .camera_alt_outlined,
+                                                        color: Color(
+                                                          0xFF4B5563,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 8),
+                                                      Text(
+                                                        '${widget.report.photos.length} foto(s) anexada(s)',
+                                                        style: const TextStyle(
+                                                          fontSize: 12,
+                                                          color: Color(
+                                                            0xFF6B7280,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 12),
+                                                  SingleChildScrollView(
+                                                    scrollDirection:
+                                                        Axis.horizontal,
+                                                    child: Row(
+                                                      children: widget
+                                                          .report.photos
+                                                          .map((String photo) {
+                                                        return Padding(
+                                                          padding:
+                                                              const EdgeInsets.only(
+                                                                right: 8,
+                                                              ),
+                                                          child: ClipRRect(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  12,
+                                                                ),
+                                                            child: Image.file(
+                                                              File(photo),
+                                                              width: 64,
+                                                              height: 64,
+                                                              fit: BoxFit.cover,
+                                                              errorBuilder: (
+                                                                context,
+                                                                error,
+                                                                stackTrace,
+                                                              ) =>
+                                                                  Container(
+                                                                    width: 64,
+                                                                    height: 64,
+                                                                    color: Colors
+                                                                        .grey
+                                                                        .shade200,
+                                                                    child: const Icon(
+                                                                      Icons
+                                                                          .image,
+                                                                    ),
+                                                                  ),
+                                                            ),
+                                                          ),
+                                                        );
+                                                      }).toList(),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                          const SizedBox(height: 12),
+                                          _buildSectionCard(
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: <Widget>[
+                                                const Padding(
+                                                  padding: EdgeInsets.only(
+                                                    top: 2,
+                                                  ),
+                                                  child: Icon(
+                                                    Icons.location_on_outlined,
+                                                    color: Color(0xFF4B5563),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.start,
+                                                    children: <Widget>[
+                                                      const Text(
+                                                        'Localização',
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          color: Color(
+                                                            0xFF6B7280,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      if (_street != null &&
+                                                          _street!.isNotEmpty) ...<Widget>[
+                                                        Text(
+                                                          _street!,
+                                                          style: const TextStyle(
+                                                            color: Color(
+                                                              0xFF1F2937,
+                                                            ),
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                      if (_city != null &&
+                                                          _city!.isNotEmpty) ...<Widget>[
+                                                        const SizedBox(
+                                                          height: 4,
+                                                        ),
+                                                        Text(
+                                                          _city!,
+                                                          style: const TextStyle(
+                                                            color: Color(
+                                                              0xFF374151,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                      if (_country != null &&
+                                                          _country!
+                                                              .isNotEmpty) ...<Widget>[
+                                                        const SizedBox(
+                                                          height: 4,
+                                                        ),
+                                                        Text(
+                                                          _country!,
+                                                          style: const TextStyle(
+                                                            color: Color(
+                                                              0xFF374151,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                      if (_locationError
+                                                          .isNotEmpty) ...<Widget>[
+                                                        const SizedBox(
+                                                          height: 4,
+                                                        ),
+                                                        Text(
+                                                          _locationError,
+                                                          style: const TextStyle(
+                                                            color: Colors.red,
+                                                            fontSize: 12,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                          const SizedBox(height: 24),
+                                          SizedBox(
+                                            width: double.infinity,
+                                            child: PrimaryButton(
+                                              label: _sending
+                                                  ? 'Enviando...'
+                                                  : 'Enviar Denúncia',
+                                              loading: _sending,
+                                              onPressed: _handleSend,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                     ),
                   ),
                 ],
@@ -255,118 +626,6 @@ class _ConfirmPageState extends State<ConfirmPage> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildSuccessView() {
-    return Column(
-      children: <Widget>[
-        const SizedBox(height: 8),
-        const CircleAvatar(
-          radius: 48,
-          backgroundColor: Color(0xFFDCFCE7),
-          child: Icon(Icons.check_circle, size: 56, color: Color(0xFF16A34A)),
-        ),
-        const SizedBox(height: 24),
-        const Text(
-          'Denúncia Enviada!',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Sua denúncia foi registrada e será analisada em breve.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Color(0xFF4B5563)),
-        ),
-        const SizedBox(height: 20),
-        _buildSectionCard(
-          child: Column(
-            children: <Widget>[
-              const Text('Ticket Number', style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
-              const SizedBox(height: 6),
-              Text(
-                _ticketNumber ?? '-',
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1F2937)),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildConfirmView() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: IntrinsicHeight(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  _buildSectionCard(
-                    child: Row(
-                      children: [
-                        const Icon(Icons.description_outlined, color: Color(0xFF4B5563)),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Categoria', style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
-                            Text(widget.report.category, style: const TextStyle(fontWeight: FontWeight.w600)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildSectionCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Título', style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
-                        Text(widget.report.title, style: const TextStyle(fontWeight: FontWeight.w600)),
-                        const SizedBox(height: 12),
-                        const Text('Descrição', style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
-                        Text(widget.report.description),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildSectionCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on_outlined, color: Color(0xFF4B5563)),
-                            const SizedBox(width: 12),
-                            const Text('Localização', style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        if (_street != null) Text(_street!, style: const TextStyle(fontWeight: FontWeight.w500)),
-                        if (_city != null) Text(_city!),
-                        if (_locationError.isNotEmpty) Text(_locationError, style: const TextStyle(color: Colors.red, fontSize: 12)),
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                  const SizedBox(height: 24),
-                  PrimaryButton(
-                    label: _sending ? 'Enviando...' : 'Enviar Denúncia',
-                    loading: _sending,
-                    onPressed: _handleSend,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }
