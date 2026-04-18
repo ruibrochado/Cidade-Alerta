@@ -108,11 +108,10 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
       longitude: _selectedLocation.longitude,
     );
 
-    Navigator.push(
+    Navigator.pushNamed(
       context,
-      MaterialPageRoute(
-        builder: (_) => ConfirmPage(report: updatedReport),
-      ),
+      '/confirm',  // Usa a rota definida no AppRoutes
+      arguments: updatedReport,
     );
   }
 
