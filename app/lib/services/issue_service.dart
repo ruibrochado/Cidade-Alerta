@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:geocoding/geocoding.dart'; // Já tens o import, top!
+import 'package:geocoding/geocoding.dart';
 
 class IssueService {
   final SupabaseClient supabase;
@@ -9,13 +9,11 @@ class IssueService {
   IssueService({SupabaseClient? client})
       : supabase = client ?? Supabase.instance.client;
 
-  // Função interna para converter coordenadas em nome de rua
   Future<String?> _getAddressFromCoords(double lat, double lng) async {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
       if (placemarks.isNotEmpty) {
         final Placemark pos = placemarks[0];
-        // Formato: Nome da Rua, Localidade
         return "${pos.street}, ${pos.locality}";
       }
     } catch (e) {
@@ -47,6 +45,7 @@ class IssueService {
     required String category,
     required double latitude,
     required double longitude,
+    String? street, // VOLTEI A ADICIONAR ESTE PARÂMETRO
     String? photoPath,
   }) async {
     final User? user = supabase.auth.currentUser;
@@ -54,17 +53,16 @@ class IssueService {
 
     try {
       String? uploadedPhotoUrl;
-
-      // 1. Faz o upload da foto se existir
       if (photoPath != null && photoPath.isNotEmpty) {
         uploadedPhotoUrl = await _uploadPhoto(photoPath, user.id);
       }
 
-      // 2. TENTA OBTER A RUA AUTOMATICAMENTE AQUI
-      // Se o geocoding falhar, ele envia null e a DB lida com isso
-      String? detectedAddress = await _getAddressFromCoords(latitude, longitude);
+      // Se a rua não vier preenchida do ecrã anterior, tentamos obter aqui
+      String? finalAddress = street;
+      if (finalAddress == null || finalAddress.isEmpty) {
+        finalAddress = await _getAddressFromCoords(latitude, longitude);
+      }
 
-      // 3. Faz o insert na base de dados
       final Map<String, dynamic> insertedIssue = await supabase
           .from('issues')
           .insert({
@@ -74,7 +72,7 @@ class IssueService {
         'category': category,
         'latitude': latitude,
         'longitude': longitude,
-        'address': detectedAddress, // <--- A MAGIA ESTÁ AQUI
+        'address': finalAddress, // Usa a rua final (ou a passada ou a detectada)
         'photo_url': uploadedPhotoUrl,
       })
           .select('id, ticket_number')
@@ -87,15 +85,10 @@ class IssueService {
         throw Exception('Ticket number was not generated.');
       }
 
-      // 4. Chama a Edge Function
-      final FunctionResponse response = await supabase.functions.invoke(
+      await supabase.functions.invoke(
         'forward-issue-to-municipality',
         body: {'issue_id': issueId},
       );
-
-      if (response.status != 200) {
-        print('Aviso: Email não enviado, mas denúncia criada.');
-      }
 
       return ticketNumber;
     } catch (e) {
