@@ -6,17 +6,14 @@ class FeedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // A cor de fundo verde-menta
       backgroundColor: const Color(0xFFCDE5CB),
 
-      // O NOSSO BOTÃO '+' FLUTUANTE (Ainda sem ação)
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Futuramente vai abrir a página de criar denúncia
           debugPrint('Botão + clicado');
         },
-        backgroundColor: const Color(0xFFCDE5CB), // Verde vivo do teu mockup
-        shape: const CircleBorder(), // Para garantir que é redondinho
+        backgroundColor: const Color(0xFF00D159),
+        shape: const CircleBorder(),
         child: const Icon(Icons.add, color: Colors.white, size: 32),
       ),
 
@@ -24,14 +21,13 @@ class FeedPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- HEADER VERDE ---
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: Row(
                 children: [
                   const CircleAvatar(
                     radius: 25,
-                    backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=5'), // Foto fake
+                    backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=5'),
                   ),
                   const SizedBox(width: 15),
                   Column(
@@ -53,19 +49,16 @@ class FeedPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-
-            // --- BARRA DE PESQUISA E FILTRO (Visuais apenas) ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
                 children: [
-                  // Barra de pesquisa (Container a imitar um TextField)
                   Expanded(
                     child: Container(
                       height: 50,
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(25), // Formato de pílula
+                        borderRadius: BorderRadius.circular(25),
                       ),
                       child: Row(
                         children: const [
@@ -79,26 +72,23 @@ class FeedPage extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
 
-                  // Botão de Filtro
                   Container(
                     height: 50,
                     width: 50,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(15), // Quadrado com cantos redondos
+                      borderRadius: BorderRadius.circular(15),
                     ),
-                    child: const Icon(Icons.tune, color: Colors.grey), // Ícone de sliders
+                    child: const Icon(Icons.tune, color: Colors.grey),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 25), // Espaço antes de começar a área branca
-
-            // --- ÁREA BRANCA DAS DENÚNCIAS ---
+            const SizedBox(height: 25),
             Expanded(
               child: Container(
                 width: double.infinity,
-                color: Colors.white, // LIMITES RETOS: Usar apenas cor sem o BoxDecoration com radius
+                color: Colors.white,
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Column(
@@ -115,7 +105,6 @@ class FeedPage extends StatelessWidget {
                       const Text('12 denúncias ativas', style: TextStyle(color: Colors.grey, fontSize: 14)),
                       const SizedBox(height: 20),
 
-                      // Aqui dentro entrará o teu ListView.builder com os cartões
                       const Expanded(
                         child: Center(
                           child: Text('Lista de cartões entra aqui...'),
