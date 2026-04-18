@@ -31,28 +31,31 @@ class FeedPage extends StatelessWidget {
               padding: const EdgeInsets.all(20.0),
               child: Row(
                 children: [
-                  // --- FOTO DEFAULT ---
                   CircleAvatar(
                     radius: 25,
                     backgroundColor: Colors.white,
                     child: Icon(Icons.person, size: 35, color: Colors.grey[400]),
                   ),
                   const SizedBox(width: 15),
-
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
                           'Olá,',
-                          style: TextStyle(fontSize: 16, letterSpacing: -0.5),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.black54, // Um cinza escuro suave
+                            letterSpacing: -0.3,
+                          ),
                         ),
                         Text(
                           userEmail,
                           style: const TextStyle(
                             fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
+                            fontWeight: FontWeight.w800, // Bem gordinha
+                            letterSpacing: 0, // Letras mais juntinhas
+                            color: Colors.black87,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -69,10 +72,11 @@ class FeedPage extends StatelessWidget {
               child: Text(
                 'Viste algum problema\nna cidade?',
                 style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  height: 1.2,
-                  letterSpacing: -0.5,
+                  fontSize: 28, // Aumentei um bocadinho para dar impacto
+                  fontWeight: FontWeight.w900, // O máximo de negrito possível!
+                  height: 1.15, // Aproximar as duas linhas de texto
+                  letterSpacing: -1.0, // Este é o grande truque para parecer fonte de mockup
+                  color: Color(0xFF1A1A1A), // Quase preto
                 ),
               ),
             ),
@@ -94,7 +98,14 @@ class FeedPage extends StatelessWidget {
                           SizedBox(width: 15),
                           Icon(Icons.search, color: Colors.grey),
                           SizedBox(width: 10),
-                          Text('Buscar denúncias...', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                          Text(
+                              'Buscar denúncias...',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 16,
+                                letterSpacing: -0.3,
+                              )
+                          ),
                         ],
                       ),
                     ),
@@ -127,12 +138,34 @@ class FeedPage extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: const [
-                          Text('Denúncias recentes', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: -0.5)),
-                          Text('Ver todas', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                          Text(
+                              'Denúncias recentes',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.8,
+                                color: Color(0xFF1A1A1A),
+                              )
+                          ),
+                          Text(
+                              'Ver todas',
+                              style: TextStyle(
+                                color: Color(0xFF00D159), // Verde do teu mockup
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.3,
+                              )
+                          ),
                         ],
                       ),
                       const SizedBox(height: 5),
-                      const Text('12 denúncias ativas', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                      const Text(
+                          '12 denúncias ativas',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                            letterSpacing: -0.2,
+                          )
+                      ),
                       const SizedBox(height: 20),
 
                       const Expanded(
