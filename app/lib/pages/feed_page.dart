@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/issue_service.dart';
 import '../models/report_data.dart';
+import 'issue_category_page.dart';
 
-class FeedPage extends StatelessWidget {
-  FeedPage({super.key});
+class FeedPage extends StatefulWidget {
+  const FeedPage({super.key});
 
+  @override
+  State<FeedPage> createState() => _FeedPageState();
+}
+
+class _FeedPageState extends State<FeedPage> {
   final authService = AuthService();
   final issueService = IssueService();
 
@@ -17,7 +23,16 @@ class FeedPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFCDE5CB),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => debugPrint('Botão + clicado'),
+        onPressed: () {
+          // Navegação para a página de categorias
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SelectCategory()),
+          ).then((_) {
+            // Quando voltares para o Feed, ele faz um refresh aos dados
+            setState(() {});
+          });
+        },
         backgroundColor: const Color(0xFF00D159),
         shape: const CircleBorder(),
         child: const Icon(Icons.add, color: Colors.white, size: 32),
@@ -79,6 +94,7 @@ class FeedPage extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 25, 20, 0),
                   child: FutureBuilder<List<Map<String, dynamic>>>(
+                    // Forçamos a atualização sempre que o widget reconstrói
                     future: issueService.fetchIssues(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
@@ -163,11 +179,10 @@ class FeedPage extends StatelessWidget {
     );
   }
 
-  // Função auxiliar para o fundo cinzento esticado
   Widget _buildImagePlaceholder({required IconData icon, String? message}) {
     return Container(
       height: 180,
-      width: double.infinity, // Ocupa a largura toda
+      width: double.infinity,
       color: Colors.grey[200],
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
