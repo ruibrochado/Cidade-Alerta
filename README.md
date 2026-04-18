@@ -302,7 +302,7 @@ You can find below information and references related with the project managemen
 You can find below information and references related with the project management in our team:
 
 * Backlog management: Product backlog and Sprint backlog in a [Github Projects Board](https://github.com/orgs/LEIC-ES-2025-26-2LEIC11/projects/6)
-* Release management: [v0](https://github.com/LEIC-ES-2024-25/2LEIC06T1/releases/tag/v0)
+* Release management: [Sprint 0](https://github.com/LEIC-ES-2025-26-2LEIC11/2LEIC11T5/releases/tag/sprint-0)
 * Sprint planning and retrospectives:
   * [Sprint 0](#sprint-0)
 * Git Workflow: Feature-branches workflow based on the `main` branch. Each feature or fix is developed on its own branch and merged via a pull request. Code reviews are required (using branch protection) to ensure code quality and consistency.
