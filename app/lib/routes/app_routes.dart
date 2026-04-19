@@ -26,8 +26,7 @@ class AppRoutes {
       if (args is ReportData) {
         return DetectLocationPage(report: args);
       }
-      print("Erro: ReportData não recebido no DetectLocation");
-      return DetectLocationPage(report: const ReportData(category: 'Geral'));
+      return const DetectLocationPage(report: ReportData(category: 'Geral'));
     },
 
     '/adjust-location': (context) {

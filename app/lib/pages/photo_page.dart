@@ -66,10 +66,9 @@ class _PhotoPageState extends State<PhotoPage> {
 
   void _continue() {
     final updatedReport = widget.report.copyWith(
-      photos: _photo != null ? <String>[_photo!] : <String>[],
+      photos: _photo != null ? [_photo!] : [],
     );
 
-    // FIX: Usa o pushNamed para passar pelo sistema de rotas correto
     Navigator.pushNamed(
       context,
       '/detect-location',
