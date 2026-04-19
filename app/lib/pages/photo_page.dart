@@ -37,7 +37,9 @@ class _PhotoPageState extends State<PhotoPage> {
 
       final XFile? file = await _picker.pickImage(
         source: ImageSource.camera,
-        imageQuality: 85,
+        imageQuality: 70,
+        maxWidth: 1920,
+        maxHeight: 1920,
       );
 
       if (file == null) {
