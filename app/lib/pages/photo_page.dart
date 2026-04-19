@@ -68,7 +68,9 @@ class _PhotoPageState extends State<PhotoPage> {
     final updatedReport = widget.report.copyWith(
       photos: _photo != null ? <String>[_photo!] : <String>[],
     );
-    Navigator.of(context, rootNavigator: true).pushNamed(
+
+    Navigator.pushNamed(
+      context,
       '/detect-location',
       arguments: updatedReport,
     );
