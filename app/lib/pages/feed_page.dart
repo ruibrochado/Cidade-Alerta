@@ -24,12 +24,12 @@ class _FeedPageState extends State<FeedPage> {
       backgroundColor: const Color(0xFFCDE5CB),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
+          Navigator.pushNamedAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const SelectCategory()),
-          ).then((_) {
-            setState(() {});
-          });
+            '/home',
+                (route) => false,
+          );
+          Navigator.pushNamed(context, '/categories');
         },
         backgroundColor: const Color(0xFF00D159),
         shape: const CircleBorder(),
