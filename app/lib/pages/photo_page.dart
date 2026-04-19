@@ -66,7 +66,7 @@ class _PhotoPageState extends State<PhotoPage> {
 
   void _continue() {
     final updatedReport = widget.report.copyWith(
-      photos: _photo != null ? [_photo!] : [],
+      photos: _photo != null ? <String>[_photo!] : <String>[],
     );
 
     Navigator.pushNamed(
