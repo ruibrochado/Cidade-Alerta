@@ -1,0 +1,16 @@
+pre-commit:
+  parallel: true
+  commands:
+    analyze:
+      root: "app/"
+      run: flutter analyze
+
+    format:
+      root: "app/"
+      run: dart format --set-exit-if-changed .
+
+pre-push:
+  commands:
+    tests:
+      root: "app/"
+      run: flutter test
