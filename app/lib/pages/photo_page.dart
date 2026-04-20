@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,40 +16,48 @@ class PhotoPage extends StatefulWidget {
   State<PhotoPage> createState() => _PhotoPageState();
 }
 
+enum PhotoState { idle, taking, processing }
+
 class _PhotoPageState extends State<PhotoPage> {
   final ImagePicker _picker = ImagePicker();
 
   String? _photo;
-  bool _isTakingPhoto = false;
-  bool _processingPhoto = false;
-  Timer? _debounceTimer;
+  PhotoState _state = PhotoState.idle;
 
   @override
   void initState() {
     super.initState();
-    _photo = widget.report.photos.isNotEmpty ? widget.report.photos.first : null;
+    _recoverLostData();
+
+    _photo = widget.report.photos.isNotEmpty
+        ? widget.report.photos.first
+        : null;
   }
 
-  @override
-  void dispose() {
-    _debounceTimer?.cancel();
-    super.dispose();
+  /// 🔥 Recupera foto se a app for morta durante a câmara
+  Future<void> _recoverLostData() async {
+    final response = await _picker.retrieveLostData();
+
+    if (response.isEmpty) return;
+
+    final XFile? file = response.file;
+
+    if (file != null && mounted) {
+      setState(() {
+        _photo = file.path;
+      });
+    }
   }
 
-  // Função para tirar foto
+  /// 📸 Tirar foto
   Future<void> _takePhoto() async {
-    // Evitar cliques múltiplos
-    if (_isTakingPhoto || _processingPhoto) return;
-
-    // Pequeno delay para evitar conflitos
-    await Future.delayed(const Duration(milliseconds: 100));
+    if (_state != PhotoState.idle) return;
 
     setState(() {
-      _isTakingPhoto = true;
+      _state = PhotoState.taking;
     });
 
     try {
-      // Abrir a câmara
       final XFile? file = await _picker.pickImage(
         source: ImageSource.camera,
         imageQuality: 75,
@@ -60,70 +67,52 @@ class _PhotoPageState extends State<PhotoPage> {
 
       if (!mounted) return;
 
-      // Se o user cancelou
       if (file == null) {
-        setState(() {
-          _isTakingPhoto = false;
-        });
+        setState(() => _state = PhotoState.idle);
         return;
       }
 
-      // Começar a processar a foto
       setState(() {
-        _processingPhoto = true;
-        _isTakingPhoto = false;
+        _state = PhotoState.processing;
+        _photo = file.path;
+        _state = PhotoState.idle;
       });
-
-      // Pequena pausa para processamento
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      // Verificar se o ficheiro é válido
-      final savedFile = File(file.path);
-      if (await savedFile.exists() && await savedFile.length() > 0) {
-        setState(() {
-          _photo = file.path;
-          _processingPhoto = false;
-        });
-      } else {
-        throw Exception('Ficheiro inválido');
-      }
-
     } catch (e) {
-      print('Erro ao tirar foto: $e');
       if (!mounted) return;
 
-      // Mostrar erro ao user
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Erro ao processar foto. Tenta novamente.'),
+          content: Text('Erro ao tirar foto. Tenta novamente.'),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
         ),
       );
 
       setState(() {
-        _isTakingPhoto = false;
-        _processingPhoto = false;
+        _state = PhotoState.idle;
       });
     }
   }
 
-  // Função para continuar
+  /// ➡️ Continuar
   void _continue() {
-    // Evitar cliques múltiplos
-    if (_debounceTimer?.isActive ?? false) return;
-
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      final updatedReport = widget.report.copyWith(
-        photos: _photo != null ? <String>[_photo!] : <String>[],
+    if (_photo == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Adiciona uma foto primeiro'),
+        ),
       );
+      return;
+    }
 
-      Navigator.pushNamed(
-        context,
-        '/detect-location',
-        arguments: updatedReport,
-      );
-    });
+    final updatedReport = widget.report.copyWith(
+      photos: <String>[_photo!],
+    );
+
+    Navigator.pushNamed(
+      context,
+      '/detect-location',
+      arguments: updatedReport,
+    );
   }
 
   @override
@@ -134,55 +123,41 @@ class _PhotoPageState extends State<PhotoPage> {
       value: const SystemUiOverlayStyle(
         statusBarColor: headerGreen,
         statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
       ),
       child: Scaffold(
         backgroundColor: headerGreen,
         body: Stack(
-          children: <Widget>[
-            // Fundo
+          children: [
             Column(
-              children: <Widget>[
-                Container(
-                  height: 300,
-                  width: double.infinity,
-                  color: headerGreen,
-                ),
-                Expanded(
-                  child: Container(
-                    color: const Color(0xFFF8F8F8),
-                  ),
-                ),
+              children: [
+                Container(height: 300, color: headerGreen),
+                Expanded(child: Container(color: const Color(0xFFF8F8F8))),
               ],
             ),
 
-            // Conteúdo
             SafeArea(
               child: Stack(
-                children: <Widget>[
-                  // Botão voltar
+                children: [
+                  /// 🔙 Back
                   Positioned(
                     top: 16,
                     left: 16,
                     child: IconButton(
-                      onPressed: () {
-                        _debounceTimer?.cancel();
-                        Navigator.of(context).maybePop();
-                      },
+                      onPressed: () => Navigator.of(context).maybePop(),
                       icon: const Icon(Icons.arrow_back),
                       style: IconButton.styleFrom(
-                        backgroundColor: Colors.white.withValues(alpha: 0.85),
+                        backgroundColor: Colors.white.withOpacity(0.85),
                       ),
                     ),
                   ),
 
-                  // Título
+                  /// Title
                   const Positioned(
                     top: 74,
                     left: 24,
                     right: 24,
                     child: Column(
-                      children: <Widget>[
+                      children: [
                         Text(
                           'Adicionar Foto',
                           textAlign: TextAlign.center,
@@ -205,18 +180,18 @@ class _PhotoPageState extends State<PhotoPage> {
                     ),
                   ),
 
-                  // Card principal
+                  /// Card
                   Positioned(
                     top: 175,
                     left: 16,
                     right: 16,
                     bottom: 16,
                     child: Container(
-                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(28),
-                        boxShadow: const <BoxShadow>[
+                        boxShadow: const [
                           BoxShadow(
                             color: Color(0x14000000),
                             blurRadius: 24,
@@ -224,121 +199,94 @@ class _PhotoPageState extends State<PhotoPage> {
                           ),
                         ],
                       ),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: <Widget>[
-                            // Mostrar foto se existir
-                            if (_photo != null)
-                              Stack(
-                                children: <Widget>[
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: SizedBox(
-                                      width: double.infinity,
-                                      height: 240,
-                                      child: Image.file(
-                                        File(_photo!),
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) => Container(
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey.shade200,
-                                            borderRadius: BorderRadius.circular(20),
-                                          ),
-                                          child: const Center(
-                                            child: Icon(Icons.broken_image, size: 40),
-                                          ),
-                                        ),
+                      child: Column(
+                        children: [
+                          /// 📷 Foto
+                          if (_photo != null)
+                            Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Image.file(
+                                    File(_photo!),
+                                    width: double.infinity,
+                                    height: 240,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+
+                                Positioned(
+                                  top: 10,
+                                  right: 10,
+                                  child: IconButton(
+                                    onPressed: () {
+                                      setState(() => _photo = null);
+                                    },
+                                    icon: const Icon(Icons.close),
+                                    color: Colors.white,
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  ),
+                                ),
+
+                                if (_state == PhotoState.processing)
+                                  const Positioned.fill(
+                                    child: ColoredBox(
+                                      color: Colors.black26,
+                                      child: Center(
+                                        child: CircularProgressIndicator(),
                                       ),
                                     ),
                                   ),
-                                  // Botão remover foto
-                                  Positioned(
-                                    top: 10,
-                                    right: 10,
-                                    child: InkWell(
-                                      onTap: () {
-                                        setState(() => _photo = null);
-                                      },
-                                      child: Container(
-                                        width: 30,
-                                        height: 30,
-                                        decoration: const BoxDecoration(
-                                          color: Colors.red,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          Icons.close,
-                                          size: 18,
-                                          color: Colors.white,
-                                        ),
-                                      ),
+                              ],
+                            ),
+
+                          const SizedBox(height: 16),
+
+                          /// 📸 Botão câmera
+                          InkWell(
+                            onTap: _state == PhotoState.idle ? _takePhoto : null,
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 48),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: const Color(0xFFD1D5DB)),
+                                borderRadius: BorderRadius.circular(20),
+                                color: const Color(0xFFF9FAFB),
+                              ),
+                              child: Column(
+                                children: [
+                                  const Icon(Icons.camera_alt_outlined, size: 28),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    _state == PhotoState.taking
+                                        ? 'A abrir câmara...'
+                                        : _state == PhotoState.processing
+                                        ? 'A processar...'
+                                        : _photo == null
+                                        ? 'Tirar Foto'
+                                        : 'Tirar Nova Foto',
+                                    style: const TextStyle(
+                                      color: Color(0xFF4B5563),
                                     ),
                                   ),
                                 ],
                               ),
-
-                            if (_photo != null) const SizedBox(height: 16),
-
-                            // Botão tirar foto
-                            InkWell(
-                              borderRadius: BorderRadius.circular(20),
-                              onTap: (_isTakingPhoto || _processingPhoto) ? null : _takePhoto,
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 48,
-                                  horizontal: 16,
-                                ),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: const Color(0xFFD1D5DB),
-                                    width: 1.5,
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                  color: const Color(0xFFF9FAFB),
-                                ),
-                                child: Column(
-                                  children: <Widget>[
-                                    const CircleAvatar(
-                                      radius: 28,
-                                      backgroundColor: Color(0xFFDCFCE7),
-                                      child: Icon(
-                                        Icons.camera_alt_outlined,
-                                        size: 28,
-                                        color: Color(0xFF16A34A),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      _isTakingPhoto
-                                          ? 'A abrir câmara...'
-                                          : _processingPhoto
-                                          ? 'A processar foto...'
-                                          : _photo == null
-                                          ? 'Tirar Foto'
-                                          : 'Tirar Nova Foto',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Color(0xFF4B5563),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
                             ),
+                          ),
 
-                            const SizedBox(height: 24),
+                          const Spacer(),
 
-                            // Botão continuar
-                            SizedBox(
-                              width: double.infinity,
-                              child: PrimaryButton(
-                                label: 'Continuar',
-                                onPressed: _continue,
-                              ),
+                          /// ➡️ Continuar
+                          SizedBox(
+                            width: double.infinity,
+                            child: PrimaryButton(
+                              label: 'Continuar',
+                              onPressed: _continue,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
