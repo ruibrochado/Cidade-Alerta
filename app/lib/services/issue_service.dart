@@ -1,5 +1,5 @@
-import 'dart:async';
 import 'dart:io';
+import 'dart:async';
 import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:geocoding/geocoding.dart';
@@ -12,6 +12,7 @@ class IssueService {
   IssueService({SupabaseClient? client})
       : supabase = client ?? Supabase.instance.client;
 
+  // Buscar morada pelas coordenadas
   Future<String?> _getAddressFromCoords(double lat, double lng) async {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
@@ -25,48 +26,68 @@ class IssueService {
     return null;
   }
 
-  // --- FUNÇÃO DE UPLOOT CORRIGIDA E MAIS SEGURA ---
+  // Limpar ficheiros temporários antigos
+  Future<void> _cleanupOldTempFiles() async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final files = tempDir.listSync();
+      final now = DateTime.now();
+
+      for (var file in files) {
+        if (file is File) {
+          final stat = await file.stat();
+          final age = now.difference(stat.modified);
+
+          // Apagar ficheiros com mais de 1 hora
+          if (age.inHours > 1 && (file.path.contains('compressed') || file.path.contains('temp'))) {
+            await file.delete().catchError((e) => print('Erro ao limpar: $e'));
+          }
+        }
+      }
+    } catch (e) {
+      print('Erro na limpeza de temporários: $e');
+    }
+  }
+
+  // Fazer upload da foto
   Future<String?> _uploadPhoto(String localPhotoPath, String userId) async {
-    // Verificação inicial
+    // Verificar se o ficheiro existe
     if (localPhotoPath.isEmpty) {
-      throw Exception('Caminho da foto vazio');
+      print('Caminho da foto vazio');
+      return null;
     }
 
     final File originalFile = File(localPhotoPath);
     if (!await originalFile.exists()) {
-      throw Exception('Ficheiro da foto não existe: $localPhotoPath');
+      print('Ficheiro da foto não existe: $localPhotoPath');
+      return null;
     }
 
     try {
-      // Criar diretório temporário se não existir
+      // Limpar ficheiros temporários antigos
+      await _cleanupOldTempFiles();
+
+      // Criar diretório temporário
       final tempDir = await getTemporaryDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final compressedPath = path.join(tempDir.path, '$timestamp.jpg');
 
-      // Ler o ficheiro original primeiro para verificar tamanho
+      // Verificar tamanho original
       final originalBytes = await originalFile.readAsBytes();
       print('Tamanho original: ${originalBytes.length ~/ 1024} KB');
 
-      // Comprimir a imagem com parâmetros mais conservadores
-      XFile? compressedFile;
-
-      try {
-        compressedFile = await FlutterImageCompress.compressAndGetFile(
-          originalFile.absolute.path,
-          compressedPath,
-          quality: 70,  // Qualidade um pouco mais alta para manter detalhe
-          minWidth: 1024,  // Largura máxima reduzida
-          minHeight: 1024,  // Altura máxima reduzida
-          rotate: 0,
-        );
-      } catch (compressError) {
-        print('Erro na compressão: $compressError');
-        // Fallback: usar o ficheiro original se a compressão falhar
-        compressedFile = XFile(originalFile.path);
-      }
+      // Comprimir a imagem
+      XFile? compressedFile = await FlutterImageCompress.compressAndGetFile(
+        originalFile.absolute.path,
+        compressedPath,
+        quality: 70,
+        minWidth: 1024,
+        minHeight: 1024,
+      );
 
       if (compressedFile == null) {
-        throw Exception('Falha ao comprimir a imagem');
+        print('Falha ao comprimir, a usar original');
+        compressedFile = XFile(originalFile.path);
       }
 
       final File fileToUpload = File(compressedFile.path);
@@ -75,8 +96,8 @@ class IssueService {
       final compressedBytes = await fileToUpload.readAsBytes();
       print('Tamanho após compressão: ${compressedBytes.length ~/ 1024} KB');
 
-      // Gerar nome único para o ficheiro
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecondsSinceEpoch}.jpg';
+      // Nome único para o ficheiro
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final storagePath = '$userId/$fileName';
 
       // Upload para o Supabase
@@ -89,23 +110,20 @@ class IssueService {
         ),
       );
 
-      // Limpeza: apagar ficheiro temporário se for diferente do original
-      if (compressedFile.path != originalFile.path && await fileToUpload.exists()) {
-        try {
-          await fileToUpload.delete();
-        } catch (e) {
-          print('Erro ao apagar ficheiro temporário: $e');
-        }
+      // Apagar ficheiro temporário
+      if (compressedFile.path != originalFile.path) {
+        unawaited(fileToUpload.delete().catchError((e) => print('Erro ao apagar temp: $e')));
       }
 
       return supabase.storage.from('issue-images').getPublicUrl(storagePath);
 
     } catch (e) {
-      print('Erro crítico no upload: $e');
+      print('Erro no upload: $e');
       return null;
     }
   }
 
+  // Criar nova denúncia
   Future<String> createIssue({
     required String title,
     required String description,
@@ -119,16 +137,19 @@ class IssueService {
     if (user == null) throw Exception('User not logged in');
 
     try {
+      // Upload da foto se existir
       String? uploadedPhotoUrl;
       if (photoPath != null && photoPath.isNotEmpty) {
         uploadedPhotoUrl = await _uploadPhoto(photoPath, user.id);
       }
 
+      // Buscar morada se não foi fornecida
       String? finalAddress = street;
       if (finalAddress == null || finalAddress.isEmpty) {
         finalAddress = await _getAddressFromCoords(latitude, longitude);
       }
 
+      // Inserir no banco de dados
       final Map<String, dynamic> insertedIssue = await supabase
           .from('issues')
           .insert({
@@ -151,18 +172,20 @@ class IssueService {
         throw Exception('Ticket number was not generated.');
       }
 
-      // Chamar edge function em background (não esperar resposta)
+      // Chamar edge function sem esperar (background)
       unawaited(supabase.functions.invoke(
         'forward-issue-to-municipality',
         body: {'issue_id': issueId},
       ));
 
       return ticketNumber;
+
     } catch (e) {
       throw Exception('Error creating issue: $e');
     }
   }
 
+  // Buscar denúncias para o feed
   Future<List<Map<String, dynamic>>> fetchIssues({
     int startIndex = 0,
     int limit = 4,
@@ -186,6 +209,7 @@ class IssueService {
           .range(startIndex, startIndex + limit - 1);
 
       return List<Map<String, dynamic>>.from(data);
+
     } catch (e) {
       throw Exception('Error fetching issues: $e');
     }

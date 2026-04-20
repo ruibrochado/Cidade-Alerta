@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:async';
 
-import 'package:app/pages/detect_location_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -23,6 +22,7 @@ class _PhotoPageState extends State<PhotoPage> {
 
   String? _photo;
   bool _isTakingPhoto = false;
+  bool _processingPhoto = false;
   Timer? _debounceTimer;
 
   @override
@@ -37,11 +37,12 @@ class _PhotoPageState extends State<PhotoPage> {
     super.dispose();
   }
 
+  // Função para tirar foto
   Future<void> _takePhoto() async {
-    // Evitar múltiplas chamadas simultâneas
-    if (_isTakingPhoto) return;
+    // Evitar cliques múltiplos
+    if (_isTakingPhoto || _processingPhoto) return;
 
-    // Pequeno delay para evitar conflitos com animações
+    // Pequeno delay para evitar conflitos
     await Future.delayed(const Duration(milliseconds: 100));
 
     setState(() {
@@ -49,28 +50,17 @@ class _PhotoPageState extends State<PhotoPage> {
     });
 
     try {
-      // Forçar libertação de memória antes de abrir a câmara
-      if (_photo != null) {
-        final oldFile = File(_photo!);
-        if (await oldFile.exists()) {
-          // Não apagar imediatamente para evitar conflitos
-          unawaited(oldFile.delete().catchError((e) => print('Erro ao apagar ficheiro antigo: $e')));
-        }
-      }
-
-      // Pequena pausa para garantir que a UI está estável
-      await Future.delayed(const Duration(milliseconds: 50));
-
+      // Abrir a câmara
       final XFile? file = await _picker.pickImage(
         source: ImageSource.camera,
-        imageQuality: 85,  // Qualidade um pouco mais alta
-        maxWidth: 1920,    // Largura máxima razoável
-        maxHeight: 1920,   // Altura máxima razoável
-        preferredCameraDevice: CameraDevice.rear,
+        imageQuality: 75,
+        maxWidth: 1600,
+        maxHeight: 1600,
       );
 
       if (!mounted) return;
 
+      // Se o user cancelou
       if (file == null) {
         setState(() {
           _isTakingPhoto = false;
@@ -78,45 +68,49 @@ class _PhotoPageState extends State<PhotoPage> {
         return;
       }
 
-      // Verificar se o ficheiro foi criado corretamente
-      final savedFile = File(file.path);
-      if (!await savedFile.exists()) {
-        throw Exception('Ficheiro da foto não foi criado');
-      }
-
-      // Verificar tamanho do ficheiro
-      final fileSize = await savedFile.length();
-      print('Tamanho da foto: ${fileSize ~/ 1024} KB');
-
-      if (fileSize == 0) {
-        throw Exception('Ficheiro da foto está vazio');
-      }
-
+      // Começar a processar a foto
       setState(() {
-        _photo = file.path;
+        _processingPhoto = true;
         _isTakingPhoto = false;
       });
+
+      // Pequena pausa para processamento
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Verificar se o ficheiro é válido
+      final savedFile = File(file.path);
+      if (await savedFile.exists() && await savedFile.length() > 0) {
+        setState(() {
+          _photo = file.path;
+          _processingPhoto = false;
+        });
+      } else {
+        throw Exception('Ficheiro inválido');
+      }
 
     } catch (e) {
       print('Erro ao tirar foto: $e');
       if (!mounted) return;
 
+      // Mostrar erro ao user
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Não foi possível tirar a foto: ${e.toString()}'),
+        const SnackBar(
+          content: Text('Erro ao processar foto. Tenta novamente.'),
           backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
+          duration: Duration(seconds: 2),
         ),
       );
 
       setState(() {
         _isTakingPhoto = false;
+        _processingPhoto = false;
       });
     }
   }
 
+  // Função para continuar
   void _continue() {
-    // Usar debounce para evitar múltiplos toques
+    // Evitar cliques múltiplos
     if (_debounceTimer?.isActive ?? false) return;
 
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
@@ -146,6 +140,7 @@ class _PhotoPageState extends State<PhotoPage> {
         backgroundColor: headerGreen,
         body: Stack(
           children: <Widget>[
+            // Fundo
             Column(
               children: <Widget>[
                 Container(
@@ -160,9 +155,12 @@ class _PhotoPageState extends State<PhotoPage> {
                 ),
               ],
             ),
+
+            // Conteúdo
             SafeArea(
               child: Stack(
                 children: <Widget>[
+                  // Botão voltar
                   Positioned(
                     top: 16,
                     left: 16,
@@ -177,6 +175,8 @@ class _PhotoPageState extends State<PhotoPage> {
                       ),
                     ),
                   ),
+
+                  // Título
                   const Positioned(
                     top: 74,
                     left: 24,
@@ -204,6 +204,8 @@ class _PhotoPageState extends State<PhotoPage> {
                       ],
                     ),
                   ),
+
+                  // Card principal
                   Positioned(
                     top: 175,
                     left: 16,
@@ -225,6 +227,7 @@ class _PhotoPageState extends State<PhotoPage> {
                       child: SingleChildScrollView(
                         child: Column(
                           children: <Widget>[
+                            // Mostrar foto se existir
                             if (_photo != null)
                               Stack(
                                 children: <Widget>[
@@ -233,45 +236,28 @@ class _PhotoPageState extends State<PhotoPage> {
                                     child: SizedBox(
                                       width: double.infinity,
                                       height: 240,
-                                      child: FutureBuilder<bool>(
-                                        future: File(_photo!).exists(),
-                                        builder: (context, snapshot) {
-                                          if (snapshot.hasData && snapshot.data == true) {
-                                            return Image.file(
-                                              File(_photo!),
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) => Container(
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey.shade200,
-                                                  borderRadius: BorderRadius.circular(20),
-                                                ),
-                                                child: const Center(
-                                                  child: Icon(Icons.broken_image, size: 40),
-                                                ),
-                                              ),
-                                            );
-                                          }
-                                          return Container(
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey.shade200,
-                                              borderRadius: BorderRadius.circular(20),
-                                            ),
-                                            child: const Center(
-                                              child: CircularProgressIndicator(),
-                                            ),
-                                          );
-                                        },
+                                      child: Image.file(
+                                        File(_photo!),
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) => Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade200,
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                          child: const Center(
+                                            child: Icon(Icons.broken_image, size: 40),
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
+                                  // Botão remover foto
                                   Positioned(
                                     top: 10,
                                     right: 10,
                                     child: InkWell(
                                       onTap: () {
-                                        setState(() {
-                                          _photo = null;
-                                        });
+                                        setState(() => _photo = null);
                                       },
                                       child: Container(
                                         width: 30,
@@ -290,10 +276,13 @@ class _PhotoPageState extends State<PhotoPage> {
                                   ),
                                 ],
                               ),
+
                             if (_photo != null) const SizedBox(height: 16),
+
+                            // Botão tirar foto
                             InkWell(
                               borderRadius: BorderRadius.circular(20),
-                              onTap: _isTakingPhoto ? null : _takePhoto,
+                              onTap: (_isTakingPhoto || _processingPhoto) ? null : _takePhoto,
                               child: Container(
                                 width: double.infinity,
                                 padding: const EdgeInsets.symmetric(
@@ -322,6 +311,8 @@ class _PhotoPageState extends State<PhotoPage> {
                                     const SizedBox(height: 12),
                                     Text(
                                       _isTakingPhoto
+                                          ? 'A abrir câmara...'
+                                          : _processingPhoto
                                           ? 'A processar foto...'
                                           : _photo == null
                                           ? 'Tirar Foto'
@@ -335,7 +326,10 @@ class _PhotoPageState extends State<PhotoPage> {
                                 ),
                               ),
                             ),
+
                             const SizedBox(height: 24),
+
+                            // Botão continuar
                             SizedBox(
                               width: double.infinity,
                               child: PrimaryButton(
