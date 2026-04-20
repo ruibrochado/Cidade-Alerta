@@ -123,13 +123,19 @@ class IssueService {
       throw Exception('Error creating issue: $e');
     }
   }
-
-  Future<List<Map<String, dynamic>>> fetchIssues() async {
+// --- FUNÇÃO COM PAGINAÇÃO E FILTRO DE TESTES ---
+  Future<List<Map<String, dynamic>>> fetchIssues({int startIndex = 0, int limit = 10}) async {
     try {
       final List<dynamic> data = await supabase
           .from('issues')
           .select()
-          .order('created_at', ascending: false);
+      // Filtros para esconder as denúncias de teste:
+          .neq('title', 'Text Issue')
+          .neq('title', 'Test Issue')
+          .order('created_at', ascending: false)
+      // A magia da paginação: dizemos de onde a onde queremos os dados
+          .range(startIndex, startIndex + limit - 1);
+
       return List<Map<String, dynamic>>.from(data);
     } catch (e) {
       throw Exception('Error fetching issues: $e');

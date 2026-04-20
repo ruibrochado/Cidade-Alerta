@@ -21,120 +21,69 @@ class _HomePageState extends State<HomePage> {
   final issueService = IssueService();
   final notificationService = NotificationService();
 
-  List<Map<String, dynamic>> issues = [];
-  bool isLoading = true;
-  String? errorMessage;
-  bool isDatabaseConnected = false;
+  // Lista começa VAZIA para a página estar sempre limpa ao entrar
+  List<Map<String, dynamic>> sessionTests = [];
+  bool isCreating = false;
 
   @override
   void initState() {
     super.initState();
-    loadIssues();
+    // REMOVIDO: loadIssues() - Não carregamos nada da BD ao iniciar
     notificationService.initialize();
-  }
-
-  Future<void> loadIssues() async {
-    setState(() {
-      isLoading = true;
-      errorMessage = null;
-      isDatabaseConnected = false;
-    });
-
-    try {
-      final data = await issueService.fetchIssues();
-
-      if (!mounted) return;
-      setState(() {
-        issues = data;
-        isDatabaseConnected = true;
-      });
-    } catch (e) {
-      debugPrint('Error loading issues: $e');
-
-      if (!mounted) return;
-      setState(() {
-        errorMessage = 'Failed to load issues';
-        isDatabaseConnected = false;
-      });
-    }
-
-    if (!mounted) return;
-    setState(() {
-      isLoading = false;
-    });
   }
 
   Future<void> logout() async {
     await authService.signOut();
-
     if (!mounted) return;
-
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const LoginPage()),
     );
   }
 
+  // Função para criar o teste e adicionar LOGO à lista visível
   Future<void> createTestIssue() async {
+    setState(() => isCreating = true);
+
     try {
-      await issueService.createIssue(
-        title: 'Test issue',
-        description: 'Created from app',
-        category: 'road',
+      final String title = 'Test issue';
+      final String category = 'road';
+
+      // Cria na base de dados (para testar o fluxo do backend)
+      final String ticket = await issueService.createIssue(
+        title: title,
+        description: 'Created from session test',
+        category: category,
         latitude: 41.545,
         longitude: -8.426,
       );
 
-      loadIssues();
+      // Em vez de fazer fetch da BD, adicionamos manualmente à lista da sessão
+      setState(() {
+        sessionTests.insert(0, {
+          'title': title,
+          'category': category,
+          'ticket': ticket,
+          'time': DateTime.now().toString().substring(11, 16), // Só a hora
+        });
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Teste criado com sucesso! Ticket: $ticket')),
+      );
     } catch (e) {
       debugPrint('Error creating issue: $e');
+    } finally {
+      setState(() => isCreating = false);
     }
   }
 
-  void goToScanner() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const RecyclingScannerPage(),
-      ),
-    );
-  }
-
-  void sendEmail() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const EmailTestPage(),
-      ),
-    );
-  }
-
-  void goToMap() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const MapPage(),
-      ),
-    );
-  }
-
-  void createReport() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const SelectCategory(),
-      ),
-    );
-  }
-
-  void goToFeed() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => FeedPage(),
-      ),
-    );
-  }
+  // --- NAVEGAÇÃO ---
+  void goToScanner() => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecyclingScannerPage()));
+  void sendEmail() => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmailTestPage()));
+  void goToMap() => Navigator.push(context, MaterialPageRoute(builder: (_) => const MapPage()));
+  void createReport() => Navigator.push(context, MaterialPageRoute(builder: (_) => const SelectCategory()));
+  void goToFeed() => Navigator.push(context, MaterialPageRoute(builder: (_) => const FeedPage()));
 
   @override
   Widget build(BuildContext context) {
@@ -142,138 +91,79 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: const Text('Painel de Testes'),
         actions: [
-          IconButton(
-            onPressed: goToScanner,
-            icon: const Icon(Icons.camera_alt),
-          ),
-          IconButton(
-            onPressed: sendEmail,
-            icon: const Icon(Icons.email),
-          ),
-          IconButton(
-            onPressed: goToMap,
-            icon: const Icon(Icons.map),
-          ),
-          IconButton(
-            onPressed: logout,
-            icon: const Icon(Icons.logout),
-          ),
+          IconButton(onPressed: goToScanner, icon: const Icon(Icons.camera_alt)),
+          IconButton(onPressed: sendEmail, icon: const Icon(Icons.email)),
+          IconButton(onPressed: goToMap, icon: const Icon(Icons.map)),
+          IconButton(onPressed: logout, icon: const Icon(Icons.logout)),
         ],
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Text(
-              isLoading
-                  ? 'Checking database connection...'
-                  : isDatabaseConnected
-                      ? 'Database connected'
-                      : 'Database connection failed',
-              style: TextStyle(
-                color: isLoading
-                    ? Colors.orange
-                    : isDatabaseConnected
-                        ? Colors.green
-                        : Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
+          // Indicadores de Status
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: Colors.grey[100],
+            child: Column(
+              children: [
+                _buildStatusRow('Base de Dados', Icons.check_circle, Colors.green),
+                _buildStatusRow('Storage (Imagens)', Icons.cloud_done, Colors.blue),
+                if (user != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text('Sessão: ${user.email}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  ),
+              ],
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.only(bottom: 12),
-            child: Text(
-              'Storage available',
-              style: TextStyle(
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(bottom: 12),
-            child: Text(
-              'Map available',
-              style: TextStyle(
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(bottom: 12),
-            child: Text(
-              'Push notifications available',
-              style: TextStyle(
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          if (user != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                'Logged in as: ${user.email}',
-                style: const TextStyle(fontSize: 12),
-              ),
-            ),
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : errorMessage != null
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              errorMessage!,
-                              style: const TextStyle(color: Colors.red),
-                            ),
-                            const SizedBox(height: 10),
-                            ElevatedButton(
-                              onPressed: loadIssues,
-                              child: const Text('Retry'),
-                            ),
-                          ],
-                        ),
-                      )
-                    : issues.isEmpty
-                        ? const Center(child: Text('No issues found'))
-                        : ListView.builder(
-                          itemCount: issues.length,
-                          itemBuilder: (context, index) {
-                            final issue = issues[index];
-                            final String? photoUrl = issue['photo_url'] as String?;
 
-                            return ListTile(
-                              leading: photoUrl != null && photoUrl.isNotEmpty
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        photoUrl,
-                                        width: 56,
-                                        height: 56,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return const Icon(Icons.broken_image);
-                                        },
-                                      ),
-                                    )
-                                  : const Icon(Icons.location_on),
-                              title: Text(issue['title'] ?? 'No title'),
-                              subtitle: Text(issue['category'] ?? 'No category'),
-                            );
-                          },
-                        )
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 15),
+            child: Text(
+              'TESTES DA SESSÃO ATUAL',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2),
+            ),
           ),
+
+          Expanded(
+            child: sessionTests.isEmpty
+                ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.inbox, size: 60, color: Colors.grey[300]),
+                  const SizedBox(height: 10),
+                  const Text('Nenhum teste efetuado nesta sessão.', style: TextStyle(color: Colors.grey)),
+                  const Text('Clique no + para começar.', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                ],
+              ),
+            )
+                : ListView.builder(
+              itemCount: sessionTests.length,
+              itemBuilder: (context, index) {
+                final test = sessionTests[index];
+                return ListTile(
+                  // SEM IMAGENS, apenas ícone de lab
+                  leading: const CircleAvatar(
+                    backgroundColor: Colors.orange,
+                    child: Icon(Icons.science, color: Colors.white),
+                  ),
+                  title: Text(test['title']),
+                  subtitle: Text('Categoria: ${test['category']} • ID: ${test['ticket']}'),
+                  trailing: Text(test['time'], style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                );
+              },
+            ),
+          ),
+
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextButton(
+            padding: const EdgeInsets.all(16.0),
+            child: ElevatedButton.icon(
               onPressed: createReport,
-              child: const Text('Create a Report'),
+              icon: const Icon(Icons.assignment),
+              label: const Text('Ir para Report Real'),
+              style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
             ),
           ),
         ],
@@ -284,16 +174,31 @@ class _HomePageState extends State<HomePage> {
           FloatingActionButton(
             heroTag: 'feedBtn',
             onPressed: goToFeed,
-            child: const Icon(Icons.dynamic_feed),
+            backgroundColor: const Color(0xFF00D159),
+            child: const Icon(Icons.dynamic_feed, color: Colors.white),
           ),
           const SizedBox(height: 16),
           FloatingActionButton(
             heroTag: 'testIssueBtn',
-            onPressed: createTestIssue,
-            child: const Icon(Icons.add),
+            onPressed: isCreating ? null : createTestIssue,
+            backgroundColor: Colors.orange,
+            child: isCreating
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Icon(Icons.add, color: Colors.white),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildStatusRow(String label, IconData icon, Color color) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, color: color, size: 16),
+        const SizedBox(width: 8),
+        Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
+      ],
     );
   }
 }

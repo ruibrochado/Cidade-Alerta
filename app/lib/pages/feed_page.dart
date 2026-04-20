@@ -15,6 +15,75 @@ class _FeedPageState extends State<FeedPage> {
   final authService = AuthService();
   final issueService = IssueService();
 
+  // --- VARIÁVEIS PARA O SCROLL INFINITO ---
+  final ScrollController _scrollController = ScrollController();
+  List<ReportData> _reports = [];
+  bool _isLoading = false;
+  bool _hasMore = true; // Diz-nos se ainda há mais reports na base de dados
+  final int _limit = 10; // Quantos queremos carregar de cada vez
+
+  @override
+  void initState() {
+    super.initState();
+    _loadIssues(refresh: true); // Carrega os primeiros ao abrir
+    _scrollController.addListener(_onScroll); // Fica à escuta do scroll
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // Deteta quando o utilizador está quase a chegar ao fim da lista
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      if (!_isLoading && _hasMore) {
+        _loadIssues(); // Pede mais dados ao Supabase
+      }
+    }
+  }
+
+  // Função central para buscar dados
+  Future<void> _loadIssues({bool refresh = false}) async {
+    if (_isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    if (refresh) {
+      _reports.clear();
+      _hasMore = true;
+    }
+
+    try {
+      final data = await issueService.fetchIssues(
+        startIndex: _reports.length,
+        limit: _limit,
+      );
+
+      final newReports = data.map((map) => ReportData.fromMap(map)).toList();
+
+      setState(() {
+        _reports.addAll(newReports);
+        // Se a base de dados devolver menos do que pedimos (ex: devolve 6 em vez de 10),
+        // significa que chegámos ao fim de todas as denúncias ativas.
+        if (newReports.length < _limit) {
+          _hasMore = false;
+        }
+      });
+    } catch (e) {
+      debugPrint("Erro ao carregar denúncias: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = authService.getCurrentUser();
@@ -24,11 +93,7 @@ class _FeedPageState extends State<FeedPage> {
       backgroundColor: const Color(0xFFCDE5CB),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            '/home',
-                (route) => false,
-          );
+          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
           Navigator.pushNamed(context, '/categories');
         },
         backgroundColor: const Color(0xFF00D159),
@@ -71,71 +136,70 @@ class _FeedPageState extends State<FeedPage> {
               child: Text(
                 'Viste algum problema\nna cidade?',
                 style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700,
-                  height: 1.2,
-                  letterSpacing: 0,
-                  color: Color(0xFF333333),
+                  fontSize: 26, fontWeight: FontWeight.w700, height: 1.2, letterSpacing: 0, color: Color(0xFF333333),
                 ),
               ),
             ),
             const SizedBox(height: 20),
             _buildSearchBar(),
             const SizedBox(height: 25),
+
+            // --- ÁREA DO FEED ---
             Expanded(
               child: Container(
                 width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.zero,
-                ),
+                decoration: const BoxDecoration(color: Colors.white),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 25, 20, 0),
-                  child: FutureBuilder<List<Map<String, dynamic>>>(
-                    future: issueService.fetchIssues(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator(color: Color(0xFF00D159)));
-                      }
+                  // RefreshIndicator permite puxar para baixo para atualizar
+                  child: RefreshIndicator(
+                    onRefresh: () => _loadIssues(refresh: true),
+                    color: const Color(0xFF00D159),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: const [
+                            Text('Denúncias recentes',
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF333333))),
+                            Text('Ver todas',
+                                style: TextStyle(color: Color(0xFF00D159), fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        Text('${_reports.length} denúncias carregadas',
+                            style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                        const SizedBox(height: 20),
 
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Erro ao carregar denúncias: ${snapshot.error}'));
-                      }
-
-                      final List<ReportData> reports = (snapshot.data ?? [])
-                          .map((map) => ReportData.fromMap(map))
-                          .toList();
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: const [
-                              Text('Denúncias recentes',
-                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF333333))),
-                              Text('Ver todas',
-                                  style: TextStyle(color: Color(0xFF00D159), fontWeight: FontWeight.w600)),
-                            ],
-                          ),
-                          const SizedBox(height: 5),
-                          Text('${reports.length} denúncias ativas',
-                              style: const TextStyle(color: Colors.grey, fontSize: 14)),
-                          const SizedBox(height: 20),
-                          if (reports.isEmpty)
-                            const Expanded(child: Center(child: Text('Nenhuma denúncia encontrada.')))
-                          else
-                            Expanded(
-                              child: ListView.separated(
-                                padding: const EdgeInsets.only(bottom: 20),
-                                itemCount: reports.length,
-                                separatorBuilder: (context, index) => const SizedBox(height: 20),
-                                itemBuilder: (context, index) => _buildCard(reports[index]),
-                              ),
+                        // Lógica para mostrar o Loading Inicial ou a Lista
+                        if (_reports.isEmpty && _isLoading)
+                          const Expanded(child: Center(child: CircularProgressIndicator(color: Color(0xFF00D159))))
+                        else if (_reports.isEmpty)
+                          const Expanded(child: Center(child: Text('Nenhuma denúncia válida encontrada.')))
+                        else
+                          Expanded(
+                            child: ListView.separated(
+                              controller: _scrollController, // O detetive do scroll!
+                              physics: const AlwaysScrollableScrollPhysics(), // Necessário para o pull-to-refresh
+                              padding: const EdgeInsets.only(bottom: 20),
+                              // Se ainda houver mais reports, adicionamos um item extra no final (o ícone a girar)
+                              itemCount: _reports.length + (_hasMore ? 1 : 0),
+                              separatorBuilder: (context, index) => const SizedBox(height: 20),
+                              itemBuilder: (context, index) {
+                                // Se chegarmos ao último item extra, mostra o indicador a carregar as próximas 10
+                                if (index == _reports.length) {
+                                  return const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 20.0),
+                                    child: Center(child: CircularProgressIndicator(color: Color(0xFF00D159))),
+                                  );
+                                }
+                                return _buildCard(_reports[index]);
+                              },
                             ),
-                        ],
-                      );
-                    },
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -146,6 +210,7 @@ class _FeedPageState extends State<FeedPage> {
     );
   }
 
+  // --- WIDGETS AUXILIARES FICAM EXATAMENTE IGUAIS ---
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -238,7 +303,6 @@ class _FeedPageState extends State<FeedPage> {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        // USAR O ATRIBUTO DINÂMICO AQUI
                         report.address ?? 'Localização registada',
                         style: const TextStyle(fontSize: 12, color: Colors.grey),
                         maxLines: 1,
