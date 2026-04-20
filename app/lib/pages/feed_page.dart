@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/issue_service.dart';
 import '../models/report_data.dart';
-import 'issue_category_page.dart';
 
 class FeedPage extends StatefulWidget {
   const FeedPage({super.key});
@@ -14,6 +13,45 @@ class FeedPage extends StatefulWidget {
 class _FeedPageState extends State<FeedPage> {
   final authService = AuthService();
   final issueService = IssueService();
+
+  final ScrollController _scrollController = ScrollController();
+  final List<ReportData> _reports = [];
+  int _currentPage = 0;
+  bool _isLoading = false;
+  bool _hasMore = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMore();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        _loadMore();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadMore() async {
+    if (_isLoading || !_hasMore) return;
+    setState(() => _isLoading = true);
+
+    final newData = await issueService.fetchIssues(page: _currentPage);
+    final newReports = newData.map((m) => ReportData.fromMap(m)).toList();
+
+    setState(() {
+      _reports.addAll(newReports);
+      _currentPage++;
+      _hasMore = newReports.length == 10;
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,51 +129,47 @@ class _FeedPageState extends State<FeedPage> {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 25, 20, 0),
-                  child: FutureBuilder<List<Map<String, dynamic>>>(
-                    future: issueService.fetchIssues(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator(color: Color(0xFF00D159)));
-                      }
-
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Erro ao carregar denúncias: ${snapshot.error}'));
-                      }
-
-                      final List<ReportData> reports = (snapshot.data ?? [])
-                          .map((map) => ReportData.fromMap(map))
-                          .toList();
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: const [
-                              Text('Denúncias recentes',
-                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF333333))),
-                              Text('Ver todas',
-                                  style: TextStyle(color: Color(0xFF00D159), fontWeight: FontWeight.w600)),
-                            ],
-                          ),
-                          const SizedBox(height: 5),
-                          Text('${reports.length} denúncias ativas',
-                              style: const TextStyle(color: Colors.grey, fontSize: 14)),
-                          const SizedBox(height: 20),
-                          if (reports.isEmpty)
-                            const Expanded(child: Center(child: Text('Nenhuma denúncia encontrada.')))
-                          else
-                            Expanded(
-                              child: ListView.separated(
-                                padding: const EdgeInsets.only(bottom: 20),
-                                itemCount: reports.length,
-                                separatorBuilder: (context, index) => const SizedBox(height: 20),
-                                itemBuilder: (context, index) => _buildCard(reports[index]),
-                              ),
-                            ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: const [
+                          Text('Denúncias recentes',
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF333333))),
+                          Text('Ver todas',
+                              style: TextStyle(color: Color(0xFF00D159), fontWeight: FontWeight.w600)),
                         ],
-                      );
-                    },
+                      ),
+                      const SizedBox(height: 5),
+                      Text('${_reports.length} denúncias ativas',
+                          style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                      const SizedBox(height: 20),
+                      if (_reports.isEmpty && _isLoading)
+                        const Expanded(child: Center(child: CircularProgressIndicator(color: Color(0xFF00D159))))
+                      else if (_reports.isEmpty)
+                        const Expanded(child: Center(child: Text('Nenhuma denúncia encontrada.')))
+                      else
+                        Expanded(
+                          child: ListView.separated(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.only(bottom: 20),
+                            itemCount: _reports.length + (_hasMore ? 1 : 0),
+                            separatorBuilder: (_, __) => const SizedBox(height: 20),
+                            itemBuilder: (context, index) {
+                              if (index == _reports.length) {
+                                return const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16),
+                                    child: CircularProgressIndicator(color: Color(0xFF00D159)),
+                                  ),
+                                );
+                              }
+                              return _buildCard(_reports[index]);
+                            },
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
@@ -238,7 +272,6 @@ class _FeedPageState extends State<FeedPage> {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        // USAR O ATRIBUTO DINÂMICO AQUI
                         report.address ?? 'Localização registada',
                         style: const TextStyle(fontSize: 12, color: Colors.grey),
                         maxLines: 1,

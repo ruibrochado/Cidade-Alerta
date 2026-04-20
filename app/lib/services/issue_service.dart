@@ -5,6 +5,7 @@ import 'package:geocoding/geocoding.dart';
 
 class IssueService {
   final SupabaseClient supabase;
+  static const int _pageSize = 10;
 
   IssueService({SupabaseClient? client})
       : supabase = client ?? Supabase.instance.client;
@@ -96,12 +97,17 @@ class IssueService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchIssues() async {
+  Future<List<Map<String, dynamic>>> fetchIssues({int page = 0}) async {
     try {
+      final from = page * _pageSize;
+      final to = from + _pageSize - 1;
+
       final List<dynamic> data = await supabase
           .from('issues')
           .select()
-          .order('created_at', ascending: false);
+          .order('created_at', ascending: false)
+          .range(from, to);
+
       return List<Map<String, dynamic>>.from(data);
     } catch (e) {
       throw Exception('Error fetching issues: $e');
