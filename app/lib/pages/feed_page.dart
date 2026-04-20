@@ -20,7 +20,7 @@ class _FeedPageState extends State<FeedPage> {
   List<ReportData> _reports = [];
   bool _isLoading = false;
   bool _hasMore = true; // Diz-nos se ainda há mais reports na base de dados
-  final int _limit = 10; // Quantos queremos carregar de cada vez
+  final int _limit = 4; // Quantos queremos carregar de cada vez
 
   @override
   void initState() {
@@ -181,7 +181,10 @@ class _FeedPageState extends State<FeedPage> {
                           Expanded(
                             child: ListView.separated(
                               controller: _scrollController, // O detetive do scroll!
-                              physics: const AlwaysScrollableScrollPhysics(), // Necessário para o pull-to-refresh
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              addAutomaticKeepAlives: false, // Esquece o que sai do ecrã
+                              addRepaintBoundaries: false,
+                              cacheExtent: 100,// Necessário para o pull-to-refresh
                               padding: const EdgeInsets.only(bottom: 20),
                               // Se ainda houver mais reports, adicionamos um item extra no final (o ícone a girar)
                               itemCount: _reports.length + (_hasMore ? 1 : 0),

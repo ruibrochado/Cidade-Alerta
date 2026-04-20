@@ -21,27 +21,24 @@ class _HomePageState extends State<HomePage> {
   final issueService = IssueService();
   final notificationService = NotificationService();
 
-  // Lista começa VAZIA para a página estar sempre limpa ao entrar
+  // LISTA VAZIA AO INÍCIO DA SESSÃO
   List<Map<String, dynamic>> sessionTests = [];
   bool isCreating = false;
 
   @override
   void initState() {
     super.initState();
-    // REMOVIDO: loadIssues() - Não carregamos nada da BD ao iniciar
     notificationService.initialize();
+    // A página já não faz loadIssues() ao entrar! Fica limpa.
   }
 
   Future<void> logout() async {
     await authService.signOut();
     if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-    );
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPage()));
   }
 
-  // Função para criar o teste e adicionar LOGO à lista visível
+  // CRIA O TESTE E METE NA LISTA DA HOME
   Future<void> createTestIssue() async {
     setState(() => isCreating = true);
 
@@ -49,7 +46,7 @@ class _HomePageState extends State<HomePage> {
       final String title = 'Test issue';
       final String category = 'road';
 
-      // Cria na base de dados (para testar o fluxo do backend)
+      // Envia para o Supabase
       final String ticket = await issueService.createIssue(
         title: title,
         description: 'Created from session test',
@@ -58,18 +55,18 @@ class _HomePageState extends State<HomePage> {
         longitude: -8.426,
       );
 
-      // Em vez de fazer fetch da BD, adicionamos manualmente à lista da sessão
+      // Atualiza a UI imediatamente (sem imagens)
       setState(() {
         sessionTests.insert(0, {
           'title': title,
           'category': category,
           'ticket': ticket,
-          'time': DateTime.now().toString().substring(11, 16), // Só a hora
         });
       });
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Teste criado com sucesso! Ticket: $ticket')),
+        SnackBar(content: Text('Teste criado: $ticket')),
       );
     } catch (e) {
       debugPrint('Error creating issue: $e');
@@ -78,7 +75,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // --- NAVEGAÇÃO ---
   void goToScanner() => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecyclingScannerPage()));
   void sendEmail() => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmailTestPage()));
   void goToMap() => Navigator.push(context, MaterialPageRoute(builder: (_) => const MapPage()));
@@ -91,7 +87,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Painel de Testes'),
+        title: const Text('Home'),
         actions: [
           IconButton(onPressed: goToScanner, icon: const Icon(Icons.camera_alt)),
           IconButton(onPressed: sendEmail, icon: const Icon(Icons.email)),
@@ -101,70 +97,53 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Column(
         children: [
-          // Indicadores de Status
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: Colors.grey[100],
-            child: Column(
-              children: [
-                _buildStatusRow('Base de Dados', Icons.check_circle, Colors.green),
-                _buildStatusRow('Storage (Imagens)', Icons.cloud_done, Colors.blue),
-                if (user != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text('Sessão: ${user.email}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                  ),
-              ],
-            ),
-          ),
-
+          // TEXTOS VERDES ORIGINAIS RECUPERADOS
           const Padding(
-            padding: EdgeInsets.symmetric(vertical: 15),
-            child: Text(
-              'TESTES DA SESSÃO ATUAL',
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2),
-            ),
+            padding: EdgeInsets.all(12),
+            child: Text('Database connected', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+          ),
+          const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: Text('Storage available', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+          ),
+          const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: Text('Map available', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+          ),
+          const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: Text('Push notifications available', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
           ),
 
+          if (user != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text('Logged in as: ${user.email}', style: const TextStyle(fontSize: 12)),
+            ),
+
+          const Divider(),
+          const Text('TESTES DA SESSÃO', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+
+          // ÁREA LIMPA SEM IMAGENS, SÓ COM ÍCONE DE TESTE
           Expanded(
             child: sessionTests.isEmpty
-                ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.inbox, size: 60, color: Colors.grey[300]),
-                  const SizedBox(height: 10),
-                  const Text('Nenhum teste efetuado nesta sessão.', style: TextStyle(color: Colors.grey)),
-                  const Text('Clique no + para começar.', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                ],
-              ),
-            )
+                ? const Center(child: Text('Nenhum teste efetuado nesta sessão.'))
                 : ListView.builder(
               itemCount: sessionTests.length,
               itemBuilder: (context, index) {
                 final test = sessionTests[index];
                 return ListTile(
-                  // SEM IMAGENS, apenas ícone de lab
-                  leading: const CircleAvatar(
-                    backgroundColor: Colors.orange,
-                    child: Icon(Icons.science, color: Colors.white),
-                  ),
+                  leading: const Icon(Icons.science, color: Colors.orange), // Ícone em vez de foto nula
                   title: Text(test['title']),
-                  subtitle: Text('Categoria: ${test['category']} • ID: ${test['ticket']}'),
-                  trailing: Text(test['time'], style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  subtitle: Text('${test['category']} - ${test['ticket']}'),
                 );
               },
             ),
           ),
 
           Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton.icon(
-              onPressed: createReport,
-              icon: const Icon(Icons.assignment),
-              label: const Text('Ir para Report Real'),
-              style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
-            ),
+            padding: const EdgeInsets.all(8.0),
+            child: TextButton(onPressed: createReport, child: const Text('Create a Report')),
           ),
         ],
       ),
@@ -174,31 +153,16 @@ class _HomePageState extends State<HomePage> {
           FloatingActionButton(
             heroTag: 'feedBtn',
             onPressed: goToFeed,
-            backgroundColor: const Color(0xFF00D159),
-            child: const Icon(Icons.dynamic_feed, color: Colors.white),
+            child: const Icon(Icons.dynamic_feed),
           ),
           const SizedBox(height: 16),
           FloatingActionButton(
             heroTag: 'testIssueBtn',
             onPressed: isCreating ? null : createTestIssue,
-            backgroundColor: Colors.orange,
-            child: isCreating
-                ? const CircularProgressIndicator(color: Colors.white)
-                : const Icon(Icons.add, color: Colors.white),
+            child: isCreating ? const CircularProgressIndicator(color: Colors.white) : const Icon(Icons.add),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildStatusRow(String label, IconData icon, Color color) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, color: color, size: 16),
-        const SizedBox(width: 8),
-        Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
-      ],
     );
   }
 }
