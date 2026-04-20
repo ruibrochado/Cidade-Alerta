@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart'; // NOVO IMPORT
+import 'package:path_provider/path_provider.dart'; // NOVO IMPORT
 
 class IssueService {
   final SupabaseClient supabase;
@@ -22,19 +24,45 @@ class IssueService {
     return null;
   }
 
+  // --- NOVA FUNÇÃO DE UPLOAD COM COMPRESSÃO ---
   Future<String?> _uploadPhoto(String localPhotoPath, String userId) async {
-    final File file = File(localPhotoPath);
-    if (!file.existsSync()) throw Exception('Photo file does not exist.');
+    final File originalFile = File(localPhotoPath);
+    if (!originalFile.existsSync()) throw Exception('Photo file does not exist.');
 
-    final String fileExtension = path.extension(localPhotoPath).toLowerCase();
-    final String fileName = '${DateTime.now().millisecondsSinceEpoch}$fileExtension';
+    // 1. Obter pasta temporária do telemóvel para guardar a versão comprimida
+    final dir = await getTemporaryDirectory();
+    final targetPath = path.join(dir.path, '${DateTime.now().millisecondsSinceEpoch}_compressed.jpg');
+
+    // 2. Comprimir a imagem brutalmente (sem perder qualidade visual no telemóvel)
+    // Converte sempre para JPEG (o melhor para fotos) e reduz o peso drasticamente
+    final XFile? compressedXFile = await FlutterImageCompress.compressAndGetFile(
+      originalFile.absolute.path,
+      targetPath,
+      quality: 60, // 60% é o "sweet spot" (ponto ideal) entre qualidade e tamanho
+      format: CompressFormat.jpeg,
+    );
+
+    if (compressedXFile == null) {
+      throw Exception('Falha ao comprimir a imagem.');
+    }
+
+    final File fileToUpload = File(compressedXFile.path);
+
+    // 3. Preparar o nome do ficheiro para o Supabase
+    final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
     final String storagePath = '$userId/$fileName';
 
+    // 4. Fazer o upload da versão LEVE
     await supabase.storage.from('issue-images').upload(
       storagePath,
-      file,
+      fileToUpload,
       fileOptions: const FileOptions(upsert: false),
     );
+
+    // 5. Apagar o ficheiro temporário para não encher o telemóvel do utilizador
+    if (fileToUpload.existsSync()) {
+      fileToUpload.deleteSync();
+    }
 
     return supabase.storage.from('issue-images').getPublicUrl(storagePath);
   }
@@ -45,7 +73,7 @@ class IssueService {
     required String category,
     required double latitude,
     required double longitude,
-    String? street, // VOLTEI A ADICIONAR ESTE PARÂMETRO
+    String? street,
     String? photoPath,
   }) async {
     final User? user = supabase.auth.currentUser;
@@ -53,11 +81,11 @@ class IssueService {
 
     try {
       String? uploadedPhotoUrl;
+      // Se houver foto, chama o nosso novo método comprimido
       if (photoPath != null && photoPath.isNotEmpty) {
         uploadedPhotoUrl = await _uploadPhoto(photoPath, user.id);
       }
 
-      // Se a rua não vier preenchida do ecrã anterior, tentamos obter aqui
       String? finalAddress = street;
       if (finalAddress == null || finalAddress.isEmpty) {
         finalAddress = await _getAddressFromCoords(latitude, longitude);
@@ -72,7 +100,7 @@ class IssueService {
         'category': category,
         'latitude': latitude,
         'longitude': longitude,
-        'address': finalAddress, // Usa a rua final (ou a passada ou a detectada)
+        'address': finalAddress,
         'photo_url': uploadedPhotoUrl,
       })
           .select('id, ticket_number')
