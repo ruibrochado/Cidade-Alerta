@@ -3,6 +3,7 @@ import '../services/auth_service.dart';
 import '../services/issue_service.dart';
 import '../models/report_data.dart';
 import 'issue_category_page.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class FeedPage extends StatefulWidget {
   const FeedPage({super.key});
@@ -178,19 +179,21 @@ class _FeedPageState extends State<FeedPage> {
                         else if (_reports.isEmpty)
                           const Expanded(child: Center(child: Text('Nenhuma denúncia válida encontrada.')))
                         else
+                        // ... por volta da linha 158
                           Expanded(
                             child: ListView.separated(
-                              controller: _scrollController, // O detetive do scroll!
+                              controller: _scrollController,
                               physics: const AlwaysScrollableScrollPhysics(),
-                              addAutomaticKeepAlives: false, // Esquece o que sai do ecrã
-                              addRepaintBoundaries: false,
-                              cacheExtent: 100,// Necessário para o pull-to-refresh
+
+                              // ATUALIZA ESTAS 3 LINHAS AQUI:
+                              addAutomaticKeepAlives: false,
+                              addRepaintBoundaries: true,
+                              cacheExtent: 500.0,
+
                               padding: const EdgeInsets.only(bottom: 20),
-                              // Se ainda houver mais reports, adicionamos um item extra no final (o ícone a girar)
                               itemCount: _reports.length + (_hasMore ? 1 : 0),
                               separatorBuilder: (context, index) => const SizedBox(height: 20),
                               itemBuilder: (context, index) {
-                                // Se chegarmos ao último item extra, mostra o indicador a carregar as próximas 10
                                 if (index == _reports.length) {
                                   return const Padding(
                                     padding: EdgeInsets.symmetric(vertical: 20.0),
@@ -276,15 +279,23 @@ class _FeedPageState extends State<FeedPage> {
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child: report.photos.isNotEmpty
-                ? Image.network(
-              report.photos.first,
+                ? CachedNetworkImage(
+              imageUrl: report.photos.first,
               height: 180,
               width: double.infinity,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(
+              // Enquanto a imagem carrega, mostra o teu placeholder cinzento
+              placeholder: (context, url) => _buildImagePlaceholder(
+                icon: Icons.image,
+                message: 'A carregar...',
+              ),
+              // Se der erro, mostra o placeholder de erro
+              errorWidget: (context, url, error) => _buildImagePlaceholder(
                 icon: Icons.broken_image,
                 message: 'Erro ao carregar imagem',
               ),
+              // AJUSTE DE MEMÓRIA (O segredo do Insta)
+              memCacheHeight: 350, // Redimensiona a imagem na RAM para gastar menos
             )
                 : _buildImagePlaceholder(
               icon: Icons.image_not_supported,
