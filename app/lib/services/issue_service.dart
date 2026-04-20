@@ -123,17 +123,28 @@ class IssueService {
       throw Exception('Error creating issue: $e');
     }
   }
-// --- FUNÇÃO COM PAGINAÇÃO E FILTRO DE TESTES ---
-  Future<List<Map<String, dynamic>>> fetchIssues({int startIndex = 0, int limit = 10}) async {
+
+  Future<List<Map<String, dynamic>>> fetchIssues({
+    int startIndex = 0,
+    int limit = 4, // 1. Limite rigoroso de 4 para não matar a RAM
+    bool fetchTestsOnly = false,
+  }) async {
     try {
-      final List<dynamic> data = await supabase
-          .from('issues')
-          .select()
-      // Filtros para esconder as denúncias de teste:
-          .neq('title', 'Text Issue')
-          .neq('title', 'Test Issue')
+      var query = supabase.from('issues').select();
+
+      if (fetchTestsOnly) {
+        query = query.or('title.eq.test,title.eq.Test issue,title.eq.Test Issue,title.eq.Text Issue');
+      } else {
+        // 2. O FILTRO BLINDADO: Bloqueia tudo o que seja teste no Feed
+        query = query
+            .neq('title', 'test')
+            .neq('title', 'Test issue')
+            .neq('title', 'Test Issue')
+            .neq('title', 'Text Issue');
+      }
+
+      final List<dynamic> data = await query
           .order('created_at', ascending: false)
-      // A magia da paginação: dizemos de onde a onde queremos os dados
           .range(startIndex, startIndex + limit - 1);
 
       return List<Map<String, dynamic>>.from(data);
