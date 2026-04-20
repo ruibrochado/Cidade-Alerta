@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -24,53 +25,83 @@ class IssueService {
     return null;
   }
 
-  // --- FUNÇÃO DE UPLOAD CORRIGIDA ---
+  // --- FUNÇÃO DE UPLOOT CORRIGIDA E MAIS SEGURA ---
   Future<String?> _uploadPhoto(String localPhotoPath, String userId) async {
+    // Verificação inicial
+    if (localPhotoPath.isEmpty) {
+      throw Exception('Caminho da foto vazio');
+    }
+
     final File originalFile = File(localPhotoPath);
-    if (!originalFile.existsSync()) throw Exception('Photo file does not exist.');
-
-    // 1. IMPORTANTE: Pequena pausa para o Android libertar o hardware da câmara da RAM
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    final dir = await getTemporaryDirectory();
-    final targetPath = path.join(dir.path, '${DateTime.now().millisecondsSinceEpoch}_compressed.jpg');
+    if (!await originalFile.exists()) {
+      throw Exception('Ficheiro da foto não existe: $localPhotoPath');
+    }
 
     try {
-      // 2. Comprime com limites de largura/altura (minWidth/minHeight)
-      // Isto evita que o plugin tente carregar 108MP de uma vez na memória
-      final XFile? compressedXFile = await FlutterImageCompress.compressAndGetFile(
-        originalFile.path, // Usamos path direto para evitar bugs de conversão
-        targetPath,
-        quality: 50,      // Qualidade ligeiramente mais baixa para garantir estabilidade
-        minWidth: 1280,   // Força redimensionamento para HD
-        minHeight: 720,   // Evita crashes de OutOfMemory (OOM)
-        format: CompressFormat.jpeg,
-      );
+      // Criar diretório temporário se não existir
+      final tempDir = await getTemporaryDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final compressedPath = path.join(tempDir.path, '$timestamp.jpg');
 
-      if (compressedXFile == null) {
-        throw Exception('Falha ao comprimir a imagem.');
+      // Ler o ficheiro original primeiro para verificar tamanho
+      final originalBytes = await originalFile.readAsBytes();
+      print('Tamanho original: ${originalBytes.length ~/ 1024} KB');
+
+      // Comprimir a imagem com parâmetros mais conservadores
+      XFile? compressedFile;
+
+      try {
+        compressedFile = await FlutterImageCompress.compressAndGetFile(
+          originalFile.absolute.path,
+          compressedPath,
+          quality: 70,  // Qualidade um pouco mais alta para manter detalhe
+          minWidth: 1024,  // Largura máxima reduzida
+          minHeight: 1024,  // Altura máxima reduzida
+          rotate: 0,
+        );
+      } catch (compressError) {
+        print('Erro na compressão: $compressError');
+        // Fallback: usar o ficheiro original se a compressão falhar
+        compressedFile = XFile(originalFile.path);
       }
 
-      final File fileToUpload = File(compressedXFile.path);
-      final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final String storagePath = '$userId/$fileName';
+      if (compressedFile == null) {
+        throw Exception('Falha ao comprimir a imagem');
+      }
 
-      // 3. Upload para o Supabase
+      final File fileToUpload = File(compressedFile.path);
+
+      // Verificar tamanho após compressão
+      final compressedBytes = await fileToUpload.readAsBytes();
+      print('Tamanho após compressão: ${compressedBytes.length ~/ 1024} KB');
+
+      // Gerar nome único para o ficheiro
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecondsSinceEpoch}.jpg';
+      final storagePath = '$userId/$fileName';
+
+      // Upload para o Supabase
       await supabase.storage.from('issue-images').upload(
         storagePath,
         fileToUpload,
-        fileOptions: const FileOptions(upsert: false),
+        fileOptions: const FileOptions(
+          upsert: false,
+          contentType: 'image/jpeg',
+        ),
       );
 
-      // 4. Limpeza de ficheiros temporários
-      if (fileToUpload.existsSync()) {
-        fileToUpload.deleteSync();
+      // Limpeza: apagar ficheiro temporário se for diferente do original
+      if (compressedFile.path != originalFile.path && await fileToUpload.exists()) {
+        try {
+          await fileToUpload.delete();
+        } catch (e) {
+          print('Erro ao apagar ficheiro temporário: $e');
+        }
       }
 
       return supabase.storage.from('issue-images').getPublicUrl(storagePath);
+
     } catch (e) {
-      print("Erro crítico na compressão: $e");
-      // Tenta fazer o upload sem compressão se a compressão falhar, ou retorna null
+      print('Erro crítico no upload: $e');
       return null;
     }
   }
@@ -120,10 +151,11 @@ class IssueService {
         throw Exception('Ticket number was not generated.');
       }
 
-      await supabase.functions.invoke(
+      // Chamar edge function em background (não esperar resposta)
+      unawaited(supabase.functions.invoke(
         'forward-issue-to-municipality',
         body: {'issue_id': issueId},
-      );
+      ));
 
       return ticketNumber;
     } catch (e) {
