@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart'; // NOVO IMPORT
-import 'package:path_provider/path_provider.dart'; // NOVO IMPORT
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path_provider/path_provider.dart';
 
 class IssueService {
   final SupabaseClient supabase;
@@ -24,47 +24,55 @@ class IssueService {
     return null;
   }
 
-  // --- NOVA FUNÇÃO DE UPLOAD COM COMPRESSÃO ---
+  // --- FUNÇÃO DE UPLOAD CORRIGIDA ---
   Future<String?> _uploadPhoto(String localPhotoPath, String userId) async {
     final File originalFile = File(localPhotoPath);
     if (!originalFile.existsSync()) throw Exception('Photo file does not exist.');
 
-    // 1. Obter pasta temporária do telemóvel para guardar a versão comprimida
+    // 1. IMPORTANTE: Pequena pausa para o Android libertar o hardware da câmara da RAM
+    await Future.delayed(const Duration(milliseconds: 500));
+
     final dir = await getTemporaryDirectory();
     final targetPath = path.join(dir.path, '${DateTime.now().millisecondsSinceEpoch}_compressed.jpg');
 
-    // 2. Comprimir a imagem brutalmente (sem perder qualidade visual no telemóvel)
-    // Converte sempre para JPEG (o melhor para fotos) e reduz o peso drasticamente
-    final XFile? compressedXFile = await FlutterImageCompress.compressAndGetFile(
-      originalFile.absolute.path,
-      targetPath,
-      quality: 60, // 60% é o "sweet spot" (ponto ideal) entre qualidade e tamanho
-      format: CompressFormat.jpeg,
-    );
+    try {
+      // 2. Comprime com limites de largura/altura (minWidth/minHeight)
+      // Isto evita que o plugin tente carregar 108MP de uma vez na memória
+      final XFile? compressedXFile = await FlutterImageCompress.compressAndGetFile(
+        originalFile.path, // Usamos path direto para evitar bugs de conversão
+        targetPath,
+        quality: 50,      // Qualidade ligeiramente mais baixa para garantir estabilidade
+        minWidth: 1280,   // Força redimensionamento para HD
+        minHeight: 720,   // Evita crashes de OutOfMemory (OOM)
+        format: CompressFormat.jpeg,
+      );
 
-    if (compressedXFile == null) {
-      throw Exception('Falha ao comprimir a imagem.');
+      if (compressedXFile == null) {
+        throw Exception('Falha ao comprimir a imagem.');
+      }
+
+      final File fileToUpload = File(compressedXFile.path);
+      final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final String storagePath = '$userId/$fileName';
+
+      // 3. Upload para o Supabase
+      await supabase.storage.from('issue-images').upload(
+        storagePath,
+        fileToUpload,
+        fileOptions: const FileOptions(upsert: false),
+      );
+
+      // 4. Limpeza de ficheiros temporários
+      if (fileToUpload.existsSync()) {
+        fileToUpload.deleteSync();
+      }
+
+      return supabase.storage.from('issue-images').getPublicUrl(storagePath);
+    } catch (e) {
+      print("Erro crítico na compressão: $e");
+      // Tenta fazer o upload sem compressão se a compressão falhar, ou retorna null
+      return null;
     }
-
-    final File fileToUpload = File(compressedXFile.path);
-
-    // 3. Preparar o nome do ficheiro para o Supabase
-    final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
-    final String storagePath = '$userId/$fileName';
-
-    // 4. Fazer o upload da versão LEVE
-    await supabase.storage.from('issue-images').upload(
-      storagePath,
-      fileToUpload,
-      fileOptions: const FileOptions(upsert: false),
-    );
-
-    // 5. Apagar o ficheiro temporário para não encher o telemóvel do utilizador
-    if (fileToUpload.existsSync()) {
-      fileToUpload.deleteSync();
-    }
-
-    return supabase.storage.from('issue-images').getPublicUrl(storagePath);
   }
 
   Future<String> createIssue({
@@ -81,7 +89,6 @@ class IssueService {
 
     try {
       String? uploadedPhotoUrl;
-      // Se houver foto, chama o nosso novo método comprimido
       if (photoPath != null && photoPath.isNotEmpty) {
         uploadedPhotoUrl = await _uploadPhoto(photoPath, user.id);
       }
@@ -126,7 +133,7 @@ class IssueService {
 
   Future<List<Map<String, dynamic>>> fetchIssues({
     int startIndex = 0,
-    int limit = 4, // 1. Limite rigoroso de 4 para não matar a RAM
+    int limit = 4,
     bool fetchTestsOnly = false,
   }) async {
     try {
@@ -135,7 +142,6 @@ class IssueService {
       if (fetchTestsOnly) {
         query = query.or('title.eq.test,title.eq.Test issue,title.eq.Test Issue,title.eq.Text Issue');
       } else {
-        // 2. O FILTRO BLINDADO: Bloqueia tudo o que seja teste no Feed
         query = query
             .neq('title', 'test')
             .neq('title', 'Test issue')
