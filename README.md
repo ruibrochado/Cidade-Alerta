@@ -340,10 +340,16 @@ You can find below information and references related with the project managemen
 * Puzzles:
 
     * Managing task dependencies between team members
+      
+### Sprint 1
+**Project Board**
+
+<p align="center">Start of Sprint 1</p>
+
+<img width="1918" height="1078" alt="sprint1_initial" src="https://github.com/user-attachments/assets/86c947ed-56b5-486f-812e-7b0196ce6f82" />
+
 
 <!--
-### Sprint 1
-
 ### Sprint 2
 
 ### Sprint 3
