@@ -16,13 +16,16 @@ class _FeedPageState extends State<FeedPage> {
 
   final ScrollController _scrollController = ScrollController();
   final List<ReportData> _reports = [];
+  int _totalCount = 0;
   int _currentPage = 0;
   bool _isLoading = false;
+  bool _isFetching = false;
   bool _hasMore = true;
 
   @override
   void initState() {
     super.initState();
+    _fetchTotalCount();
     _loadMore();
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
@@ -32,6 +35,11 @@ class _FeedPageState extends State<FeedPage> {
     });
   }
 
+  Future<void> _fetchTotalCount() async {
+    final count = await issueService.fetchIssuesCount();
+    setState(() => _totalCount = count);
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -39,7 +47,8 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Future<void> _loadMore() async {
-    if (_isLoading || !_hasMore) return;
+    if (_isFetching || !_hasMore) return;
+    _isFetching = true;
     setState(() => _isLoading = true);
 
     final newData = await issueService.fetchIssues(page: _currentPage);
@@ -48,9 +57,10 @@ class _FeedPageState extends State<FeedPage> {
     setState(() {
       _reports.addAll(newReports);
       _currentPage++;
-      _hasMore = newReports.length == 10;
+      _hasMore = newReports.length == IssueService.pageSize;;
       _isLoading = false;
     });
+    _isFetching = false;
   }
 
   @override
@@ -142,7 +152,7 @@ class _FeedPageState extends State<FeedPage> {
                         ],
                       ),
                       const SizedBox(height: 5),
-                      Text('${_reports.length} denúncias ativas',
+                      Text('$_totalCount denúncias ativas',
                           style: const TextStyle(color: Colors.grey, fontSize: 14)),
                       const SizedBox(height: 20),
                       if (_reports.isEmpty && _isLoading)

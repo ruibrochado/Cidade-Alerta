@@ -5,7 +5,7 @@ import 'package:geocoding/geocoding.dart';
 
 class IssueService {
   final SupabaseClient supabase;
-  static const int _pageSize = 10;
+  static const int pageSize = 4;
 
   IssueService({SupabaseClient? client})
       : supabase = client ?? Supabase.instance.client;
@@ -97,14 +97,24 @@ class IssueService {
     }
   }
 
+  Future<int> fetchIssuesCount() async {
+    final response = await supabase
+        .from('issues')
+        .select('id')
+        .neq('title', 'Test issue')
+        .count(CountOption.exact);
+    return response.count;
+  }
+
   Future<List<Map<String, dynamic>>> fetchIssues({int page = 0}) async {
     try {
-      final from = page * _pageSize;
-      final to = from + _pageSize - 1;
+      final from = page * pageSize;
+      final to = from + pageSize - 1;
 
       final List<dynamic> data = await supabase
           .from('issues')
           .select()
+          .neq('title', 'Test issue')
           .order('created_at', ascending: false)
           .range(from, to);
 
