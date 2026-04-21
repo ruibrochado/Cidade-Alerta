@@ -72,22 +72,22 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
 
       final Placemark? place = placemarks.isNotEmpty ? placemarks.first : null;
 
-      final String street = <String?>[
-        place?.street,
-        place?.subThoroughfare,
-      ]
+      final String street = <String?>[place?.street, place?.subThoroughfare]
           .where((String? value) => value != null && value.trim().isNotEmpty)
           .cast<String>()
           .join(', ');
 
-      final List<String> cityCandidates = <String?>[
-        place?.locality,
-        place?.subAdministrativeArea,
-        place?.administrativeArea,
-      ]
-          .where((String? value) => value != null && value.trim().isNotEmpty)
-          .cast<String>()
-          .toList();
+      final List<String> cityCandidates =
+          <String?>[
+                place?.locality,
+                place?.subAdministrativeArea,
+                place?.administrativeArea,
+              ]
+              .where(
+                (String? value) => value != null && value.trim().isNotEmpty,
+              )
+              .cast<String>()
+              .toList();
 
       if (!mounted) return;
 
@@ -159,11 +159,7 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
                   width: double.infinity,
                   color: headerGreen,
                 ),
-                Expanded(
-                  child: Container(
-                    color: const Color(0xFFF8F8F8),
-                  ),
-                ),
+                Expanded(child: Container(color: const Color(0xFFF8F8F8))),
               ],
             ),
             SafeArea(
@@ -304,7 +300,8 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
                                 color: Color(0xFF16A34A),
                               ),
                             ),
-                          if (_latitude != null && _longitude != null) ...<Widget>[
+                          if (_latitude != null &&
+                              _longitude != null) ...<Widget>[
                             const SizedBox(height: 20),
                             Container(
                               width: double.infinity,
@@ -316,7 +313,8 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
-                                  if (_street != null && _street!.isNotEmpty) ...<Widget>[
+                                  if (_street != null &&
+                                      _street!.isNotEmpty) ...<Widget>[
                                     const Text(
                                       'Rua:',
                                       style: TextStyle(
@@ -332,7 +330,8 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
                                       ),
                                     ),
                                   ],
-                                  if (_city != null && _city!.isNotEmpty) ...<Widget>[
+                                  if (_city != null &&
+                                      _city!.isNotEmpty) ...<Widget>[
                                     if (_street != null && _street!.isNotEmpty)
                                       const SizedBox(height: 12),
                                     const Text(
@@ -350,8 +349,10 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
                                       ),
                                     ),
                                   ],
-                                  if (_country != null && _country!.isNotEmpty) ...<Widget>[
-                                    if ((_street != null && _street!.isNotEmpty) ||
+                                  if (_country != null &&
+                                      _country!.isNotEmpty) ...<Widget>[
+                                    if ((_street != null &&
+                                            _street!.isNotEmpty) ||
                                         (_city != null && _city!.isNotEmpty))
                                       const SizedBox(height: 12),
                                     const Text(

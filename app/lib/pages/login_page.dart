@@ -37,9 +37,9 @@ class _LoginPageState extends State<LoginPage> {
         MaterialPageRoute(builder: (_) => const HomePage()),
       );
     } catch (e) {
-        debugPrint('ERROR: $e');
+      debugPrint('ERROR: $e');
 
-        setState(() {
+      setState(() {
         errorMessage = e.toString();
       });
     }
@@ -65,9 +65,9 @@ class _LoginPageState extends State<LoginPage> {
         errorMessage = 'Account created! You can login.';
       });
     } catch (e) {
-        debugPrint('ERROR: $e');
+      debugPrint('ERROR: $e');
 
-        setState(() {
+      setState(() {
         errorMessage = e.toString();
       });
     }

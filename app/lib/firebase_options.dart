@@ -85,5 +85,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'cidade-alerta-34fba.firebasestorage.app',
     measurementId: 'G-7D7JG305NZ',
   );
-
 }

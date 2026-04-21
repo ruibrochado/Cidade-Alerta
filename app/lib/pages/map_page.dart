@@ -8,9 +8,7 @@ class MapPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Map'),
-      ),
+      appBar: AppBar(title: const Text('Map')),
       body: FlutterMap(
         options: MapOptions(
           initialCenter: LatLng(40.6405, -8.6538), // Portugal (Aveiro exemplo)
@@ -18,8 +16,7 @@ class MapPage extends StatelessWidget {
         ),
         children: [
           TileLayer(
-            urlTemplate:
-                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
             userAgentPackageName: 'com.example.app',
           ),
         ],

@@ -21,31 +21,42 @@ void main() {
 
     Future<void> setupPage(WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: AdjustLocationPage(report: initialReport),
-        ),
+        MaterialApp(home: AdjustLocationPage(report: initialReport)),
       );
     }
 
-    testWidgets('Should show an error if the map API key does not exist', (WidgetTester tester) async {
+    testWidgets('Should show an error if the map API key does not exist', (
+      WidgetTester tester,
+    ) async {
       // Inject a dummy variable so dotenv initializes
       dotenv.loadFromString(envString: 'DUMMY_VARIABLE=true');
 
       await setupPage(tester);
       await tester.pumpAndSettle();
 
-      expect(find.text('STADIA_MAPS_API_KEY não encontrada no .env'), findsOneWidget);
+      expect(
+        find.text('STADIA_MAPS_API_KEY não encontrada no .env'),
+        findsOneWidget,
+      );
       expect(find.byType(PrimaryButton), findsOneWidget);
     });
 
-    testWidgets('Should handle simulated geocoding network failure gracefully', (WidgetTester tester) async {
-      // Inject a fake API key so the map attempts to render
-      dotenv.loadFromString(envString: 'STADIA_MAPS_API_KEY=fake_test_key_123');
-      
-      await setupPage(tester);
-      await tester.pumpAndSettle();
+    testWidgets(
+      'Should handle simulated geocoding network failure gracefully',
+      (WidgetTester tester) async {
+        // Inject a fake API key so the map attempts to render
+        dotenv.loadFromString(
+          envString: 'STADIA_MAPS_API_KEY=fake_test_key_123',
+        );
 
-      expect(find.text('Não foi possível obter a morada desta localização.'), findsOneWidget);
-    });
+        await setupPage(tester);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Não foi possível obter a morada desta localização.'),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }

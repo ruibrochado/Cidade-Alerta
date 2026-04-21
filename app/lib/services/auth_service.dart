@@ -5,10 +5,7 @@ class AuthService {
 
   Future<AuthResponse> signUp(String email, String password) async {
     try {
-      return await supabase.auth.signUp(
-        email: email,
-        password: password,
-      );
+      return await supabase.auth.signUp(email: email, password: password);
     } catch (e) {
       throw Exception('Error signing up: $e');
     }

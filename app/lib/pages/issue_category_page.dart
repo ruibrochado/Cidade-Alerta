@@ -79,11 +79,7 @@ class SelectCategory extends StatelessWidget {
                   width: double.infinity,
                   color: headerGreen,
                 ),
-                Expanded(
-                  child: Container(
-                    color: Colors.white,
-                  ),
-                ),
+                Expanded(child: Container(color: Colors.white)),
               ],
             ),
             SafeArea(
@@ -194,7 +190,8 @@ class SelectCategory extends StatelessWidget {
                                     childAspectRatio: 0.82,
                                   ),
                               itemBuilder: (BuildContext context, int index) {
-                                final CategoryItem category = _categories[index];
+                                final CategoryItem category =
+                                    _categories[index];
 
                                 return InkWell(
                                   borderRadius: BorderRadius.circular(24),

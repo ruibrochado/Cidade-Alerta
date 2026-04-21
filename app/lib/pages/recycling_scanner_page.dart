@@ -80,9 +80,7 @@ class _RecyclingScannerPageState extends State<RecyclingScannerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Recycling Scanner'),
-      ),
+      appBar: AppBar(title: const Text('Recycling Scanner')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -94,10 +92,7 @@ class _RecyclingScannerPageState extends State<RecyclingScannerPage> {
             const SizedBox(height: 20),
             if (_image != null) Image.file(_image!, height: 220),
             const SizedBox(height: 20),
-            Text(
-              _result,
-              style: const TextStyle(fontSize: 18),
-            ),
+            Text(_result, style: const TextStyle(fontSize: 18)),
           ],
         ),
       ),

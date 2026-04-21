@@ -10,11 +10,7 @@ class EmailService {
   }) async {
     final response = await _supabase.functions.invoke(
       'resend-email',
-      body: {
-        'to': to,
-        'subject': subject,
-        'html': html,
-      },
+      body: {'to': to, 'subject': subject, 'html': html},
     );
 
     if (response.status != 200) {
