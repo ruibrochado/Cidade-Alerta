@@ -166,7 +166,7 @@ class _ConfirmPageState extends State<ConfirmPage> {
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text("Erro Detectado"),
-          content: Text("A página não fechou porque deu este erro: $e"),
+          content: Text("Erro ao guardar denúncia: $e"),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),

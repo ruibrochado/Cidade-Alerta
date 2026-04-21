@@ -39,7 +39,7 @@ void main() {
         await tester.tap(buttonFinder);
         await tester.pumpAndSettle();
 
-        expect(find.text('Tire uma foto antes de continuar.'), findsOneWidget);
+        expect(find.text('Adiciona uma foto primeiro'), findsOneWidget);
       },
     );
   });

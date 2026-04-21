@@ -125,7 +125,6 @@ void main() {
         final mockFilterBuilder = MockPostgrestFilterBuilder();
         final mockTransformBuilder = MockPostgrestTransformBuilder();
 
-        // Return the builders down the chain
         when(
           () => mockSupabaseClient.from('issues'),
         ).thenAnswer((_) => mockQueryBuilder);
@@ -133,10 +132,16 @@ void main() {
           () => mockQueryBuilder.select(),
         ).thenAnswer((_) => mockFilterBuilder);
         when(
+          () => mockFilterBuilder.neq(any(), any()),
+        ).thenAnswer((_) => mockFilterBuilder);
+        when(
           () => mockFilterBuilder.order(
             'created_at',
             ascending: any(named: 'ascending'),
           ),
+        ).thenAnswer((_) => mockTransformBuilder);
+        when(
+          () => mockTransformBuilder.range(any(), any()),
         ).thenAnswer((_) => mockTransformBuilder);
 
         final results = await issueService.fetchIssues();
