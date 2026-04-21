@@ -26,7 +26,9 @@ void main() {
       );
     }
 
-    testWidgets('Should display report summary correctly', (WidgetTester tester) async {
+    testWidgets('Should display report summary correctly', (
+      WidgetTester tester,
+    ) async {
       await setupPage(tester);
       await tester.pumpAndSettle();
 
@@ -37,22 +39,28 @@ void main() {
       expect(find.text('Enviar Denúncia'), findsOneWidget);
     });
 
-    testWidgets('Should handle backend failure, unlock button, and show SnackBar', (WidgetTester tester) async {
-      await setupPage(tester);
-      await tester.pumpAndSettle();
+    testWidgets(
+      'Should handle backend failure, unlock button, and show SnackBar',
+      (WidgetTester tester) async {
+        await setupPage(tester);
+        await tester.pumpAndSettle();
 
-      final buttonFinder = find.byType(PrimaryButton);
-      
-      await tester.tap(buttonFinder);
-      
-      // Use pumpAndSettle to wait for the entire failure process and SnackBar animation to finish
-      await tester.pumpAndSettle();
+        final buttonFinder = find.byType(PrimaryButton);
 
-      // 1. Verify the button unlocked and reset its text
-      expect(find.text('Enviar Denúncia'), findsOneWidget);
-      
-      // 2. Verify the catch block triggered the error SnackBar
-      expect(find.textContaining('Erro ao guardar denúncia:'), findsOneWidget);
-    });
+        await tester.tap(buttonFinder);
+
+        // Use pumpAndSettle to wait for the entire failure process and SnackBar animation to finish
+        await tester.pumpAndSettle();
+
+        // 1. Verify the button unlocked and reset its text
+        expect(find.text('Enviar Denúncia'), findsOneWidget);
+
+        // 2. Verify the catch block triggered the error SnackBar
+        expect(
+          find.textContaining('Erro ao guardar denúncia:'),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }

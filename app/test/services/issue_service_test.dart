@@ -6,19 +6,29 @@ import 'package:app/services/issue_service.dart';
 
 // --- Core Mocks ---
 class MockSupabaseClient extends Mock implements SupabaseClient {}
+
 class MockGoTrueClient extends Mock implements GoTrueClient {}
+
 class MockUser extends Mock implements User {}
 
 // --- Supabase Query Chain Mocks --- (for the Happy path)
 class MockSupabaseQueryBuilder extends Mock implements SupabaseQueryBuilder {}
-class MockPostgrestFilterBuilder extends Mock implements PostgrestFilterBuilder<List<Map<String, dynamic>>> {}
+
+class MockPostgrestFilterBuilder extends Mock
+    implements PostgrestFilterBuilder<List<Map<String, dynamic>>> {}
 
 // We hardcode the Future resolution directly into the class.
 // This blocks Mocktail from returning 'null' when Dart calls 'await'.
-class MockPostgrestTransformBuilder extends Mock implements PostgrestTransformBuilder<List<Map<String, dynamic>>> {
+class MockPostgrestTransformBuilder extends Mock
+    implements PostgrestTransformBuilder<List<Map<String, dynamic>>> {
   @override
-  Future<R> then<R>(FutureOr<R> Function(List<Map<String, dynamic>>) onValue, {Function? onError}) {
-    return Future.value(<Map<String, dynamic>>[]).then(onValue, onError: onError);
+  Future<R> then<R>(
+    FutureOr<R> Function(List<Map<String, dynamic>>) onValue, {
+    Function? onError,
+  }) {
+    return Future.value(
+      <Map<String, dynamic>>[],
+    ).then(onValue, onError: onError);
   }
 }
 
@@ -31,9 +41,9 @@ void main() {
     setUp(() {
       mockSupabaseClient = MockSupabaseClient();
       mockAuth = MockGoTrueClient();
-      
+
       when(() => mockSupabaseClient.auth).thenReturn(mockAuth);
-      
+
       issueService = IssueService(client: mockSupabaseClient);
     });
 
@@ -48,55 +58,92 @@ void main() {
           latitude: 41.18,
           longitude: -8.60,
         ),
-        throwsA(isA<Exception>().having((e) => e.toString(), 'message', contains('User not logged in'))),
-      );
-    });
-
-    test('The system should catch issue creating errors (createIssue)', () async {
-      final mockUser = MockUser();
-      when(() => mockUser.id).thenReturn('johndoe');
-      when(() => mockAuth.currentUser).thenReturn(mockUser);
-
-      when(() => mockSupabaseClient.from('issues'))
-          .thenThrow(Exception('Supabase Servers are down'));
-
-      expect(
-        () => issueService.createIssue(
-          title: 'Buraco na Estrada',
-          description: 'Buraco muito fundo e perigoso',
-          category: 'Infraestrutura',
-          latitude: 41.18,
-          longitude: -8.60,
+        throwsA(
+          isA<Exception>().having(
+            (e) => e.toString(),
+            'message',
+            contains('User not logged in'),
+          ),
         ),
-        throwsA(isA<Exception>().having((e) => e.toString(), 'message', contains('Error creating issue:'))),
       );
     });
 
-    test('The system should catch issue fetching errors (fetchIssue)', () async {
-      when(() => mockSupabaseClient.from('issues'))
-          .thenThrow(Exception('Supabase Servers are down'));
+    test(
+      'The system should catch issue creating errors (createIssue)',
+      () async {
+        final mockUser = MockUser();
+        when(() => mockUser.id).thenReturn('johndoe');
+        when(() => mockAuth.currentUser).thenReturn(mockUser);
 
-      expect(
-        () => issueService.fetchIssues(),
-        throwsA(isA<Exception>().having((e) => e.toString(), 'message', contains('Error fetching issues:'))),
-      );
-    });
+        when(
+          () => mockSupabaseClient.from('issues'),
+        ).thenThrow(Exception('Supabase Servers are down'));
 
-    test('The system should return an empty list when there are no issues', () async {
-      final mockQueryBuilder = MockSupabaseQueryBuilder();
-      final mockFilterBuilder = MockPostgrestFilterBuilder();
-      final mockTransformBuilder = MockPostgrestTransformBuilder();
+        expect(
+          () => issueService.createIssue(
+            title: 'Buraco na Estrada',
+            description: 'Buraco muito fundo e perigoso',
+            category: 'Infraestrutura',
+            latitude: 41.18,
+            longitude: -8.60,
+          ),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Error creating issue:'),
+            ),
+          ),
+        );
+      },
+    );
 
-      // Return the builders down the chain
-      when(() => mockSupabaseClient.from('issues')).thenAnswer((_) => mockQueryBuilder);
-      when(() => mockQueryBuilder.select()).thenAnswer((_) => mockFilterBuilder);
-      when(() => mockFilterBuilder.order('created_at', ascending: any(named: 'ascending')))
-          .thenAnswer((_) => mockTransformBuilder);
+    test(
+      'The system should catch issue fetching errors (fetchIssue)',
+      () async {
+        when(
+          () => mockSupabaseClient.from('issues'),
+        ).thenThrow(Exception('Supabase Servers are down'));
 
-      final results = await issueService.fetchIssues();
+        expect(
+          () => issueService.fetchIssues(),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Error fetching issues:'),
+            ),
+          ),
+        );
+      },
+    );
 
-      expect(results, isEmpty);
-      expect(results, isA<List<Map<String, dynamic>>>());
-    });
+    test(
+      'The system should return an empty list when there are no issues',
+      () async {
+        final mockQueryBuilder = MockSupabaseQueryBuilder();
+        final mockFilterBuilder = MockPostgrestFilterBuilder();
+        final mockTransformBuilder = MockPostgrestTransformBuilder();
+
+        // Return the builders down the chain
+        when(
+          () => mockSupabaseClient.from('issues'),
+        ).thenAnswer((_) => mockQueryBuilder);
+        when(
+          () => mockQueryBuilder.select(),
+        ).thenAnswer((_) => mockFilterBuilder);
+        when(
+          () => mockFilterBuilder.order(
+            'created_at',
+            ascending: any(named: 'ascending'),
+          ),
+        ).thenAnswer((_) => mockTransformBuilder);
+
+        final results = await issueService.fetchIssues();
+
+        expect(results, isEmpty);
+        expect(results, isA<List<Map<String, dynamic>>>());
+      },
+    );
   });
 }

@@ -14,9 +14,7 @@ class StorageService {
 
       final path = '${user.id}/$fileName';
 
-      await supabase.storage
-          .from('issue-images')
-          .upload(path, file);
+      await supabase.storage.from('issue-images').upload(path, file);
 
       return path;
     } catch (e) {
@@ -25,8 +23,6 @@ class StorageService {
   }
 
   String getPublicUrl(String path) {
-    return supabase.storage
-        .from('issue-images')
-        .getPublicUrl(path);
+    return supabase.storage.from('issue-images').getPublicUrl(path);
   }
 }

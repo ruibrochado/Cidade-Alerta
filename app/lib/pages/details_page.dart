@@ -49,9 +49,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => PhotoPage(report: report),
-      ),
+      MaterialPageRoute(builder: (_) => PhotoPage(report: report)),
     );
   }
 
@@ -84,11 +82,7 @@ class _DetailsPageState extends State<DetailsPage> {
                     width: double.infinity,
                     color: headerGreen,
                   ),
-                  Expanded(
-                    child: Container(
-                      color: const Color(0xFFF8F8F8),
-                    ),
-                  ),
+                  Expanded(child: Container(color: const Color(0xFFF8F8F8))),
                 ],
               ),
 
@@ -102,7 +96,9 @@ class _DetailsPageState extends State<DetailsPage> {
                           onPressed: () => Navigator.of(context).maybePop(),
                           icon: const Icon(Icons.arrow_back),
                           style: IconButton.styleFrom(
-                            backgroundColor: Colors.white.withValues(alpha: 0.85),
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.85,
+                            ),
                           ),
                         ),
                       ],
@@ -285,7 +281,9 @@ class _DetailsPageState extends State<DetailsPage> {
                                 width: double.infinity,
                                 child: PrimaryButton(
                                   label: 'Continuar',
-                                  onPressed: canContinue ? _handleContinue : null,
+                                  onPressed: canContinue
+                                      ? _handleContinue
+                                      : null,
                                 ),
                               ),
                             ],
