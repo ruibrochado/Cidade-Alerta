@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/report_data.dart';
 import '../services/issue_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ReportDetailPage extends StatefulWidget {
   final ReportData report;
@@ -189,16 +190,31 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                           itemBuilder: (context, index) {
                             final comment = _comments[index];
 
-                            // Lógica para extrair o nome
-                            final profile = comment['profiles'];
-                            final String firstName =
-                                profile?['first_name'] ?? '';
-                            final String lastName = profile?['last_name'] ?? '';
+                            // 1. Vai buscar o ID de quem está a usar a app agora mesmo
+                            final currentUserId =
+                                Supabase.instance.client.auth.currentUser?.id;
 
-                            final String userName =
-                                (firstName.isEmpty && lastName.isEmpty)
-                                ? 'Utilizador'
-                                : '$firstName $lastName'.trim();
+                            // 2. Vai buscar o ID de quem escreveu este comentário
+                            final commentUserId = comment['user_id'];
+
+                            String userName;
+
+                            // 3. Verifica se são a mesma pessoa!
+                            if (currentUserId != null &&
+                                currentUserId == commentUserId) {
+                              userName = 'Tu';
+                            } else {
+                              // Se não for o utilizador atual, faz a lógica normal para ver o nome
+                              final profile = comment['profiles'];
+                              final String firstName =
+                                  profile?['first_name'] ?? '';
+                              final String lastName =
+                                  profile?['last_name'] ?? '';
+
+                              userName = (firstName.isEmpty && lastName.isEmpty)
+                                  ? 'Utilizador'
+                                  : '$firstName $lastName'.trim();
+                            }
 
                             return Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
