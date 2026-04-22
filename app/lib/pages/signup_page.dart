@@ -97,12 +97,12 @@ class _SignUpPageState extends State<SignUpPage> {
           children: [
             TextField(
               controller: firstNameController,
-              decoration: const InputDecoration(labelText: 'First Name'),
+              decoration: const InputDecoration(labelText: 'Nome'),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: lastNameController,
-              decoration: const InputDecoration(labelText: 'Last Name'),
+              decoration: const InputDecoration(labelText: 'Apelido'),
             ),
             const SizedBox(height: 10),
             TextField(
@@ -128,7 +128,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     children: [
                       ElevatedButton(
                         onPressed: signUp,
-                        child: const Text('Create Account'),
+                        child: const Text('Criar Conta'),
                       ),
                       const SizedBox(height: 12),
                       Row(
