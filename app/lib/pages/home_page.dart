@@ -1,13 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import '../services/issue_service.dart';
-import '../services/notification_service.dart';
-import 'email_test_page.dart';
-import 'recycling_scanner_page.dart';
-import 'login_page.dart';
-import 'map_page.dart';
-import 'issue_category_page.dart';
-import 'feed_page.dart';
+import 'main_navigation_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,6 +9,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  @override
+  Widget build(BuildContext context) {
+    return const MainNavigationScreen();
+  }
+}
+/*class _HomePageState extends State<HomePage> {
   final authService = AuthService();
   final issueService = IssueService();
   final notificationService = NotificationService();
@@ -166,3 +164,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+*/

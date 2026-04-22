@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'pages/home_page.dart';
 import 'pages/login_page.dart';
+import 'pages/main_navigation_screen.dart';
 import 'routes/app_routes.dart';
 
 class MyApp extends StatelessWidget {
@@ -14,7 +14,9 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: user != null ? const HomePage() : const LoginPage(),
+      home: user != null
+          ? const MainNavigationScreen()
+          : const LoginPage(),
       routes: AppRoutes.routes,
     );
   }
