@@ -29,6 +29,11 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1
   flutter_native_splash: ^2.4.0
 
+  integration_test:
+    sdk: flutter
+  patrol: ^4.3.1
+  patrol_cli: ^4.3.1
+
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
