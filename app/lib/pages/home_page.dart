@@ -1,13 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import '../services/issue_service.dart';
-import '../services/notification_service.dart';
-import 'email_test_page.dart';
-import 'recycling_scanner_page.dart';
-import 'login_page.dart';
-import 'map_page.dart';
-import 'issue_category_page.dart';
-import 'feed_page.dart';
+import 'main_navigation_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,6 +9,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  @override
+  Widget build(BuildContext context) {
+    return const MainNavigationScreen();
+  }
+}
+/*class _HomePageState extends State<HomePage> {
   final authService = AuthService();
   final issueService = IssueService();
   final notificationService = NotificationService();
@@ -35,10 +33,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> logout() async {
     await authService.signOut();
     if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-    );
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPage()));
   }
 
   // CRIA O TESTE E METE NA LISTA DA HOME
@@ -68,9 +63,9 @@ class _HomePageState extends State<HomePage> {
       });
 
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Teste criado: $ticket')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Teste criado: $ticket')),
+      );
     } catch (e) {
       debugPrint('Error creating issue: $e');
     } finally {
@@ -78,26 +73,11 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void goToScanner() => Navigator.push(
-    context,
-    MaterialPageRoute(builder: (_) => const RecyclingScannerPage()),
-  );
-  void sendEmail() => Navigator.push(
-    context,
-    MaterialPageRoute(builder: (_) => const EmailTestPage()),
-  );
-  void goToMap() => Navigator.push(
-    context,
-    MaterialPageRoute(builder: (_) => const MapPage()),
-  );
-  void createReport() => Navigator.push(
-    context,
-    MaterialPageRoute(builder: (_) => const SelectCategory()),
-  );
-  void goToFeed() => Navigator.push(
-    context,
-    MaterialPageRoute(builder: (_) => const FeedPage()),
-  );
+  void goToScanner() => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecyclingScannerPage()));
+  void sendEmail() => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmailTestPage()));
+  void goToMap() => Navigator.push(context, MaterialPageRoute(builder: (_) => const MapPage()));
+  void createReport() => Navigator.push(context, MaterialPageRoute(builder: (_) => const SelectCategory()));
+  void goToFeed() => Navigator.push(context, MaterialPageRoute(builder: (_) => const FeedPage()));
 
   @override
   Widget build(BuildContext context) {
@@ -107,10 +87,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('Home'),
         actions: [
-          IconButton(
-            onPressed: goToScanner,
-            icon: const Icon(Icons.camera_alt),
-          ),
+          IconButton(onPressed: goToScanner, icon: const Icon(Icons.camera_alt)),
           IconButton(onPressed: sendEmail, icon: const Icon(Icons.email)),
           IconButton(onPressed: goToMap, icon: const Icon(Icons.map)),
           IconButton(onPressed: logout, icon: const Icon(Icons.logout)),
@@ -121,90 +98,50 @@ class _HomePageState extends State<HomePage> {
           // TEXTOS VERDES ORIGINAIS RECUPERADOS
           const Padding(
             padding: EdgeInsets.all(12),
-            child: Text(
-              'Database connected',
-              style: TextStyle(
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text('Database connected', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
           ),
           const Padding(
             padding: EdgeInsets.only(bottom: 12),
-            child: Text(
-              'Storage available',
-              style: TextStyle(
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text('Storage available', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
           ),
           const Padding(
             padding: EdgeInsets.only(bottom: 12),
-            child: Text(
-              'Map available',
-              style: TextStyle(
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text('Map available', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
           ),
           const Padding(
             padding: EdgeInsets.only(bottom: 12),
-            child: Text(
-              'Push notifications available',
-              style: TextStyle(
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text('Push notifications available', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
           ),
 
           if (user != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                'Logged in as: ${user.email}',
-                style: const TextStyle(fontSize: 12),
-              ),
+              child: Text('Logged in as: ${user.email}', style: const TextStyle(fontSize: 12)),
             ),
 
           const Divider(),
-          const Text(
-            'TESTES DA SESSÃO',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
-          ),
+          const Text('TESTES DA SESSÃO', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
 
           // ÁREA LIMPA SEM IMAGENS, SÓ COM ÍCONE DE TESTE
           Expanded(
             child: sessionTests.isEmpty
-                ? const Center(
-                    child: Text('Nenhum teste efetuado nesta sessão.'),
-                  )
+                ? const Center(child: Text('Nenhum teste efetuado nesta sessão.'))
                 : ListView.builder(
-                    itemCount: sessionTests.length,
-                    itemBuilder: (context, index) {
-                      final test = sessionTests[index];
-                      return ListTile(
-                        leading: const Icon(
-                          Icons.science,
-                          color: Colors.orange,
-                        ), // Ícone em vez de foto nula
-                        title: Text(test['title']),
-                        subtitle: Text(
-                          '${test['category']} - ${test['ticket']}',
-                        ),
-                      );
-                    },
-                  ),
+              itemCount: sessionTests.length,
+              itemBuilder: (context, index) {
+                final test = sessionTests[index];
+                return ListTile(
+                  leading: const Icon(Icons.science, color: Colors.orange), // Ícone em vez de foto nula
+                  title: Text(test['title']),
+                  subtitle: Text('${test['category']} - ${test['ticket']}'),
+                );
+              },
+            ),
           ),
 
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: TextButton(
-              onPressed: createReport,
-              child: const Text('Create a Report'),
-            ),
+            child: TextButton(onPressed: createReport, child: const Text('Create a Report')),
           ),
         ],
       ),
@@ -220,12 +157,11 @@ class _HomePageState extends State<HomePage> {
           FloatingActionButton(
             heroTag: 'testIssueBtn',
             onPressed: isCreating ? null : createTestIssue,
-            child: isCreating
-                ? const CircularProgressIndicator(color: Colors.white)
-                : const Icon(Icons.add),
+            child: isCreating ? const CircularProgressIndicator(color: Colors.white) : const Icon(Icons.add),
           ),
         ],
       ),
     );
   }
 }
+*/
