@@ -46,11 +46,11 @@ class _LoginPageState extends State<LoginPage> {
         errorMessage = e.toString();
       });
     } finally {
-      if (!mounted) return;
-
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -89,10 +89,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
             const SizedBox(height: 20),
             if (errorMessage.isNotEmpty)
-              Text(
-                errorMessage,
-                style: const TextStyle(color: Colors.red),
-              ),
+              Text(errorMessage, style: const TextStyle(color: Colors.red)),
             const SizedBox(height: 10),
             isLoading
                 ? const CircularProgressIndicator()

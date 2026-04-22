@@ -13,10 +13,7 @@ class AuthService {
       final AuthResponse response = await supabase.auth.signUp(
         email: email,
         password: password,
-        data: {
-          'first_name': firstName,
-          'last_name': lastName,
-        },
+        data: {'first_name': firstName, 'last_name': lastName},
       );
 
       final User? user = response.user;

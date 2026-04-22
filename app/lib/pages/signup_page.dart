@@ -62,11 +62,11 @@ class _SignUpPageState extends State<SignUpPage> {
         errorMessage = e.toString().replaceFirst('Exception: ', '');
       });
     } finally {
-      if (!mounted) return;
-
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -117,10 +117,7 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
             const SizedBox(height: 20),
             if (errorMessage.isNotEmpty)
-              Text(
-                errorMessage,
-                style: const TextStyle(color: Colors.red),
-              ),
+              Text(errorMessage, style: const TextStyle(color: Colors.red)),
             const SizedBox(height: 10),
             isLoading
                 ? const CircularProgressIndicator()
