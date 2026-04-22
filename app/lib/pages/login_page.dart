@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'home_page.dart';
+import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -10,10 +11,10 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final authService = AuthService();
+  final AuthService authService = AuthService();
 
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   String errorMessage = '';
   bool isLoading = false;
@@ -39,42 +40,32 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       debugPrint('ERROR: $e');
 
+      if (!mounted) return;
+
       setState(() {
         errorMessage = e.toString();
       });
-    }
+    } finally {
+      if (!mounted) return;
 
-    setState(() {
-      isLoading = false;
-    });
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
-  Future<void> signUp() async {
-    setState(() {
-      isLoading = true;
-      errorMessage = '';
-    });
+  void goToSignUpPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const SignUpPage()),
+    );
+  }
 
-    try {
-      await authService.signUp(
-        emailController.text.trim(),
-        passwordController.text.trim(),
-      );
-
-      setState(() {
-        errorMessage = 'Account created! You can login.';
-      });
-    } catch (e) {
-      debugPrint('ERROR: $e');
-
-      setState(() {
-        errorMessage = e.toString();
-      });
-    }
-
-    setState(() {
-      isLoading = false;
-    });
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -97,12 +88,12 @@ class _LoginPageState extends State<LoginPage> {
               decoration: const InputDecoration(labelText: 'Password'),
             ),
             const SizedBox(height: 20),
-
             if (errorMessage.isNotEmpty)
-              Text(errorMessage, style: const TextStyle(color: Colors.red)),
-
+              Text(
+                errorMessage,
+                style: const TextStyle(color: Colors.red),
+              ),
             const SizedBox(height: 10),
-
             isLoading
                 ? const CircularProgressIndicator()
                 : Column(
@@ -111,9 +102,16 @@ class _LoginPageState extends State<LoginPage> {
                         onPressed: signIn,
                         child: const Text('Login'),
                       ),
-                      ElevatedButton(
-                        onPressed: signUp,
-                        child: const Text('Sign Up'),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('Ainda não tens uma conta?'),
+                          TextButton(
+                            onPressed: goToSignUpPage,
+                            child: const Text('Clica aqui'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
