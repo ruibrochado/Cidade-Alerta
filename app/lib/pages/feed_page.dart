@@ -76,7 +76,10 @@ class _FeedPageState extends State<FeedPage> {
   @override
   Widget build(BuildContext context) {
     final user = authService.getCurrentUser();
-    final userEmail = user?.email ?? 'Utilizador';
+    final displayName =
+        user?.userMetadata?['first_name']?.toString() ??
+        user?.email ??
+        'Utilizador';
 
     return Scaffold(
       backgroundColor: const Color(0xFFCDE5CB),
@@ -116,7 +119,7 @@ class _FeedPageState extends State<FeedPage> {
                           style: TextStyle(fontSize: 16, color: Colors.black54),
                         ),
                         Text(
-                          userEmail,
+                          displayName,
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
