@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/issue_service.dart';
 import '../models/report_data.dart';
-import '../pages/report_detail_page.dart'; // <-- AJUSTA O CAMINHO SE NECESSÁRIO (ex: '../pages/report_detail_page.dart')
+import '../pages/report_detail_page.dart';
 
 class FeedPage extends StatefulWidget {
   const FeedPage({super.key});
@@ -37,11 +37,8 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Future<void> _fetchTotalCount() async {
-    final count = await issueService
-        .fetchIssuesCount(); // Garante que este método existe no teu IssueService
-    if (mounted) {
-      setState(() => _totalCount = count);
-    }
+    final count = await issueService.fetchIssuesCount();
+    setState(() => _totalCount = count);
   }
 
   @override
@@ -55,21 +52,16 @@ class _FeedPageState extends State<FeedPage> {
     _isFetching = true;
     setState(() => _isLoading = true);
 
-    // Assumindo que criaste a variável estática pageSize no IssueService
     final newData = await issueService.fetchIssues(page: _currentPage);
     final newReports = newData.map((m) => ReportData.fromMap(m)).toList();
 
-    if (mounted) {
-      setState(() {
-        _reports.addAll(newReports);
-        _currentPage++;
-        // Se a quantidade de itens devolvidos for menor que o limite, não há mais
-        _hasMore =
-            newReports.length ==
-            10; // Usando 10 em vez de IssueService.pageSize para garantir que não dá erro se não o criaste
-        _isLoading = false;
-      });
-    }
+    setState(() {
+      _reports.addAll(newReports);
+      _currentPage++;
+      // Usa o pageSize definido no IssueService (que é 4)
+      _hasMore = newReports.length == IssueService.pageSize;
+      _isLoading = false;
+    });
     _isFetching = false;
   }
 
@@ -301,7 +293,6 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Widget _buildCard(ReportData report) {
-    // AQUI ESTÁ A GRANDE MUDANÇA: GestureDetector à volta do cartão!
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -415,16 +406,28 @@ class _FeedPageState extends State<FeedPage> {
                         ],
                       ),
                       Row(
-                        children: const [
-                          Icon(
+                        children: [
+                          const Icon(
                             Icons.chat_bubble_outline,
                             size: 20,
                             color: Colors.black54,
                           ),
-                          SizedBox(width: 5),
-                          Text(
-                            '0', // No futuro podes ligar este zero ao número real de comentários!
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                          const SizedBox(width: 5),
+                          // AQUI ESTÁ A MAGIA!
+                          FutureBuilder<List<Map<String, dynamic>>>(
+                            future: issueService.fetchComments(report.id),
+                            builder: (context, snapshot) {
+                              // Se estiver a carregar ou der erro, mostra 0 provisório
+                              final count = snapshot.hasData
+                                  ? snapshot.data!.length
+                                  : 0;
+                              return Text(
+                                count.toString(),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),

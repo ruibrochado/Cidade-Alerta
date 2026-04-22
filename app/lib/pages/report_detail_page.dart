@@ -53,14 +53,15 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
       _comments.add({
         'content': text,
         'created_at': DateTime.now().toIso8601String(),
-        // Podes meter um nome genérico temporário ou ir buscar o email do current user
+        // Criamos um perfil falso só para mostrar "Tu" de imediato
+        'profiles': {'first_name': 'Tu', 'last_name': ''},
       });
     });
 
     try {
       await _issueService.addComment(widget.report.id, text);
       // Opcional: recarregar do servidor para ter a certeza
-      // _loadComments();
+      // await _loadComments();
     } catch (e) {
       debugPrint('Erro ao publicar comentário: $e');
       if (!mounted) return;
@@ -187,28 +188,63 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                               const SizedBox(height: 15),
                           itemBuilder: (context, index) {
                             final comment = _comments[index];
+
+                            // Lógica para extrair o nome
+                            final profile = comment['profiles'];
+                            final String firstName =
+                                profile?['first_name'] ?? '';
+                            final String lastName = profile?['last_name'] ?? '';
+
+                            final String userName =
+                                (firstName.isEmpty && lastName.isEmpty)
+                                ? 'Utilizador'
+                                : '$firstName $lastName'.trim();
+
                             return Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 CircleAvatar(
+                                  radius: 18,
                                   backgroundColor: Colors.grey.shade200,
                                   child: const Icon(
                                     Icons.person,
                                     color: Colors.grey,
+                                    size: 20,
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade100,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      comment['content'] ?? '',
-                                      style: const TextStyle(fontSize: 15),
-                                    ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // NOME DO UTILIZADOR AQUI EM CIMA
+                                      Text(
+                                        userName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      // BALÃO DE COMENTÁRIO
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade100,
+                                          borderRadius: const BorderRadius.only(
+                                            topRight: Radius.circular(12),
+                                            bottomLeft: Radius.circular(12),
+                                            bottomRight: Radius.circular(12),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          comment['content'] ?? '',
+                                          style: const TextStyle(fontSize: 15),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -236,7 +272,9 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: Colors.black.withValues(
+                    alpha: 0.05,
+                  ), // Corrigido o withOpacity
                   offset: const Offset(0, -4),
                   blurRadius: 10,
                 ),

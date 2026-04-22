@@ -138,12 +138,15 @@ class IssueService {
     try {
       final data = await supabase
           .from('comments')
-          .select()
+          .select('''
+            *,
+            profiles:user_id (
+              first_name,
+              last_name
+            )
+          ''') // Pede os dois campos à tabela profiles
           .eq('issue_id', issueId)
-          .order(
-            'created_at',
-            ascending: true,
-          ); // Os mais antigos primeiro (como no WhatsApp)
+          .order('created_at', ascending: true);
 
       return List<Map<String, dynamic>>.from(data);
     } catch (e) {
