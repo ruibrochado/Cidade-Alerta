@@ -128,4 +128,43 @@ class IssueService {
       throw Exception('Error fetching issues: $e');
     }
   }
+
+  // ==========================================
+  // NOVOS MÉTODOS PARA OS COMENTÁRIOS
+  // ==========================================
+
+  // Vai buscar todos os comentários de uma denúncia específica
+  Future<List<Map<String, dynamic>>> fetchComments(String issueId) async {
+    try {
+      final data = await supabase
+          .from('comments')
+          .select()
+          .eq('issue_id', issueId)
+          .order(
+            'created_at',
+            ascending: true,
+          ); // Os mais antigos primeiro (como no WhatsApp)
+
+      return List<Map<String, dynamic>>.from(data);
+    } catch (e) {
+      debugPrint('Erro a buscar comentários: $e');
+      return [];
+    }
+  }
+
+  // Adiciona um novo comentário à base de dados
+  Future<void> addComment(String issueId, String content) async {
+    final user = supabase.auth.currentUser;
+    if (user == null) throw Exception('User not logged in');
+
+    try {
+      await supabase.from('comments').insert({
+        'issue_id': issueId,
+        'user_id': user.id,
+        'content': content,
+      });
+    } catch (e) {
+      throw Exception('Erro ao adicionar comentário: $e');
+    }
+  }
 }

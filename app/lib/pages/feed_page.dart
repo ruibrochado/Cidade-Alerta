@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/issue_service.dart';
 import '../models/report_data.dart';
+import '../pages/report_detail_page.dart'; // <-- AJUSTA O CAMINHO SE NECESSÁRIO (ex: '../pages/report_detail_page.dart')
 
 class FeedPage extends StatefulWidget {
   const FeedPage({super.key});
@@ -36,8 +37,11 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Future<void> _fetchTotalCount() async {
-    final count = await issueService.fetchIssuesCount();
-    setState(() => _totalCount = count);
+    final count = await issueService
+        .fetchIssuesCount(); // Garante que este método existe no teu IssueService
+    if (mounted) {
+      setState(() => _totalCount = count);
+    }
   }
 
   @override
@@ -51,15 +55,21 @@ class _FeedPageState extends State<FeedPage> {
     _isFetching = true;
     setState(() => _isLoading = true);
 
+    // Assumindo que criaste a variável estática pageSize no IssueService
     final newData = await issueService.fetchIssues(page: _currentPage);
     final newReports = newData.map((m) => ReportData.fromMap(m)).toList();
 
-    setState(() {
-      _reports.addAll(newReports);
-      _currentPage++;
-      _hasMore = newReports.length == IssueService.pageSize;
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _reports.addAll(newReports);
+        _currentPage++;
+        // Se a quantidade de itens devolvidos for menor que o limite, não há mais
+        _hasMore =
+            newReports.length ==
+            10; // Usando 10 em vez de IssueService.pageSize para garantir que não dá erro se não o criaste
+        _isLoading = false;
+      });
+    }
     _isFetching = false;
   }
 
@@ -288,127 +298,140 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Widget _buildCard(ReportData report) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    // AQUI ESTÁ A GRANDE MUDANÇA: GestureDetector à volta do cartão!
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ReportDetailPage(report: report),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: report.photos.isNotEmpty
-                ? Image.network(
-                    report.photos.first,
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        _buildImagePlaceholder(
-                          icon: Icons.broken_image,
-                          message: 'Erro ao carregar imagem',
-                        ),
-                  )
-                : _buildImagePlaceholder(
-                    icon: Icons.image_not_supported,
-                    message: 'Sem imagem disponível',
-                  ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(15),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  report.title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF333333),
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  report.description,
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.location_on,
-                      size: 16,
-                      color: Color(0xFF00D159),
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        report.address ?? 'Localização registada',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: const [
-                        Icon(
-                          Icons.arrow_upward,
-                          size: 20,
-                          color: Colors.black54,
-                        ),
-                        SizedBox(width: 5),
-                        Text(
-                          '0',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(width: 10),
-                        Icon(
-                          Icons.arrow_downward,
-                          size: 20,
-                          color: Colors.black54,
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: const [
-                        Icon(
-                          Icons.chat_bubble_outline,
-                          size: 20,
-                          color: Colors.black54,
-                        ),
-                        SizedBox(width: 5),
-                        Text(
-                          '0',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade100),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-          ),
-        ],
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
+              child: report.photos.isNotEmpty
+                  ? Image.network(
+                      report.photos.first,
+                      height: 180,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          _buildImagePlaceholder(
+                            icon: Icons.broken_image,
+                            message: 'Erro ao carregar imagem',
+                          ),
+                    )
+                  : _buildImagePlaceholder(
+                      icon: Icons.image_not_supported,
+                      message: 'Sem imagem disponível',
+                    ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    report.title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF333333),
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    report.description,
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on,
+                        size: 16,
+                        color: Color(0xFF00D159),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          report.address ?? 'Localização registada',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(
+                            Icons.arrow_upward,
+                            size: 20,
+                            color: Colors.black54,
+                          ),
+                          SizedBox(width: 5),
+                          Text(
+                            '0',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(width: 10),
+                          Icon(
+                            Icons.arrow_downward,
+                            size: 20,
+                            color: Colors.black54,
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: const [
+                          Icon(
+                            Icons.chat_bubble_outline,
+                            size: 20,
+                            color: Colors.black54,
+                          ),
+                          SizedBox(width: 5),
+                          Text(
+                            '0', // No futuro podes ligar este zero ao número real de comentários!
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
