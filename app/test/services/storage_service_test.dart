@@ -36,26 +36,31 @@ void main() {
 
       when(() => mockSupabaseClient.auth).thenReturn(mockAuth);
       when(() => mockSupabaseClient.storage).thenReturn(mockStorageClient);
-      when(() => mockStorageClient.from('issue-images')).thenReturn(mockStorageFileApi);
+      when(
+        () => mockStorageClient.from('issue-images'),
+      ).thenReturn(mockStorageFileApi);
 
       storageService = StorageService(client: mockSupabaseClient);
     });
 
-    test('Should throw exception if user is not logged in during upload', () async {
-      when(() => mockAuth.currentUser).thenReturn(null);
-      final fakeFile = MockFile();
+    test(
+      'Should throw exception if user is not logged in during upload',
+      () async {
+        when(() => mockAuth.currentUser).thenReturn(null);
+        final fakeFile = MockFile();
 
-      expect(
-        () => storageService.uploadIssueImage(fakeFile, 'photo.jpg'),
-        throwsA(
-          isA<Exception>().having(
-            (e) => e.toString(),
-            'message',
-            contains('User not logged in'),
+        expect(
+          () => storageService.uploadIssueImage(fakeFile, 'photo.jpg'),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('User not logged in'),
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
 
     test('Should upload image successfully and return correct path', () async {
       final mockUser = MockUser();
@@ -65,9 +70,14 @@ void main() {
       final fakeFile = MockFile();
       final expectedPath = 'municipe123/photo.jpg';
 
-      when(() => mockStorageFileApi.upload(expectedPath, any())).thenAnswer((_) async => expectedPath);
+      when(
+        () => mockStorageFileApi.upload(expectedPath, any()),
+      ).thenAnswer((_) async => expectedPath);
 
-      final result = await storageService.uploadIssueImage(fakeFile, 'photo.jpg');
+      final result = await storageService.uploadIssueImage(
+        fakeFile,
+        'photo.jpg',
+      );
 
       expect(result, equals(expectedPath));
       verify(() => mockStorageFileApi.upload(expectedPath, fakeFile)).called(1);
@@ -81,7 +91,9 @@ void main() {
       final fakeFile = MockFile();
       final expectedPath = 'municipe123/photo.jpg';
 
-      when(() => mockStorageFileApi.upload(expectedPath, any())).thenThrow(Exception('Bucket quota exceeded'));
+      when(
+        () => mockStorageFileApi.upload(expectedPath, any()),
+      ).thenThrow(Exception('Bucket quota exceeded'));
 
       expect(
         () => storageService.uploadIssueImage(fakeFile, 'photo.jpg'),
@@ -97,9 +109,12 @@ void main() {
 
     test('Should return correct public URL for a given path', () {
       final imagePath = 'municipe123/photo.jpg';
-      final expectedUrl = 'https://supabase.com/storage/v1/object/public/issue-images/municipe123/photo.jpg';
+      final expectedUrl =
+          'https://supabase.com/storage/v1/object/public/issue-images/municipe123/photo.jpg';
 
-      when(() => mockStorageFileApi.getPublicUrl(imagePath)).thenReturn(expectedUrl);
+      when(
+        () => mockStorageFileApi.getPublicUrl(imagePath),
+      ).thenReturn(expectedUrl);
 
       final result = storageService.getPublicUrl(imagePath);
 

@@ -4,7 +4,7 @@ class EmailService {
   final SupabaseClient supabase;
 
   EmailService({SupabaseClient? client})
-      : supabase = client ?? Supabase.instance.client;
+    : supabase = client ?? Supabase.instance.client;
 
   Future<dynamic> sendEmail({
     required String to,

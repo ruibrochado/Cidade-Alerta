@@ -93,73 +93,90 @@ void main() {
       }
     });
 
-    test('Full Workflow: Upload Photo -> Insert DB -> Trigger Edge Function', () async {
-      final mockUser = MockUser();
-      when(() => mockUser.id).thenReturn('citizen-123');
-      when(() => mockAuth.currentUser).thenReturn(mockUser);
+    test(
+      'Full Workflow: Upload Photo -> Insert DB -> Trigger Edge Function',
+      () async {
+        final mockUser = MockUser();
+        when(() => mockUser.id).thenReturn('citizen-123');
+        when(() => mockAuth.currentUser).thenReturn(mockUser);
 
-      when(
-        () => mockStorageFileApi.upload(
-          any(),
-          any(),
-          fileOptions: any(named: 'fileOptions'),
-        ),
-      ).thenAnswer((_) async => 'citizen-123/photo.jpg');
+        when(
+          () => mockStorageFileApi.upload(
+            any(),
+            any(),
+            fileOptions: any(named: 'fileOptions'),
+          ),
+        ).thenAnswer((_) async => 'citizen-123/photo.jpg');
 
-      when(
-        () => mockStorageFileApi.getPublicUrl(any()),
-      ).thenReturn('https://supabase.com/public/photo.jpg');
+        when(
+          () => mockStorageFileApi.getPublicUrl(any()),
+        ).thenReturn('https://supabase.com/public/photo.jpg');
 
-      // FIX CRÍTICO: Todas as operações de query usam thenAnswer agora.
-      when(() => mockSupabaseClient.from('issues')).thenAnswer((_) => mockQueryBuilder);
+        // FIX CRÍTICO: Todas as operações de query usam thenAnswer agora.
+        when(
+          () => mockSupabaseClient.from('issues'),
+        ).thenAnswer((_) => mockQueryBuilder);
 
-      when(() => mockQueryBuilder.insert(any())).thenAnswer((_) => mockFilterBuilder);
+        when(
+          () => mockQueryBuilder.insert(any()),
+        ).thenAnswer((_) => mockFilterBuilder);
 
-      when(() => mockFilterBuilder.select(any())).thenAnswer((_) => mockTransformList);
+        when(
+          () => mockFilterBuilder.select(any()),
+        ).thenAnswer((_) => mockTransformList);
 
-      when(() => mockTransformList.single()).thenAnswer((_) => mockTransformSingle);
+        when(
+          () => mockTransformList.single(),
+        ).thenAnswer((_) => mockTransformSingle);
 
-      final mockFunctionResponse = FunctionResponse(data: 'ok', status: 200);
-      when(
-        () => mockFunctionsClient.invoke(
-          'forward-issue-to-municipality',
-          body: any(named: 'body'),
-        ),
-      ).thenAnswer((_) async => mockFunctionResponse);
+        final mockFunctionResponse = FunctionResponse(data: 'ok', status: 200);
+        when(
+          () => mockFunctionsClient.invoke(
+            'forward-issue-to-municipality',
+            body: any(named: 'body'),
+          ),
+        ).thenAnswer((_) async => mockFunctionResponse);
 
-      final ticket = await issueService.createIssue(
-        title: 'Estrada Abatida',
-        description: 'Cratera na faixa da direita.',
-        category: 'Infraestrutura',
-        latitude: 41.1496,
-        longitude: -8.6109,
-        street: 'Avenida dos Aliados',
-        photoPath: tempPhotoFile.path,
-      );
+        final ticket = await issueService.createIssue(
+          title: 'Estrada Abatida',
+          description: 'Cratera na faixa da direita.',
+          category: 'Infraestrutura',
+          latitude: 41.1496,
+          longitude: -8.6109,
+          street: 'Avenida dos Aliados',
+          photoPath: tempPhotoFile.path,
+        );
 
-      // Validações
-      expect(ticket, 'TKT-202611-9999');
+        // Validações
+        expect(ticket, 'TKT-202611-9999');
 
-      verify(() => mockStorageFileApi.upload(any(), any(), fileOptions: any(named: 'fileOptions'))).called(1);
+        verify(
+          () => mockStorageFileApi.upload(
+            any(),
+            any(),
+            fileOptions: any(named: 'fileOptions'),
+          ),
+        ).called(1);
 
-      verify(
-        () => mockQueryBuilder.insert(
-          any(
-            that: isA<Map<String, dynamic>>().having(
-              (m) => m['photo_url'],
-              'photo_url',
-              'https://supabase.com/public/photo.jpg',
+        verify(
+          () => mockQueryBuilder.insert(
+            any(
+              that: isA<Map<String, dynamic>>().having(
+                (m) => m['photo_url'],
+                'photo_url',
+                'https://supabase.com/public/photo.jpg',
+              ),
             ),
           ),
-        ),
-      ).called(1);
+        ).called(1);
 
-      verify(
-        () => mockFunctionsClient.invoke(
-          'forward-issue-to-municipality',
-          body: {'issue_id': 'issue-555'},
-        ),
-      ).called(1);
-    });
+        verify(
+          () => mockFunctionsClient.invoke(
+            'forward-issue-to-municipality',
+            body: {'issue_id': 'issue-555'},
+          ),
+        ).called(1);
+      },
+    );
   });
 }

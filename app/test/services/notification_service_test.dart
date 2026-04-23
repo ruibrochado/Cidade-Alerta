@@ -35,8 +35,9 @@ void main() {
     test('Should initialize, request permissions and fetch token', () async {
       final mockSettings = MockNotificationSettings();
 
-      when(() => mockSettings.authorizationStatus)
-          .thenReturn(AuthorizationStatus.authorized);
+      when(
+        () => mockSettings.authorizationStatus,
+      ).thenReturn(AuthorizationStatus.authorized);
 
       when(
         () => mockMessaging.requestPermission(
@@ -50,8 +51,9 @@ void main() {
         ),
       ).thenAnswer((_) async => mockSettings);
 
-      when(() => mockMessaging.getToken())
-          .thenAnswer((_) async => 'fake_fcm_token_999');
+      when(
+        () => mockMessaging.getToken(),
+      ).thenAnswer((_) async => 'fake_fcm_token_999');
 
       await notificationService.initialize();
 

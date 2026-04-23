@@ -5,7 +5,7 @@ class StorageService {
   final SupabaseClient supabase;
 
   StorageService({SupabaseClient? client})
-      : supabase = client ?? Supabase.instance.client;
+    : supabase = client ?? Supabase.instance.client;
 
   Future<String> uploadIssueImage(File file, String fileName) async {
     try {

@@ -2,15 +2,17 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
 class LocationWrapper {
-  Future<bool> isLocationServiceEnabled() => Geolocator.isLocationServiceEnabled();
+  Future<bool> isLocationServiceEnabled() =>
+      Geolocator.isLocationServiceEnabled();
 
   Future<LocationPermission> checkPermission() => Geolocator.checkPermission();
 
-  Future<LocationPermission> requestPermission() => Geolocator.requestPermission();
+  Future<LocationPermission> requestPermission() =>
+      Geolocator.requestPermission();
 
   Future<Position> getCurrentPosition() => Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
-      );
+    locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+  );
 
   Future<List<Placemark>> getPlacemarks(double lat, double lng) =>
       placemarkFromCoordinates(lat, lng);
@@ -20,7 +22,7 @@ class LocationService {
   final LocationWrapper wrapper;
 
   LocationService({LocationWrapper? locationWrapper})
-      : wrapper = locationWrapper ?? LocationWrapper();
+    : wrapper = locationWrapper ?? LocationWrapper();
 
   Future<Map<String, dynamic>> detectLocation() async {
     final bool serviceEnabled = await wrapper.isLocationServiceEnabled();
@@ -57,11 +59,15 @@ class LocationService {
         .cast<String>()
         .join(', ');
 
-    final List<String> cityCandidates = <String?>[
-      place?.locality,
-      place?.subAdministrativeArea,
-      place?.administrativeArea,
-    ].where((String? value) => value != null && value.trim().isNotEmpty).cast<String>().toList();
+    final List<String> cityCandidates =
+        <String?>[
+              place?.locality,
+              place?.subAdministrativeArea,
+              place?.administrativeArea,
+            ]
+            .where((String? value) => value != null && value.trim().isNotEmpty)
+            .cast<String>()
+            .toList();
 
     return {
       'latitude': position.latitude,

@@ -19,8 +19,9 @@ void main() {
     test('Should save report to local database', () async {
       final report = ReportData(category: 'Lixo', title: 'Acumulação');
 
-      when(() => mockDb.insert('pending_reports', any()))
-          .thenAnswer((_) async => 1);
+      when(
+        () => mockDb.insert('pending_reports', any()),
+      ).thenAnswer((_) async => 1);
 
       final id = await offlineService.saveReportOffline(report);
 
@@ -32,13 +33,15 @@ void main() {
       final mockData = [
         {
           'id': 10,
-          'data': '{"category":"Lixo","title":"Teste","description":"","photos":[],"latitude":1.0,"longitude":1.0,"address":null}',
-          'created_at': '2026-01-01T00:00:00Z'
-        }
+          'data':
+              '{"category":"Lixo","title":"Teste","description":"","photos":[],"latitude":1.0,"longitude":1.0,"address":null}',
+          'created_at': '2026-01-01T00:00:00Z',
+        },
       ];
 
-      when(() => mockDb.query('pending_reports'))
-          .thenAnswer((_) async => mockData);
+      when(
+        () => mockDb.query('pending_reports'),
+      ).thenAnswer((_) async => mockData);
 
       final results = await offlineService.getPendingReports();
 
@@ -48,12 +51,20 @@ void main() {
     });
 
     test('Should delete report from local database', () async {
-      when(() => mockDb.delete('pending_reports', where: any(named: 'where'), whereArgs: any(named: 'whereArgs')))
-          .thenAnswer((_) async => 1);
+      when(
+        () => mockDb.delete(
+          'pending_reports',
+          where: any(named: 'where'),
+          whereArgs: any(named: 'whereArgs'),
+        ),
+      ).thenAnswer((_) async => 1);
 
       await offlineService.deleteReport(10);
 
-      verify(() => mockDb.delete('pending_reports', where: 'id = ?', whereArgs: [10])).called(1);
+      verify(
+        () =>
+            mockDb.delete('pending_reports', where: 'id = ?', whereArgs: [10]),
+      ).called(1);
     });
   });
 }

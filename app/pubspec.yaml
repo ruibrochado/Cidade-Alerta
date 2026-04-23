@@ -25,6 +25,7 @@ dependencies:
   flutter_image_compress: ^2.4.0
   path_provider: ^2.1.5
   cached_network_image: ^3.4.1
+  sqflite: ^2.3.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

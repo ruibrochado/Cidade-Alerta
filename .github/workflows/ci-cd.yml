@@ -21,7 +21,6 @@ jobs:
   quality_checks:
     name: Quality & Tests
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,9 +31,6 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Install Lefthook
-        run: curl -1sLf 'https://dl.cloudsmith.io/public/evilmartians/lefthook/setup.deb.sh' | sudo -E bash && sudo apt-get install -y lefthook
-
       - name: Install dependencies
         working-directory: ./app
         run: flutter pub get
@@ -43,11 +39,17 @@ jobs:
         working-directory: ./app
         run: echo "STADIA_MAPS_API_KEY=test_key_123" > .env
 
-      - name: Run pre-commit checks
-        run: lefthook run pre-commit
+      - name: Check formatting
+        working-directory: ./app
+        run: dart format --set-exit-if-changed .
 
-      - name: Run pre-push checks
-        run: lefthook run pre-push
+      - name: Analyze
+        working-directory: ./app
+        run: flutter analyze
+
+      - name: Run tests
+        working-directory: ./app
+        run: flutter test
 
 
 

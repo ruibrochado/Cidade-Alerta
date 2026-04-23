@@ -15,7 +15,9 @@ void main() {
     });
 
     test('Should route Iluminacao Publica to E-Redes', () {
-      final target = CategoryMapper.getAuthorityForCategory('Iluminação Pública');
+      final target = CategoryMapper.getAuthorityForCategory(
+        'Iluminação Pública',
+      );
 
       expect(target.entityName, 'E-Redes');
       expect(target.contactEmail, 'apoiocliente@e-redes.pt');
@@ -35,7 +37,9 @@ void main() {
 
     test('Should fallback unknown categories to Camara Municipal Geral', () {
       final target1 = CategoryMapper.getAuthorityForCategory('Outros');
-      final target2 = CategoryMapper.getAuthorityForCategory('Categoria Inexistente');
+      final target2 = CategoryMapper.getAuthorityForCategory(
+        'Categoria Inexistente',
+      );
 
       expect(target1.entityName, 'Câmara Municipal (Geral)');
       expect(target2.entityName, 'Câmara Municipal (Geral)');

@@ -17,7 +17,9 @@ class MockPostgrestFilterBuilder extends Mock
     FutureOr<R> Function(List<Map<String, dynamic>>) onValue, {
     Function? onError,
   }) {
-    return Future.value(<Map<String, dynamic>>[]).then(onValue, onError: onError);
+    return Future.value(
+      <Map<String, dynamic>>[],
+    ).then(onValue, onError: onError);
   }
 }
 
@@ -82,29 +84,32 @@ void main() {
       verify(() => mockSupabaseClient.from('profiles')).called(1);
     });
 
-    test('Should sign up successfully but not call upsert if user is null', () async {
-      final mockResponse = MockAuthResponse();
+    test(
+      'Should sign up successfully but not call upsert if user is null',
+      () async {
+        final mockResponse = MockAuthResponse();
 
-      when(() => mockResponse.user).thenReturn(null);
+        when(() => mockResponse.user).thenReturn(null);
 
-      when(
-        () => mockAuth.signUp(
-          email: 'test@email.com',
-          password: 'password123',
-          data: {'first_name': 'Ana', 'last_name': 'Costa'},
-        ),
-      ).thenAnswer((_) async => mockResponse);
+        when(
+          () => mockAuth.signUp(
+            email: 'test@email.com',
+            password: 'password123',
+            data: {'first_name': 'Ana', 'last_name': 'Costa'},
+          ),
+        ).thenAnswer((_) async => mockResponse);
 
-      final result = await authService.signUp(
-        'Ana',
-        'Costa',
-        'test@email.com',
-        'password123',
-      );
+        final result = await authService.signUp(
+          'Ana',
+          'Costa',
+          'test@email.com',
+          'password123',
+        );
 
-      expect(result, equals(mockResponse));
-      verifyNever(() => mockSupabaseClient.from('profiles'));
-    });
+        expect(result, equals(mockResponse));
+        verifyNever(() => mockSupabaseClient.from('profiles'));
+      },
+    );
 
     test('Should throw exception when signUp fails', () async {
       when(
@@ -186,10 +191,7 @@ void main() {
         ),
       ).thenAnswer((_) async => mockResponse);
 
-      final result = await authService.signIn(
-        'test@email.com',
-        'password123',
-      );
+      final result = await authService.signIn('test@email.com', 'password123');
 
       expect(result, equals(mockResponse));
     });

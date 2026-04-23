@@ -26,7 +26,9 @@ void main() {
     });
 
     test('Should throw exception if location services are disabled', () async {
-      when(() => mockWrapper.isLocationServiceEnabled()).thenAnswer((_) async => false);
+      when(
+        () => mockWrapper.isLocationServiceEnabled(),
+      ).thenAnswer((_) async => false);
 
       await expectLater(
         locationService.detectLocation(),
@@ -40,72 +42,107 @@ void main() {
       );
     });
 
-    test('Should throw exception if permission is permanently denied', () async {
-      when(() => mockWrapper.isLocationServiceEnabled()).thenAnswer((_) async => true);
-      when(() => mockWrapper.checkPermission()).thenAnswer((_) async => LocationPermission.deniedForever);
+    test(
+      'Should throw exception if permission is permanently denied',
+      () async {
+        when(
+          () => mockWrapper.isLocationServiceEnabled(),
+        ).thenAnswer((_) async => true);
+        when(
+          () => mockWrapper.checkPermission(),
+        ).thenAnswer((_) async => LocationPermission.deniedForever);
 
-      await expectLater(
-        locationService.detectLocation(),
-        throwsA(
-          isA<Exception>().having(
-            (e) => e.toString(),
-            'message',
-            contains('Permissão de localização negada permanentemente.'),
+        await expectLater(
+          locationService.detectLocation(),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Permissão de localização negada permanentemente.'),
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
 
-    test('Should request permission if initially denied and throw if denied again', () async {
-      when(() => mockWrapper.isLocationServiceEnabled()).thenAnswer((_) async => true);
-      when(() => mockWrapper.checkPermission()).thenAnswer((_) async => LocationPermission.denied);
-      when(() => mockWrapper.requestPermission()).thenAnswer((_) async => LocationPermission.denied);
+    test(
+      'Should request permission if initially denied and throw if denied again',
+      () async {
+        when(
+          () => mockWrapper.isLocationServiceEnabled(),
+        ).thenAnswer((_) async => true);
+        when(
+          () => mockWrapper.checkPermission(),
+        ).thenAnswer((_) async => LocationPermission.denied);
+        when(
+          () => mockWrapper.requestPermission(),
+        ).thenAnswer((_) async => LocationPermission.denied);
 
-      await expectLater(
-        locationService.detectLocation(),
-        throwsA(
-          isA<Exception>().having(
-            (e) => e.toString(),
-            'message',
-            contains('Permissão de localização negada.'),
+        await expectLater(
+          locationService.detectLocation(),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Permissão de localização negada.'),
+            ),
           ),
-        ),
-      );
+        );
 
-      verify(() => mockWrapper.requestPermission()).called(1);
-    });
+        verify(() => mockWrapper.requestPermission()).called(1);
+      },
+    );
 
-    test('Should return correct location data on successful geocoding', () async {
-      when(() => mockWrapper.isLocationServiceEnabled()).thenAnswer((_) async => true);
-      when(() => mockWrapper.checkPermission()).thenAnswer((_) async => LocationPermission.whileInUse);
+    test(
+      'Should return correct location data on successful geocoding',
+      () async {
+        when(
+          () => mockWrapper.isLocationServiceEnabled(),
+        ).thenAnswer((_) async => true);
+        when(
+          () => mockWrapper.checkPermission(),
+        ).thenAnswer((_) async => LocationPermission.whileInUse);
 
-      final fakePos = FakePosition(latitude: 41.1496, longitude: -8.6109);
-      when(() => mockWrapper.getCurrentPosition()).thenAnswer((_) async => fakePos);
+        final fakePos = FakePosition(latitude: 41.1496, longitude: -8.6109);
+        when(
+          () => mockWrapper.getCurrentPosition(),
+        ).thenAnswer((_) async => fakePos);
 
-      final placemark = Placemark(
-        street: 'Avenida dos Aliados',
-        locality: 'Porto',
-        country: 'Portugal',
-      );
-      when(() => mockWrapper.getPlacemarks(41.1496, -8.6109)).thenAnswer((_) async => [placemark]);
+        final placemark = Placemark(
+          street: 'Avenida dos Aliados',
+          locality: 'Porto',
+          country: 'Portugal',
+        );
+        when(
+          () => mockWrapper.getPlacemarks(41.1496, -8.6109),
+        ).thenAnswer((_) async => [placemark]);
 
-      final result = await locationService.detectLocation();
+        final result = await locationService.detectLocation();
 
-      expect(result['latitude'], 41.1496);
-      expect(result['longitude'], -8.6109);
-      expect(result['street'], 'Avenida dos Aliados');
-      expect(result['city'], 'Porto');
-      expect(result['country'], 'Portugal');
-    });
+        expect(result['latitude'], 41.1496);
+        expect(result['longitude'], -8.6109);
+        expect(result['street'], 'Avenida dos Aliados');
+        expect(result['city'], 'Porto');
+        expect(result['country'], 'Portugal');
+      },
+    );
 
     test('Should handle empty placemarks gracefully', () async {
-      when(() => mockWrapper.isLocationServiceEnabled()).thenAnswer((_) async => true);
-      when(() => mockWrapper.checkPermission()).thenAnswer((_) async => LocationPermission.always);
+      when(
+        () => mockWrapper.isLocationServiceEnabled(),
+      ).thenAnswer((_) async => true);
+      when(
+        () => mockWrapper.checkPermission(),
+      ).thenAnswer((_) async => LocationPermission.always);
 
       final fakePos = FakePosition(latitude: 38.7223, longitude: -9.1393);
-      when(() => mockWrapper.getCurrentPosition()).thenAnswer((_) async => fakePos);
+      when(
+        () => mockWrapper.getCurrentPosition(),
+      ).thenAnswer((_) async => fakePos);
 
-      when(() => mockWrapper.getPlacemarks(38.7223, -9.1393)).thenAnswer((_) async => []);
+      when(
+        () => mockWrapper.getPlacemarks(38.7223, -9.1393),
+      ).thenAnswer((_) async => []);
 
       final result = await locationService.detectLocation();
 

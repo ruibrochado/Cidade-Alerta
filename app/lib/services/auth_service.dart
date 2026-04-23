@@ -4,7 +4,7 @@ class AuthService {
   final SupabaseClient supabase;
 
   AuthService({SupabaseClient? client})
-      : supabase = client ?? Supabase.instance.client;
+    : supabase = client ?? Supabase.instance.client;
 
   Future<AuthResponse> signUp(
     String firstName,
