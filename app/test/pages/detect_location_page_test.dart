@@ -6,7 +6,6 @@ import 'package:app/widgets/primary_button.dart';
 
 void main() {
   group('Detect Location Page Tests', () {
-
     final initialReport = ReportData(
       category: 'Limpeza',
       title: 'Caixote Lixo',
@@ -19,7 +18,8 @@ void main() {
         MaterialApp(
           // injected the route because the "Continuar" button does Navigator.pushNamed()
           routes: {
-            '/adjust-location': (context) => const Scaffold(body: Text('Página do Mapa')),
+            '/adjust-location': (context) =>
+                const Scaffold(body: Text('Página do Mapa')),
           },
           home: DetectLocationPage(report: initialReport),
         ),
@@ -33,7 +33,7 @@ void main() {
       expect(find.text('Localização'), findsOneWidget);
       expect(find.text('Detectando sua localização...'), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      
+
       // Button should be blocked during detection
       final buttonFinder = find.byType(PrimaryButton);
       expect(tester.widget<PrimaryButton>(buttonFinder).enabled, isFalse);

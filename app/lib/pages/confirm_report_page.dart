@@ -55,22 +55,22 @@ class _ConfirmPageState extends State<ConfirmPage> {
 
       final Placemark? place = placemarks.isNotEmpty ? placemarks.first : null;
 
-      final String street = <String?>[
-        place?.street,
-        place?.subThoroughfare,
-      ]
+      final String street = <String?>[place?.street, place?.subThoroughfare]
           .where((String? value) => value != null && value.trim().isNotEmpty)
           .cast<String>()
           .join(', ');
 
-      final List<String> cityCandidates = <String?>[
-        place?.locality,
-        place?.subAdministrativeArea,
-        place?.administrativeArea,
-      ]
-          .where((String? value) => value != null && value.trim().isNotEmpty)
-          .cast<String>()
-          .toList();
+      final List<String> cityCandidates =
+          <String?>[
+                place?.locality,
+                place?.subAdministrativeArea,
+                place?.administrativeArea,
+              ]
+              .where(
+                (String? value) => value != null && value.trim().isNotEmpty,
+              )
+              .cast<String>()
+              .toList();
 
       if (!mounted) return;
 
@@ -91,7 +91,6 @@ class _ConfirmPageState extends State<ConfirmPage> {
       });
     }
   }
-
 
   /*
   String _generateTicketNumber() {
@@ -121,15 +120,25 @@ class _ConfirmPageState extends State<ConfirmPage> {
     try {
       final issueService = IssueService();
 
+      // Criamos a morada para a DB
+      String? moradaFinal = _street;
+      if (_city != null && _street != null) {
+        moradaFinal = '$_street, $_city';
+      }
+
+      // Tenta criar a issue
       final String ticketNumber = await issueService.createIssue(
         title: widget.report.title,
         description: widget.report.description,
         category: widget.report.category,
         latitude: widget.report.latitude!,
         longitude: widget.report.longitude!,
-        photoPath: widget.report.photos.isNotEmpty ? widget.report.photos.first : null,
+        street: moradaFinal,
+        photoPath: widget.report.photos.isNotEmpty
+            ? widget.report.photos.first
+            : null,
       );
-      
+
       if (!mounted) return;
 
       setState(() {
@@ -138,22 +147,33 @@ class _ConfirmPageState extends State<ConfirmPage> {
         _ticketNumber = ticketNumber;
       });
 
-      await Future<void>.delayed(const Duration(seconds: 3));
+      // SÓ SAI DAQUI SE TUDO DER CERTO
+      await Future.delayed(const Duration(seconds: 3));
       if (!mounted) return;
 
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        '/home',
-        (Route<dynamic> route) => false,
-      );
+      Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
     } catch (e) {
+      // FIX CRÍTICO: Se der erro, apenas paramos o loading.
+      // NÃO há comandos de Navigator aqui, logo a página NÃO VOLTA À HOME.
       if (!mounted) return;
 
       setState(() {
         _sending = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao guardar denúncia: $e')),
+      // Mostra o erro num popup para tu leres o que o Supabase rejeitou
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text("Erro Detectado"),
+          content: Text("Erro ao guardar denúncia: $e"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text("OK"),
+            ),
+          ],
+        ),
       );
     }
   }
@@ -191,11 +211,7 @@ class _ConfirmPageState extends State<ConfirmPage> {
                   width: double.infinity,
                   color: headerGreen,
                 ),
-                Expanded(
-                  child: Container(
-                    color: const Color(0xFFF8F8F8),
-                  ),
-                ),
+                Expanded(child: Container(color: const Color(0xFFF8F8F8))),
               ],
             ),
             SafeArea(
@@ -286,9 +302,7 @@ class _ConfirmPageState extends State<ConfirmPage> {
                                 const Text(
                                   'Sua denúncia foi registrada e será analisada em breve.',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: Color(0xFF4B5563),
-                                  ),
+                                  style: TextStyle(color: Color(0xFF4B5563)),
                                 ),
                                 const SizedBox(height: 20),
                                 Container(
@@ -323,10 +337,7 @@ class _ConfirmPageState extends State<ConfirmPage> {
                               ],
                             )
                           : LayoutBuilder(
-                              builder: (
-                                BuildContext context,
-                                BoxConstraints constraints,
-                              ) {
+                              builder: (BuildContext context, BoxConstraints constraints) {
                                 return SingleChildScrollView(
                                   child: ConstrainedBox(
                                     constraints: BoxConstraints(
@@ -355,7 +366,8 @@ class _ConfirmPageState extends State<ConfirmPage> {
                                                 Expanded(
                                                   child: Column(
                                                     crossAxisAlignment:
-                                                        CrossAxisAlignment.start,
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: <Widget>[
                                                       const Text(
                                                         'Categoria',
@@ -422,7 +434,10 @@ class _ConfirmPageState extends State<ConfirmPage> {
                                               ],
                                             ),
                                           ),
-                                          if (widget.report.photos.isNotEmpty) ...<Widget>[
+                                          if (widget
+                                              .report
+                                              .photos
+                                              .isNotEmpty) ...<Widget>[
                                             const SizedBox(height: 12),
                                             _buildSectionCard(
                                               child: Column(
@@ -455,9 +470,9 @@ class _ConfirmPageState extends State<ConfirmPage> {
                                                     scrollDirection:
                                                         Axis.horizontal,
                                                     child: Row(
-                                                      children: widget
-                                                          .report.photos
-                                                          .map((String photo) {
+                                                      children: widget.report.photos.map((
+                                                        String photo,
+                                                      ) {
                                                         return Padding(
                                                           padding:
                                                               const EdgeInsets.only(
@@ -473,12 +488,12 @@ class _ConfirmPageState extends State<ConfirmPage> {
                                                               width: 64,
                                                               height: 64,
                                                               fit: BoxFit.cover,
-                                                              errorBuilder: (
-                                                                context,
-                                                                error,
-                                                                stackTrace,
-                                                              ) =>
-                                                                  Container(
+                                                              errorBuilder:
+                                                                  (
+                                                                    context,
+                                                                    error,
+                                                                    stackTrace,
+                                                                  ) => Container(
                                                                     width: 64,
                                                                     height: 64,
                                                                     color: Colors
@@ -518,7 +533,8 @@ class _ConfirmPageState extends State<ConfirmPage> {
                                                 Expanded(
                                                   child: Column(
                                                     crossAxisAlignment:
-                                                        CrossAxisAlignment.start,
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: <Widget>[
                                                       const Text(
                                                         'Localização',
@@ -531,58 +547,74 @@ class _ConfirmPageState extends State<ConfirmPage> {
                                                       ),
                                                       const SizedBox(height: 4),
                                                       if (_street != null &&
-                                                          _street!.isNotEmpty) ...<Widget>[
+                                                          _street!
+                                                              .isNotEmpty) ...<
+                                                        Widget
+                                                      >[
                                                         Text(
                                                           _street!,
-                                                          style: const TextStyle(
-                                                            color: Color(
-                                                              0xFF1F2937,
-                                                            ),
-                                                            fontWeight:
-                                                                FontWeight.w500,
-                                                          ),
+                                                          style:
+                                                              const TextStyle(
+                                                                color: Color(
+                                                                  0xFF1F2937,
+                                                                ),
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w500,
+                                                              ),
                                                         ),
                                                       ],
                                                       if (_city != null &&
-                                                          _city!.isNotEmpty) ...<Widget>[
+                                                          _city!
+                                                              .isNotEmpty) ...<
+                                                        Widget
+                                                      >[
                                                         const SizedBox(
                                                           height: 4,
                                                         ),
                                                         Text(
                                                           _city!,
-                                                          style: const TextStyle(
-                                                            color: Color(
-                                                              0xFF374151,
-                                                            ),
-                                                          ),
+                                                          style:
+                                                              const TextStyle(
+                                                                color: Color(
+                                                                  0xFF374151,
+                                                                ),
+                                                              ),
                                                         ),
                                                       ],
                                                       if (_country != null &&
                                                           _country!
-                                                              .isNotEmpty) ...<Widget>[
+                                                              .isNotEmpty) ...<
+                                                        Widget
+                                                      >[
                                                         const SizedBox(
                                                           height: 4,
                                                         ),
                                                         Text(
                                                           _country!,
-                                                          style: const TextStyle(
-                                                            color: Color(
-                                                              0xFF374151,
-                                                            ),
-                                                          ),
+                                                          style:
+                                                              const TextStyle(
+                                                                color: Color(
+                                                                  0xFF374151,
+                                                                ),
+                                                              ),
                                                         ),
                                                       ],
                                                       if (_locationError
-                                                          .isNotEmpty) ...<Widget>[
+                                                          .isNotEmpty) ...<
+                                                        Widget
+                                                      >[
                                                         const SizedBox(
                                                           height: 4,
                                                         ),
                                                         Text(
                                                           _locationError,
-                                                          style: const TextStyle(
-                                                            color: Colors.red,
-                                                            fontSize: 12,
-                                                          ),
+                                                          style:
+                                                              const TextStyle(
+                                                                color:
+                                                                    Colors.red,
+                                                                fontSize: 12,
+                                                              ),
                                                         ),
                                                       ],
                                                     ],

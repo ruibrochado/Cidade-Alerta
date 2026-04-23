@@ -1,14 +1,32 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthService {
-  final supabase = Supabase.instance.client;
+  final SupabaseClient supabase = Supabase.instance.client;
 
-  Future<AuthResponse> signUp(String email, String password) async {
+  Future<AuthResponse> signUp(
+    String firstName,
+    String lastName,
+    String email,
+    String password,
+  ) async {
     try {
-      return await supabase.auth.signUp(
+      final AuthResponse response = await supabase.auth.signUp(
         email: email,
         password: password,
+        data: {'first_name': firstName, 'last_name': lastName},
       );
+
+      final User? user = response.user;
+
+      if (user != null) {
+        await supabase.from('profiles').upsert({
+          'id': user.id,
+          'first_name': firstName,
+          'last_name': lastName,
+        });
+      }
+
+      return response;
     } catch (e) {
       throw Exception('Error signing up: $e');
     }

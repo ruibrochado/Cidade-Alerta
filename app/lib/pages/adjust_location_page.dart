@@ -1,4 +1,3 @@
-import 'package:app/pages/confirm_report_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -56,22 +55,22 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
 
       final Placemark? place = placemarks.isNotEmpty ? placemarks.first : null;
 
-      final String street = <String?>[
-        place?.street,
-        place?.subThoroughfare,
-      ]
+      final String street = <String?>[place?.street, place?.subThoroughfare]
           .where((String? value) => value != null && value.trim().isNotEmpty)
           .cast<String>()
           .join(', ');
 
-      final List<String> cityCandidates = <String?>[
-        place?.locality,
-        place?.subAdministrativeArea,
-        place?.administrativeArea,
-      ]
-          .where((String? value) => value != null && value.trim().isNotEmpty)
-          .cast<String>()
-          .toList();
+      final List<String> cityCandidates =
+          <String?>[
+                place?.locality,
+                place?.subAdministrativeArea,
+                place?.administrativeArea,
+              ]
+              .where(
+                (String? value) => value != null && value.trim().isNotEmpty,
+              )
+              .cast<String>()
+              .toList();
 
       if (!mounted) return;
 
@@ -108,11 +107,10 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
       longitude: _selectedLocation.longitude,
     );
 
-    Navigator.push(
+    Navigator.pushNamed(
       context,
-      MaterialPageRoute(
-        builder: (_) => ConfirmPage(report: updatedReport),
-      ),
+      '/confirm', // Usa a rota definida no AppRoutes
+      arguments: updatedReport,
     );
   }
 
@@ -138,11 +136,7 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
                   width: double.infinity,
                   color: headerGreen,
                 ),
-                Expanded(
-                  child: Container(
-                    color: const Color(0xFFF8F8F8),
-                  ),
-                ),
+                Expanded(child: Container(color: const Color(0xFFF8F8F8))),
               ],
             ),
             SafeArea(
@@ -227,10 +221,12 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
                                                     padding: EdgeInsets.all(24),
                                                     child: Text(
                                                       'STADIA_MAPS_API_KEY não encontrada no .env',
-                                                      textAlign: TextAlign.center,
+                                                      textAlign:
+                                                          TextAlign.center,
                                                       style: TextStyle(
                                                         color: Colors.red,
-                                                        fontWeight: FontWeight.w600,
+                                                        fontWeight:
+                                                            FontWeight.w600,
                                                       ),
                                                     ),
                                                   ),
@@ -239,30 +235,44 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
                                             : FlutterMap(
                                                 mapController: _mapController,
                                                 options: MapOptions(
-                                                  initialCenter: _selectedLocation,
+                                                  initialCenter:
+                                                      _selectedLocation,
                                                   initialZoom: 17,
-                                                  onTap: (TapPosition _, LatLng point) {
-                                                    _updateSelectedLocation(point);
-                                                  },
+                                                  onTap:
+                                                      (
+                                                        TapPosition _,
+                                                        LatLng point,
+                                                      ) {
+                                                        _updateSelectedLocation(
+                                                          point,
+                                                        );
+                                                      },
                                                 ),
                                                 children: <Widget>[
                                                   TileLayer(
                                                     urlTemplate:
                                                         'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=$stadiaApiKey',
-                                                    userAgentPackageName: 'com.example.app',
+                                                    userAgentPackageName:
+                                                        'com.example.app',
                                                     retinaMode:
-                                                        MediaQuery.of(context).devicePixelRatio > 1.0,
+                                                        MediaQuery.of(
+                                                          context,
+                                                        ).devicePixelRatio >
+                                                        1.0,
                                                   ),
                                                   MarkerLayer(
                                                     markers: <Marker>[
                                                       Marker(
-                                                        point: _selectedLocation,
+                                                        point:
+                                                            _selectedLocation,
                                                         width: 46,
                                                         height: 46,
                                                         child: const Icon(
                                                           Icons.location_on,
                                                           size: 42,
-                                                          color: Color(0xFF16A34A),
+                                                          color: Color(
+                                                            0xFF16A34A,
+                                                          ),
                                                         ),
                                                       ),
                                                     ],
@@ -291,7 +301,8 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: <Widget>[
                                           if (_loadingAddress) ...<Widget>[
                                             const Text(
@@ -302,7 +313,9 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
                                               ),
                                             ),
                                           ] else ...<Widget>[
-                                            if (_street != null && _street!.isNotEmpty) ...<Widget>[
+                                            if (_street != null &&
+                                                _street!
+                                                    .isNotEmpty) ...<Widget>[
                                               const Text(
                                                 'Rua:',
                                                 style: TextStyle(
@@ -318,7 +331,8 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
                                                 ),
                                               ),
                                             ],
-                                            if (_city != null && _city!.isNotEmpty) ...<Widget>[
+                                            if (_city != null &&
+                                                _city!.isNotEmpty) ...<Widget>[
                                               const SizedBox(height: 12),
                                               const Text(
                                                 'Cidade:',
@@ -335,7 +349,9 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
                                                 ),
                                               ),
                                             ],
-                                            if (_country != null && _country!.isNotEmpty) ...<Widget>[
+                                            if (_country != null &&
+                                                _country!
+                                                    .isNotEmpty) ...<Widget>[
                                               const SizedBox(height: 12),
                                               const Text(
                                                 'País:',

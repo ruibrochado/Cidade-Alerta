@@ -26,9 +26,7 @@ class AppScaffold extends StatelessWidget {
           children: <Widget>[
             Container(
               width: double.infinity,
-              constraints: const BoxConstraints(
-                minHeight: kAppHeaderMinHeight,
-              ),
+              constraints: const BoxConstraints(minHeight: kAppHeaderMinHeight),
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
               decoration: const BoxDecoration(
                 color: Color(0xFFCDE5CB),
@@ -46,7 +44,9 @@ class AppScaffold extends StatelessWidget {
                           onPressed: () => Navigator.of(context).maybePop(),
                           icon: const Icon(Icons.arrow_back),
                           style: IconButton.styleFrom(
-                            backgroundColor: Colors.white.withValues(alpha: 0.85),
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.85,
+                            ),
                           ),
                         )
                       else

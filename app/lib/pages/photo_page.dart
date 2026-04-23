@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:app/pages/detect_location_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -17,76 +16,95 @@ class PhotoPage extends StatefulWidget {
   State<PhotoPage> createState() => _PhotoPageState();
 }
 
+enum PhotoState { idle, taking, processing }
+
 class _PhotoPageState extends State<PhotoPage> {
   final ImagePicker _picker = ImagePicker();
 
   String? _photo;
-  bool _isTakingPhoto = false;
+  PhotoState _state = PhotoState.idle;
 
   @override
   void initState() {
     super.initState();
-    _photo = widget.report.photos.isNotEmpty ? widget.report.photos.first : null;
+    _recoverLostData();
+
+    _photo = widget.report.photos.isNotEmpty
+        ? widget.report.photos.first
+        : null;
   }
 
-  Future<void> _takePhoto() async {
-    try {
-      setState(() {
-        _isTakingPhoto = true;
-      });
+  /// 🔥 Recupera foto se a app for morta durante a câmara
+  Future<void> _recoverLostData() async {
+    final response = await _picker.retrieveLostData();
 
+    if (response.isEmpty) return;
+
+    final XFile? file = response.file;
+
+    if (file != null && mounted) {
+      setState(() {
+        _photo = file.path;
+      });
+    }
+  }
+
+  /// 📸 Tirar foto
+  Future<void> _takePhoto() async {
+    if (_state != PhotoState.idle) return;
+
+    setState(() {
+      _state = PhotoState.taking;
+    });
+
+    try {
       final XFile? file = await _picker.pickImage(
         source: ImageSource.camera,
-        imageQuality: 85,
+        imageQuality: 75,
+        maxWidth: 1600,
+        maxHeight: 1600,
       );
 
+      if (!mounted) return;
+
       if (file == null) {
+        setState(() => _state = PhotoState.idle);
         return;
       }
 
       setState(() {
+        _state = PhotoState.processing;
         _photo = file.path;
+        _state = PhotoState.idle;
       });
     } catch (e) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Não foi possível tirar a foto.'),
+          content: Text('Erro ao tirar foto. Tenta novamente.'),
+          backgroundColor: Colors.red,
         ),
       );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isTakingPhoto = false;
-        });
-      }
+
+      setState(() {
+        _state = PhotoState.idle;
+      });
     }
   }
 
+  /// ➡️ Continuar
   void _continue() {
-    /*
     if (_photo == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Tire uma foto antes de continuar.'),
-        ),
+        const SnackBar(content: Text('Adiciona uma foto primeiro')),
       );
       return;
     }
-    */
 
-    final updatedReport = widget.report.copyWith(
-      //photos: <String>[_photo!],
-      photos: _photo != null ? <String>[_photo!] : <String>[],
-    );
+    final updatedReport = widget.report.copyWith(photos: <String>[_photo!]);
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => DetectLocationPage(report: updatedReport),
-      ),
-    );
+    Navigator.pushNamed(context, '/detect-location', arguments: updatedReport);
   }
 
   @override
@@ -97,29 +115,22 @@ class _PhotoPageState extends State<PhotoPage> {
       value: const SystemUiOverlayStyle(
         statusBarColor: headerGreen,
         statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
       ),
       child: Scaffold(
         backgroundColor: headerGreen,
         body: Stack(
-          children: <Widget>[
+          children: [
             Column(
-              children: <Widget>[
-                Container(
-                  height: 300,
-                  width: double.infinity,
-                  color: headerGreen,
-                ),
-                Expanded(
-                  child: Container(
-                    color: const Color(0xFFF8F8F8),
-                  ),
-                ),
+              children: [
+                Container(height: 300, color: headerGreen),
+                Expanded(child: Container(color: const Color(0xFFF8F8F8))),
               ],
             ),
+
             SafeArea(
               child: Stack(
-                children: <Widget>[
+                children: [
+                  /// 🔙 Back
                   Positioned(
                     top: 16,
                     left: 16,
@@ -131,12 +142,14 @@ class _PhotoPageState extends State<PhotoPage> {
                       ),
                     ),
                   ),
+
+                  /// Title
                   const Positioned(
                     top: 74,
                     left: 24,
                     right: 24,
                     child: Column(
-                      children: <Widget>[
+                      children: [
                         Text(
                           'Adicionar Foto',
                           textAlign: TextAlign.center,
@@ -158,17 +171,19 @@ class _PhotoPageState extends State<PhotoPage> {
                       ],
                     ),
                   ),
+
+                  /// Card
                   Positioned(
                     top: 175,
                     left: 16,
                     right: 16,
                     bottom: 16,
                     child: Container(
-                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(28),
-                        boxShadow: const <BoxShadow>[
+                        boxShadow: const [
                           BoxShadow(
                             color: Color(0x14000000),
                             blurRadius: 24,
@@ -176,110 +191,101 @@ class _PhotoPageState extends State<PhotoPage> {
                           ),
                         ],
                       ),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: <Widget>[
-                            if (_photo != null)
-                              Stack(
-                                children: <Widget>[
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: SizedBox(
-                                      width: double.infinity,
-                                      height: 240,
-                                      child: Image.file(
-                                        File(_photo!),
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) =>
-                                            Container(
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey.shade200,
-                                            borderRadius: BorderRadius.circular(20),
-                                          ),
-                                          child: const Center(
-                                            child: Icon(Icons.image, size: 40),
-                                          ),
-                                        ),
+                      child: Column(
+                        children: [
+                          /// 📷 Foto
+                          if (_photo != null)
+                            Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Image.file(
+                                    File(_photo!),
+                                    width: double.infinity,
+                                    height: 240,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+
+                                Positioned(
+                                  top: 10,
+                                  right: 10,
+                                  child: IconButton(
+                                    onPressed: () {
+                                      setState(() => _photo = null);
+                                    },
+                                    icon: const Icon(Icons.close),
+                                    color: Colors.white,
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  ),
+                                ),
+
+                                if (_state == PhotoState.processing)
+                                  const Positioned.fill(
+                                    child: ColoredBox(
+                                      color: Colors.black26,
+                                      child: Center(
+                                        child: CircularProgressIndicator(),
                                       ),
                                     ),
                                   ),
-                                  Positioned(
-                                    top: 10,
-                                    right: 10,
-                                    child: InkWell(
-                                      onTap: () => setState(() => _photo = null),
-                                      child: Container(
-                                        width: 30,
-                                        height: 30,
-                                        decoration: const BoxDecoration(
-                                          color: Colors.red,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          Icons.close,
-                                          size: 18,
-                                          color: Colors.white,
-                                        ),
-                                      ),
+                              ],
+                            ),
+
+                          const SizedBox(height: 16),
+
+                          /// 📸 Botão câmera
+                          InkWell(
+                            onTap: _state == PhotoState.idle
+                                ? _takePhoto
+                                : null,
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 48),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: const Color(0xFFD1D5DB),
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                color: const Color(0xFFF9FAFB),
+                              ),
+                              child: Column(
+                                children: [
+                                  const Icon(
+                                    Icons.camera_alt_outlined,
+                                    size: 28,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    _state == PhotoState.taking
+                                        ? 'A abrir câmara...'
+                                        : _state == PhotoState.processing
+                                        ? 'A processar...'
+                                        : _photo == null
+                                        ? 'Tirar Foto'
+                                        : 'Tirar Nova Foto',
+                                    style: const TextStyle(
+                                      color: Color(0xFF4B5563),
                                     ),
                                   ),
                                 ],
                               ),
-                            if (_photo != null) const SizedBox(height: 16),
-                            InkWell(
-                              borderRadius: BorderRadius.circular(20),
-                              onTap: _isTakingPhoto ? null : _takePhoto,
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 48,
-                                  horizontal: 16,
-                                ),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: const Color(0xFFD1D5DB),
-                                    width: 1.5,
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                  color: const Color(0xFFF9FAFB),
-                                ),
-                                child: Column(
-                                  children: <Widget>[
-                                    const CircleAvatar(
-                                      radius: 28,
-                                      backgroundColor: Color(0xFFDCFCE7),
-                                      child: Icon(
-                                        Icons.camera_alt_outlined,
-                                        size: 28,
-                                        color: Color(0xFF16A34A),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      _isTakingPhoto
-                                          ? 'A abrir câmara...'
-                                          : _photo == null
-                                              ? 'Tirar Foto'
-                                              : 'Tirar Nova Foto',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Color(0xFF4B5563),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
                             ),
-                            const SizedBox(height: 24),
-                            SizedBox(
-                              width: double.infinity,
-                              child: PrimaryButton(
-                                label: 'Continuar',
-                                onPressed: _continue,
-                              ),
+                          ),
+
+                          const Spacer(),
+
+                          /// ➡️ Continuar
+                          SizedBox(
+                            width: double.infinity,
+                            child: PrimaryButton(
+                              label: 'Continuar',
+                              onPressed: _continue,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

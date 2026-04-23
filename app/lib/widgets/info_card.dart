@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
 class InfoCard extends StatelessWidget {
-  const InfoCard({
-    super.key,
-    required this.child,
-  });
+  const InfoCard({super.key, required this.child});
 
   final Widget child;
 

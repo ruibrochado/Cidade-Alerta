@@ -47,9 +47,7 @@ class _EmailTestPageState extends State<EmailTestPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Email Test'),
-      ),
+      appBar: AppBar(title: const Text('Email Test')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

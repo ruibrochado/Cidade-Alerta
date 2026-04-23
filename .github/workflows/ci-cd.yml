@@ -32,22 +32,22 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Install Lefthook
+        run: curl -1sLf 'https://dl.cloudsmith.io/public/evilmartians/lefthook/setup.deb.sh' | sudo -E bash && sudo apt-get install -y lefthook
+
       - name: Install dependencies
         working-directory: ./app
         run: flutter pub get
 
-      - name: Create dummy .env for Analyzer
+      - name: Create dummy .env
         working-directory: ./app
         run: echo "STADIA_MAPS_API_KEY=test_key_123" > .env
 
-      - name: Quality Evaluation
-        working-directory: ./app
-        run: flutter analyze
+      - name: Run pre-commit checks
+        run: lefthook run pre-commit
 
-
-      - name: Run tests
-        working-directory: ./app
-        run: flutter test
+      - name: Run pre-push checks
+        run: lefthook run pre-push
 
 
 
