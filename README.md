@@ -294,7 +294,10 @@ This prototype already integrates important project technologies, including Supa
 
 https://github.com/user-attachments/assets/b04837a8-2f4d-4807-a654-42710cd514ee
 
+## Happiness meters 
+This is the spreadsheet with the happiness meters of all sprints (the table was filled horizontally):
 
+https://docs.google.com/spreadsheets/d/1YrbhEQnvNBC4zYHSgOrt7BGwlMn3i2FC6W3B4y6gu90/edit?usp=sharing
 
 ## Project management
 <!--
