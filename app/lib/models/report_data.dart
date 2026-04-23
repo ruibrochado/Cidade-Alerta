@@ -1,6 +1,6 @@
 class ReportData {
   const ReportData({
-    this.id = '', // <-- ADICIONADO AQUI
+    this.id = '',
     required this.category,
     this.title = '',
     this.description = '',
@@ -8,9 +8,10 @@ class ReportData {
     this.latitude,
     this.longitude,
     this.address,
+    this.score = 0, // <-- NOVO
   });
 
-  final String id; // <-- ADICIONADO AQUI
+  final String id;
   final String category;
   final String title;
   final String description;
@@ -18,12 +19,11 @@ class ReportData {
   final double? latitude;
   final double? longitude;
   final String? address;
+  final int score; // <-- NOVO
 
   factory ReportData.fromMap(Map<String, dynamic> map) {
     return ReportData(
-      id:
-          map['id']?.toString() ??
-          '', // <-- ADICIONADO AQUI PARA LER DO SUPABASE
+      id: map['id']?.toString() ?? '',
       category: map['category'] ?? 'Geral',
       title: map['title'] ?? '',
       description: map['description'] ?? '',
@@ -31,11 +31,12 @@ class ReportData {
       latitude: (map['latitude'] as num?)?.toDouble(),
       longitude: (map['longitude'] as num?)?.toDouble(),
       address: map['address'] as String?,
+      score: map['score'] as int? ?? 0, // <-- NOVO LÊ DIRETAMENTE DO SUPABASE
     );
   }
 
   ReportData copyWith({
-    String? id, // <-- ADICIONADO AQUI
+    String? id,
     String? category,
     String? title,
     String? description,
@@ -43,11 +44,12 @@ class ReportData {
     double? latitude,
     double? longitude,
     String? address,
+    int? score, // <-- NOVO
     bool clearLatitude = false,
     bool clearLongitude = false,
   }) {
     return ReportData(
-      id: id ?? this.id, // <-- ADICIONADO AQUI
+      id: id ?? this.id,
       category: category ?? this.category,
       title: title ?? this.title,
       description: description ?? this.description,
@@ -55,6 +57,7 @@ class ReportData {
       latitude: clearLatitude ? null : (latitude ?? this.latitude),
       longitude: clearLongitude ? null : (longitude ?? this.longitude),
       address: address ?? this.address,
+      score: score ?? this.score, // <-- NOVO
     );
   }
 }

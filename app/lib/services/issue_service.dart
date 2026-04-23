@@ -50,7 +50,7 @@ class IssueService {
     required String category,
     required double latitude,
     required double longitude,
-    String? street, // VOLTEI A ADICIONAR ESTE PARÂMETRO
+    String? street,
     String? photoPath,
   }) async {
     final User? user = supabase.auth.currentUser;
@@ -77,8 +77,7 @@ class IssueService {
             'category': category,
             'latitude': latitude,
             'longitude': longitude,
-            'address':
-                finalAddress, // Usa a rua final (ou a passada ou a detectada)
+            'address': finalAddress,
             'photo_url': uploadedPhotoUrl,
           })
           .select('id, ticket_number')
@@ -144,7 +143,7 @@ class IssueService {
               first_name,
               last_name
             )
-          ''') // Pede os dois campos à tabela profiles
+          ''')
           .eq('issue_id', issueId)
           .order('created_at', ascending: true);
 
@@ -171,24 +170,36 @@ class IssueService {
     }
   }
 
-  // Vai buscar a pontuação total (upvotes - downvotes) e o voto do user atual
+  // ==========================================
+  // MÉTODOS PARA O SISTEMA DE VOTOS (OTIMIZADO)
+  // ==========================================
+
+  // Vai buscar a pontuação total (já calculada na DB) e o voto do user atual
   Future<Map<String, dynamic>> fetchVoteInfo(String issueId) async {
     final user = supabase.auth.currentUser;
 
     try {
-      final response = await supabase
-          .from('issue_votes')
-          .select('vote_type, user_id')
-          .eq('issue_id', issueId);
+      // 1. Vai buscar o score atual à tabela issues
+      final issueResponse = await supabase
+          .from('issues')
+          .select('score')
+          .eq('id', issueId)
+          .maybeSingle();
 
-      int score = 0;
+      final int score = (issueResponse?['score'] as int?) ?? 0;
+
+      // 2. Vai buscar o voto específico deste utilizador (se estiver logado)
       int userVote = 0;
+      if (user != null) {
+        final voteResponse = await supabase
+            .from('issue_votes')
+            .select('vote_type')
+            .eq('issue_id', issueId)
+            .eq('user_id', user.id)
+            .maybeSingle();
 
-      for (var row in response) {
-        int vote = row['vote_type'] as int;
-        score += vote;
-        if (user != null && row['user_id'] == user.id) {
-          userVote = vote;
+        if (voteResponse != null) {
+          userVote = voteResponse['vote_type'] as int;
         }
       }
 
