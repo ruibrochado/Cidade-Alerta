@@ -44,3 +44,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 .env
+
+# Patrol & Testing
+playwright-report/
+test-results/
+*test_bundle.dart
+android/build/

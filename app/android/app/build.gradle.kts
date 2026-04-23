@@ -12,10 +12,18 @@ configurations.configureEach {
     exclude(group = "com.google.firebase", module = "firebase-iid")
 }
 
+dependencies{
+    androidTestUtil("androidx.test:orchestrator:1.5.1")
+}
+
 android {
     namespace = "com.example.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+
+    testOptions {
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -35,6 +43,8 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        testInstrumentationRunner = "pl.leancode.patrol.PatrolJUnitRunner"
+        testInstrumentationRunnerArguments["clearPackageData"]
     }
 
     buildTypes {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/report_data.dart';
 import '../services/auth_service.dart';
 import '../services/issue_service.dart';
-import '../pages/report_detail_page.dart'; // Import da página de detalhes
+import '../pages/report_detail_page.dart';
 
 class FeedPage extends StatefulWidget {
   const FeedPage({super.key});
@@ -63,7 +63,6 @@ class _FeedPageState extends State<FeedPage> {
     setState(() {
       _reports.addAll(newReports);
       _currentPage++;
-      // Usa o pageSize definido no IssueService
       _hasMore = newReports.length == IssueService.pageSize;
       _isLoading = false;
     });
@@ -80,11 +79,10 @@ class _FeedPageState extends State<FeedPage> {
   @override
   Widget build(BuildContext context) {
     final user = authService.getCurrentUser();
-    // Lógica melhorada do nome do utilizador
     final String userName =
         user?.userMetadata?['first_name']?.toString() ??
-        user?.email?.split('@').first ??
-        'Utilizador';
+            user?.email?.split('@').first ??
+            'Utilizador';
 
     return Scaffold(
       backgroundColor: const Color(0xFFCDE5CB),
@@ -141,7 +139,7 @@ class _FeedPageState extends State<FeedPage> {
                             padding: const EdgeInsets.only(bottom: 120),
                             itemCount: _reports.length + (_hasMore ? 1 : 0),
                             separatorBuilder: (context, index) =>
-                                const SizedBox(height: 20),
+                            const SizedBox(height: 20),
                             itemBuilder: (context, index) {
                               if (index == _reports.length) {
                                 return const Padding(
@@ -317,7 +315,6 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Widget _buildReportCard(ReportData report) {
-    // Adicionado o GestureDetector para navegar para os detalhes
     return GestureDetector(
       onTap: () {
         showGeneralDialog(
@@ -435,7 +432,6 @@ class _FeedPageState extends State<FeedPage> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      // NOVO WIDGET DE VOTOS AQUI
                       VoteWidget(
                         issueId: report.id,
                         issueService: issueService,
@@ -485,19 +481,19 @@ class _FeedPageState extends State<FeedPage> {
             Positioned.fill(
               child: report.photos.isNotEmpty
                   ? Image.network(
-                      report.photos.first,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return _buildImagePlaceholder(
-                          icon: Icons.broken_image_outlined,
-                          message: 'Erro ao carregar imagem',
-                        );
-                      },
-                    )
+                report.photos.first,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return _buildImagePlaceholder(
+                    icon: Icons.broken_image_outlined,
+                    message: 'Erro ao carregar imagem',
+                  );
+                },
+              )
                   : _buildImagePlaceholder(
-                      icon: Icons.image_not_supported_outlined,
-                      message: 'Sem imagem disponível',
-                    ),
+                icon: Icons.image_not_supported_outlined,
+                message: 'Sem imagem disponível',
+              ),
             ),
             Positioned(
               top: 12,
@@ -563,7 +559,7 @@ class VoteWidget extends StatefulWidget {
 
 class _VoteWidgetState extends State<VoteWidget> {
   int _score = 0;
-  int _userVote = 0; // 1 (up), -1 (down), 0 (nenhum)
+  int _userVote = 0;
   bool _isLoading = true;
 
   @override
@@ -584,22 +580,17 @@ class _VoteWidgetState extends State<VoteWidget> {
   }
 
   Future<void> _handleVote(int voteType) async {
-    // Guarda o estado anterior caso a base de dados falhe
     final int previousScore = _score;
     final int previousUserVote = _userVote;
 
     setState(() {
       if (_userVote == voteType) {
-        // Clicou no mesmo botão: Remove o voto
         _score -= voteType;
         _userVote = 0;
       } else {
-        // Clicou num botão diferente:
         if (_userVote != 0) {
-          // 1. Remove o valor do voto anterior (se existia)
           _score -= _userVote;
         }
-        // 2. Adiciona o valor do novo voto
         _score += voteType;
         _userVote = voteType;
       }
@@ -608,7 +599,6 @@ class _VoteWidgetState extends State<VoteWidget> {
     try {
       await widget.issueService.castVote(widget.issueId, voteType);
     } catch (e) {
-      // Reverte a UI caso a chamada à base de dados falhe
       if (mounted) {
         setState(() {
           _score = previousScore;
@@ -641,6 +631,7 @@ class _VoteWidgetState extends State<VoteWidget> {
     return Row(
       children: [
         GestureDetector(
+          key: Key('upvote_${widget.issueId}'),
           onTap: () => _handleVote(1),
           child: Icon(
             Icons.arrow_upward,
@@ -659,12 +650,13 @@ class _VoteWidgetState extends State<VoteWidget> {
             color: _userVote == 1
                 ? const Color(0xFF00D159)
                 : (_userVote == -1
-                      ? const Color(0xFFEC6A00)
-                      : const Color(0xFF344054)),
+                ? const Color(0xFFEC6A00)
+                : const Color(0xFF344054)),
           ),
         ),
         const SizedBox(width: 6),
         GestureDetector(
+          key: Key('downvote_${widget.issueId}'),
           onTap: () => _handleVote(-1),
           child: Icon(
             Icons.arrow_downward,
