@@ -182,6 +182,8 @@ All physical (**Recycling Bin**) and social (**Report/Suggestion**) infrastructu
 
 ### Empirical Validation
 
+[Link to the survey](https://tally.so/r/BzDWEA)
+
 <img width="390" height="221" alt="survey_banner" src="https://github.com/user-attachments/assets/fac7bb1a-b66b-4d93-8451-98e482380daf" />
 
 #### 1. Survey Goals
