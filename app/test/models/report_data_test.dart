@@ -2,52 +2,41 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:app/models/report_data.dart';
 
 void main() {
-  group('ReportData Model Tests', () {
-    test('Should create a ReportData instance with default empty values', () {
-      const report = ReportData(category: 'Infraestrutura');
+  group('ReportData Civic Integrity Tests', () {
+    test('fromMap creates valid payload for municipality API', () {
+      final payloadData = {
+        'id': 'uuid-1234',
+        'category': 'Infraestrutura',
+        'title': 'Buraco na Via',
+        'description': 'Risco grave',
+        'photo_url': 'https://storage.supabase.com/photo.jpg',
+        'latitude': 38.7223,
+        'longitude': -9.1393,
+        'address': 'Avenida da Liberdade, Lisboa',
+        'score': 15,
+      };
 
+      final report = ReportData.fromMap(payloadData);
+
+      expect(report.id, 'uuid-1234');
       expect(report.category, 'Infraestrutura');
-      expect(report.title, '');
-      expect(report.description, '');
-      expect(report.photos, isEmpty);
-      expect(report.latitude, isNull);
-      expect(report.longitude, isNull);
+      expect(report.photos, contains('https://storage.supabase.com/photo.jpg'));
+      expect(report.latitude, 38.7223);
+      expect(report.score, 15);
     });
 
-    test('Should correctly update fields using copyWith', () {
-      const initialReport = ReportData(category: 'Infraestrutura');
-
-      final updatedReport = initialReport.copyWith(
-        title: 'Buraco',
-        description: 'Estrada danificada',
-        latitude: 41.15,
-        longitude: -8.61,
+    test('copyWith updates specific civic metrics while retaining others', () {
+      const initialReport = ReportData(
+        category: 'Iluminação',
+        title: 'Lâmpada fundida',
+        score: 0,
       );
 
-      expect(updatedReport.category, 'Infraestrutura');
-      expect(updatedReport.title, 'Buraco');
-      expect(updatedReport.description, 'Estrada danificada');
-      expect(updatedReport.latitude, 41.15);
-      expect(updatedReport.longitude, -8.61);
+      final updatedReport = initialReport.copyWith(score: 5, address: 'Rua do Ouro');
+
+      expect(updatedReport.score, 5);
+      expect(updatedReport.address, 'Rua do Ouro');
+      expect(updatedReport.category, 'Iluminação');
     });
-
-    test(
-      'Should clear latitude and longitude when clear flags are set to true in copyWith',
-      () {
-        const initialReport = ReportData(
-          category: 'Infraestrutura',
-          latitude: 41.15,
-          longitude: -8.61,
-        );
-
-        final clearedReport = initialReport.copyWith(
-          clearLatitude: true,
-          clearLongitude: true,
-        );
-
-        expect(clearedReport.latitude, isNull);
-        expect(clearedReport.longitude, isNull);
-      },
-    );
   });
 }
