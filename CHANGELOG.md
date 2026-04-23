@@ -12,7 +12,9 @@
 - Added a review step before submission [#26](https://github.com/LEIC-ES-2025-26/2LEIC11T5/pull/26)
 
 ### Notes
-- Sprint 0 focused on setting up the main technologies and services required for the project, including Supabase, Firebase Notifications, Stadia, and Google ML Kit, while also delivering the basic login and signup flow and the core report creation and submission process.
+- Sprint 0 focused on setting up the core technologies and services required for the project, including Supabase, Firebase Notifications, Stadia, and Google ML Kit.
+- This sprint also delivered the initial report creation and submission flow, covering the main steps required to create a report from start to finish.
+
 
 ## [Sprint 1] - 23/04/2026
 
@@ -27,7 +29,8 @@
 - Added municipality email notification when a report is submitted [#14](https://github.com/LEIC-ES-2025-26/2LEIC11T5/pull/14)
 
 ### Fixed
-- Fixed duplicate submissions issue [#43](https://github.com/LEIC-ES-2025-26/2LEIC11T5/pull/43)
+- Fixed an issue that allowed duplicate report submissions [#43](https://github.com/LEIC-ES-2025-26/2LEIC11T5/pull/43)
 
 ### Notes
-- Sprint 1 focused on building the main feed, improving issues and limitations identified in Sprint 0, and enhancing the signup flow with a more complete implementation.
+- Sprint 1 focused on expanding the user experience beyond report creation by introducing authentication, navigation, interaction with reports, and municipality notification.
+- It also addressed issues identified in Sprint 0, improving the stability and completeness of the application.
