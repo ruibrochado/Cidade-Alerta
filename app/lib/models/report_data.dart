@@ -1,5 +1,6 @@
 class ReportData {
   const ReportData({
+    this.id = '', // <-- ADICIONADO AQUI
     required this.category,
     this.title = '',
     this.description = '',
@@ -9,6 +10,7 @@ class ReportData {
     this.address,
   });
 
+  final String id; // <-- ADICIONADO AQUI
   final String category;
   final String title;
   final String description;
@@ -19,6 +21,9 @@ class ReportData {
 
   factory ReportData.fromMap(Map<String, dynamic> map) {
     return ReportData(
+      id:
+          map['id']?.toString() ??
+          '', // <-- ADICIONADO AQUI PARA LER DO SUPABASE
       category: map['category'] ?? 'Geral',
       title: map['title'] ?? '',
       description: map['description'] ?? '',
@@ -30,6 +35,7 @@ class ReportData {
   }
 
   ReportData copyWith({
+    String? id, // <-- ADICIONADO AQUI
     String? category,
     String? title,
     String? description,
@@ -41,6 +47,7 @@ class ReportData {
     bool clearLongitude = false,
   }) {
     return ReportData(
+      id: id ?? this.id, // <-- ADICIONADO AQUI
       category: category ?? this.category,
       title: title ?? this.title,
       description: description ?? this.description,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/report_data.dart';
 import '../services/auth_service.dart';
 import '../services/issue_service.dart';
+import '../pages/report_detail_page.dart'; // Import da página de detalhes
 
 class FeedPage extends StatefulWidget {
   const FeedPage({super.key});
@@ -62,6 +63,7 @@ class _FeedPageState extends State<FeedPage> {
     setState(() {
       _reports.addAll(newReports);
       _currentPage++;
+      // Usa o pageSize definido no IssueService
       _hasMore = newReports.length == IssueService.pageSize;
       _isLoading = false;
     });
@@ -78,11 +80,25 @@ class _FeedPageState extends State<FeedPage> {
   @override
   Widget build(BuildContext context) {
     final user = authService.getCurrentUser();
-    final String userName = user?.email?.split('@').first ?? 'Utilizador';
+    // Lógica melhorada do nome do utilizador (do segundo ficheiro)
+    final String userName =
+        user?.userMetadata?['first_name']?.toString() ??
+        user?.email?.split('@').first ??
+        'Utilizador';
 
-    return Container(
-      color: const Color(0xFFCDE5CB),
-      child: SafeArea(
+    return Scaffold(
+      backgroundColor: const Color(0xFFCDE5CB),
+      // Mantida a navegação/FloatingActionButton do segundo ficheiro
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+          Navigator.pushNamed(context, '/categories');
+        },
+        backgroundColor: const Color(0xFF00D159),
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add, color: Colors.white, size: 32),
+      ),
+      body: SafeArea(
         bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,6 +141,7 @@ class _FeedPageState extends State<FeedPage> {
                             controller: _scrollController,
                             padding: const EdgeInsets.only(bottom: 120),
                             itemCount: _reports.length + (_hasMore ? 1 : 0),
+                            // Usado o modelo (context, index) que discutimos para o linter ficar contente!
                             separatorBuilder: (context, index) =>
                                 const SizedBox(height: 20),
                             itemBuilder: (context, index) {
@@ -302,113 +319,133 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Widget _buildReportCard(ReportData report) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFEAEAEA)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x12000000),
-            blurRadius: 10,
-            offset: Offset(0, 4),
+    // Adicionado o GestureDetector para navegar para os detalhes
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ReportDetailPage(report: report),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildReportImage(report),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  report.title,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF0F172A),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  report.description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    height: 1.45,
-                    color: Color(0xFF475467),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.location_on_outlined,
-                      size: 16,
-                      color: Color(0xFF667085),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFEAEAEA)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x12000000),
+              blurRadius: 10,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildReportImage(report),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    report.title,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0F172A),
                     ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        report.address ?? 'Localização registada',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF667085),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    report.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      height: 1.45,
+                      color: Color(0xFF475467),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 16,
+                        color: Color(0xFF667085),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          report.address ?? 'Localização registada',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Color(0xFF667085),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: const [
-                    Icon(
-                      Icons.arrow_upward,
-                      size: 20,
-                      color: Color(0xFF667085),
-                    ),
-                    SizedBox(width: 6),
-                    Text(
-                      '0',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF344054),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.arrow_upward,
+                        size: 20,
+                        color: Color(0xFF667085),
                       ),
-                    ),
-                    SizedBox(width: 18),
-                    Icon(
-                      Icons.arrow_downward,
-                      size: 20,
-                      color: Color(0xFF667085),
-                    ),
-                    Spacer(),
-                    Icon(
-                      Icons.chat_bubble_outline,
-                      size: 20,
-                      color: Color(0xFF667085),
-                    ),
-                    SizedBox(width: 6),
-                    Text(
-                      '0',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF344054),
+                      const SizedBox(width: 6),
+                      const Text(
+                        '0',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF344054),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: 18),
+                      const Icon(
+                        Icons.arrow_downward,
+                        size: 20,
+                        color: Color(0xFF667085),
+                      ),
+                      const Spacer(),
+                      const Icon(
+                        Icons.chat_bubble_outline,
+                        size: 20,
+                        color: Color(0xFF667085),
+                      ),
+                      const SizedBox(width: 6),
+                      // A MAGIA DOS COMENTÁRIOS DO SEGUNDO FICHEIRO ESTÁ AQUI
+                      FutureBuilder<List<Map<String, dynamic>>>(
+                        future: issueService.fetchComments(report.id),
+                        builder: (context, snapshot) {
+                          final count = snapshot.hasData
+                              ? snapshot.data!.length
+                              : 0;
+                          return Text(
+                            count.toString(),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF344054),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
