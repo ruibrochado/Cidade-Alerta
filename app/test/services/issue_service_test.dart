@@ -134,12 +134,21 @@ void main() {
         when(
           () => mockFilterBuilder.neq(any(), any()),
         ).thenAnswer((_) => mockFilterBuilder);
+
         when(
           () => mockFilterBuilder.order(
+            'score',
+            ascending: any(named: 'ascending'),
+          ),
+        ).thenAnswer((_) => mockTransformBuilder);
+
+        when(
+          () => mockTransformBuilder.order(
             'created_at',
             ascending: any(named: 'ascending'),
           ),
         ).thenAnswer((_) => mockTransformBuilder);
+
         when(
           () => mockTransformBuilder.range(any(), any()),
         ).thenAnswer((_) => mockTransformBuilder);
