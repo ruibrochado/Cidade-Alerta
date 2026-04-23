@@ -119,6 +119,7 @@ class IssueService {
           .from('issues')
           .select()
           .neq('title', 'Test issue')
+          .order('score', ascending: false)
           .order('created_at', ascending: false)
           .range(from, to);
 
