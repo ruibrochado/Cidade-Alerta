@@ -1,14 +1,17 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class EmailService {
-  final SupabaseClient _supabase = Supabase.instance.client;
+  final SupabaseClient supabase;
+
+  EmailService({SupabaseClient? client})
+      : supabase = client ?? Supabase.instance.client;
 
   Future<dynamic> sendEmail({
     required String to,
     required String subject,
     required String html,
   }) async {
-    final response = await _supabase.functions.invoke(
+    final response = await supabase.functions.invoke(
       'resend-email',
       body: {'to': to, 'subject': subject, 'html': html},
     );
