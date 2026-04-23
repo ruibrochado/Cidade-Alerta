@@ -49,9 +49,7 @@ Business modeling in software development involves defining the product's vision
 
 ### Product Vision
 
-For frustrated residents, who seek a fast and transparent way to resolve urban maintenance issues, Cidade Alerta is an innovative civic action platform, that promotes community accountability by enabling users to report infrastructure problems directly to municipal authorities.
-
-Unlike traditional government portals that are slow and bureaucratic, our product creates a direct-to-source reporting system with real-time transparency of the resolution status.
+For residents tired of waiting, Cidade Alerta is the direct bridge between a city’s flaws and its fixes. Zero bureaucracy, total transparency, real-time results.
 
 #### The Problem
 
