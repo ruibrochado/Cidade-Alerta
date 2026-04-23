@@ -117,11 +117,18 @@ Optionally, indicate an initial/tentative list of assumptions that you are doing
 - Notifications: Receive updates on report progress.
 - User Authentication: Create an account, sign in, access the app securely, and log out.
 - Report Management for Authorities: Review and manage submitted reports.
+- Main feed: Display a public list of submitted reports for users to browse.
+- Vote on reported issues: Allow users to upvote or downvote reports based on their importance.
+- Prioritize issues in the feed based on vote score: Order reports so that the most supported issues appear first.
+- Comment other reports: Let users add comments to existing reports to provide extra context or feedback.
+- Notify the responsible municipality by email when a report is submitted: Send an email notification to the appropriate municipality after a new report is created.
 
 **Assumptions**
 
 - Location Services: The app requires access to the user's device location services.
 - Internet Access: The app requires an internet connection to send and retrieve report data.
+- Camera Access: The app requires camera access to capture photos.
+- Notification Permission: The app requires notification permission to send push notifications..
 
 **Dependencies**
 
