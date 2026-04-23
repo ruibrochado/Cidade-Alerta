@@ -80,7 +80,7 @@ class _FeedPageState extends State<FeedPage> {
   @override
   Widget build(BuildContext context) {
     final user = authService.getCurrentUser();
-    // Lógica melhorada do nome do utilizador (do segundo ficheiro)
+    // Lógica melhorada do nome do utilizador
     final String userName =
         user?.userMetadata?['first_name']?.toString() ??
         user?.email?.split('@').first ??
@@ -88,7 +88,6 @@ class _FeedPageState extends State<FeedPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFCDE5CB),
-      // Mantida a navegação/FloatingActionButton do segundo ficheiro
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
@@ -141,7 +140,6 @@ class _FeedPageState extends State<FeedPage> {
                             controller: _scrollController,
                             padding: const EdgeInsets.only(bottom: 120),
                             itemCount: _reports.length + (_hasMore ? 1 : 0),
-                            // Usado o modelo (context, index) que discutimos para o linter ficar contente!
                             separatorBuilder: (context, index) =>
                                 const SizedBox(height: 20),
                             itemBuilder: (context, index) {
@@ -319,7 +317,6 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Widget _buildReportCard(ReportData report) {
-    // Adicionado o GestureDetector para navegar para os detalhes
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -395,25 +392,10 @@ class _FeedPageState extends State<FeedPage> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      const Icon(
-                        Icons.arrow_upward,
-                        size: 20,
-                        color: Color(0xFF667085),
-                      ),
-                      const SizedBox(width: 6),
-                      const Text(
-                        '0',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF344054),
-                        ),
-                      ),
-                      const SizedBox(width: 18),
-                      const Icon(
-                        Icons.arrow_downward,
-                        size: 20,
-                        color: Color(0xFF667085),
+                      // NOVO WIDGET DE VOTOS AQUI
+                      VoteWidget(
+                        issueId: report.id,
+                        issueService: issueService,
                       ),
                       const Spacer(),
                       const Icon(
@@ -422,7 +404,7 @@ class _FeedPageState extends State<FeedPage> {
                         color: Color(0xFF667085),
                       ),
                       const SizedBox(width: 6),
-                      // A MAGIA DOS COMENTÁRIOS DO SEGUNDO FICHEIRO ESTÁ AQUI
+                      // COMENTÁRIOS
                       FutureBuilder<List<Map<String, dynamic>>>(
                         future: issueService.fetchComments(report.id),
                         builder: (context, snapshot) {
@@ -519,6 +501,138 @@ class _FeedPageState extends State<FeedPage> {
           ],
         ],
       ),
+    );
+  }
+}
+
+class VoteWidget extends StatefulWidget {
+  final String issueId;
+  final IssueService issueService;
+
+  const VoteWidget({
+    super.key,
+    required this.issueId,
+    required this.issueService,
+  });
+
+  @override
+  State<VoteWidget> createState() => _VoteWidgetState();
+}
+
+class _VoteWidgetState extends State<VoteWidget> {
+  int _score = 0;
+  int _userVote = 0; // 1 (up), -1 (down), 0 (nenhum)
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVotes();
+  }
+
+  Future<void> _loadVotes() async {
+    final voteInfo = await widget.issueService.fetchVoteInfo(widget.issueId);
+    if (mounted) {
+      setState(() {
+        _score = voteInfo['score'];
+        _userVote = voteInfo['userVote'];
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _handleVote(int voteType) async {
+    // Guarda o estado anterior caso a base de dados falhe
+    final int previousScore = _score;
+    final int previousUserVote = _userVote;
+
+    setState(() {
+      if (_userVote == voteType) {
+        // Clicou no mesmo botão: Remove o voto
+        _score -= voteType;
+        _userVote = 0;
+      } else {
+        // Clicou num botão diferente:
+        if (_userVote != 0) {
+          // 1. Remove o valor do voto anterior (se existia)
+          _score -= _userVote;
+        }
+        // 2. Adiciona o valor do novo voto
+        _score += voteType;
+        _userVote = voteType;
+      }
+    });
+
+    try {
+      await widget.issueService.castVote(widget.issueId, voteType);
+    } catch (e) {
+      // Reverte a UI caso a chamada à base de dados falhe
+      if (mounted) {
+        setState(() {
+          _score = previousScore;
+          _userVote = previousUserVote;
+        });
+      }
+      debugPrint('Falha ao votar: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const SizedBox(
+        width: 60,
+        height: 24,
+        child: Center(
+          child: SizedBox(
+            width: 14,
+            height: 14,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Color(0xFF00D159),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => _handleVote(1),
+          child: Icon(
+            Icons.arrow_upward,
+            size: 22,
+            color: _userVote == 1
+                ? const Color(0xFF00D159)
+                : const Color(0xFF667085),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          _score.toString(),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: _userVote == 1
+                ? const Color(0xFF00D159)
+                : (_userVote == -1
+                      ? const Color(0xFFEC6A00)
+                      : const Color(0xFF344054)),
+          ),
+        ),
+        const SizedBox(width: 6),
+        GestureDetector(
+          onTap: () => _handleVote(-1),
+          child: Icon(
+            Icons.arrow_downward,
+            size: 22,
+            color: _userVote == -1
+                ? const Color(0xFFEC6A00)
+                : const Color(0xFF667085),
+          ),
+        ),
+      ],
     );
   }
 }
