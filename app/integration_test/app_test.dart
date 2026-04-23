@@ -1,4 +1,4 @@
-import 'package:patrol/patrol.dart';
+git import 'package:patrol/patrol.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 
