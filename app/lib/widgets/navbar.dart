@@ -103,11 +103,7 @@ class AppBottomNavBar extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: const Icon(
-                      Icons.add,
-                      color: Colors.white,
-                      size: 32,
-                    ),
+                    child: const Icon(Icons.add, color: Colors.white, size: 32),
                   ),
                 ),
                 const SizedBox(height: 4),

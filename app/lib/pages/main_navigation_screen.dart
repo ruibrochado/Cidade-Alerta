@@ -7,10 +7,7 @@ import 'map_page.dart';
 class MainNavigationScreen extends StatefulWidget {
   final int initialIndex;
 
-  const MainNavigationScreen({
-    super.key,
-    this.initialIndex = 0,
-  });
+  const MainNavigationScreen({super.key, this.initialIndex = 0});
 
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
@@ -46,10 +43,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: AppBottomNavBar(
         currentIndex: _currentIndex,
         onTabSelected: _onTabSelected,
@@ -72,13 +66,10 @@ class _PlaceholderPage extends StatelessWidget {
         child: Center(
           child: Text(
             title,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-            ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
           ),
         ),
       ),
     );
   }
-} 
+}

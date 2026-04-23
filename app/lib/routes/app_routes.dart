@@ -28,9 +28,7 @@ class AppRoutes {
       if (args is ReportData) {
         return DetectLocationPage(report: args);
       }
-      return const DetectLocationPage(
-        report: ReportData(category: 'Geral'),
-      );
+      return const DetectLocationPage(report: ReportData(category: 'Geral'));
     },
 
     '/adjust-location': (context) {

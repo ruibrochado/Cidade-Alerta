@@ -53,8 +53,9 @@ class _FeedPageState extends State<FeedPage> {
     setState(() => _isLoading = true);
 
     final newData = await issueService.fetchIssues(page: _currentPage);
-    final List<ReportData> newReports =
-        newData.map((item) => ReportData.fromMap(item)).toList();
+    final List<ReportData> newReports = newData
+        .map((item) => ReportData.fromMap(item))
+        .toList();
 
     if (!mounted) return;
 
@@ -95,9 +96,7 @@ class _FeedPageState extends State<FeedPage> {
                 width: double.infinity,
                 decoration: const BoxDecoration(
                   color: Color(0xFFF6F6F6),
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(0),
-                  ),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 28, 20, 0),
@@ -126,7 +125,7 @@ class _FeedPageState extends State<FeedPage> {
                             controller: _scrollController,
                             padding: const EdgeInsets.only(bottom: 120),
                             itemCount: _reports.length + (_hasMore ? 1 : 0),
-                            separatorBuilder: (_, __) =>
+                            separatorBuilder: (context, index) =>
                                 const SizedBox(height: 20),
                             itemBuilder: (context, index) {
                               if (index == _reports.length) {
@@ -166,11 +165,7 @@ class _FeedPageState extends State<FeedPage> {
               const CircleAvatar(
                 radius: 24,
                 backgroundColor: Colors.white,
-                child: Icon(
-                  Icons.person,
-                  size: 28,
-                  color: Color(0xFFB0B0B0),
-                ),
+                child: Icon(Icons.person, size: 28, color: Color(0xFFB0B0B0)),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -181,7 +176,7 @@ class _FeedPageState extends State<FeedPage> {
                       'Olá,',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.black.withOpacity(0.55),
+                        color: Colors.black.withValues(alpha: 0.55),
                         height: 1.0,
                       ),
                     ),
@@ -242,10 +237,7 @@ class _FeedPageState extends State<FeedPage> {
                   SizedBox(width: 10),
                   Text(
                     'Buscar denúncias...',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Color(0xFF98A2B3),
-                    ),
+                    style: TextStyle(fontSize: 16, color: Color(0xFF98A2B3)),
                   ),
                 ],
               ),
@@ -266,10 +258,7 @@ class _FeedPageState extends State<FeedPage> {
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.tune,
-              color: Color(0xFF98A2B3),
-            ),
+            child: const Icon(Icons.tune, color: Color(0xFF98A2B3)),
           ),
         ],
       ),
@@ -294,10 +283,7 @@ class _FeedPageState extends State<FeedPage> {
             const SizedBox(height: 4),
             Text(
               '$_totalCount denúncias ativas',
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF98A2B3),
-              ),
+              style: const TextStyle(fontSize: 14, color: Color(0xFF98A2B3)),
             ),
           ],
         ),
@@ -309,10 +295,7 @@ class _FeedPageState extends State<FeedPage> {
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: const Color(0xFFD0D5DD)),
           ),
-          child: const Icon(
-            Icons.swap_vert,
-            color: Color(0xFF667085),
-          ),
+          child: const Icon(Icons.swap_vert, color: Color(0xFF667085)),
         ),
       ],
     );
@@ -459,8 +442,10 @@ class _FeedPageState extends State<FeedPage> {
               top: 12,
               right: 12,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFF3E8),
                   borderRadius: BorderRadius.circular(16),
@@ -481,10 +466,7 @@ class _FeedPageState extends State<FeedPage> {
     );
   }
 
-  Widget _buildImagePlaceholder({
-    required IconData icon,
-    String? message,
-  }) {
+  Widget _buildImagePlaceholder({required IconData icon, String? message}) {
     return Container(
       color: const Color(0xFFE5E7EB),
       child: Column(
@@ -495,10 +477,7 @@ class _FeedPageState extends State<FeedPage> {
             const SizedBox(height: 8),
             Text(
               message,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFF98A2B3),
-              ),
+              style: const TextStyle(fontSize: 12, color: Color(0xFF98A2B3)),
             ),
           ],
         ],
