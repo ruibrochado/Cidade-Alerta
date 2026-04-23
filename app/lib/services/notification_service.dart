@@ -2,7 +2,18 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:developer';
 
 class NotificationService {
-  final FirebaseMessaging messaging = FirebaseMessaging.instance;
+  final FirebaseMessaging messaging;
+  final Stream<RemoteMessage> onMessageStream;
+  final Stream<RemoteMessage> onMessageOpenedAppStream;
+
+  NotificationService({
+    FirebaseMessaging? messagingInstance,
+    Stream<RemoteMessage>? onMessage,
+    Stream<RemoteMessage>? onMessageOpenedApp,
+  })  : messaging = messagingInstance ?? FirebaseMessaging.instance,
+        onMessageStream = onMessage ?? FirebaseMessaging.onMessage,
+        onMessageOpenedAppStream =
+            onMessageOpenedApp ?? FirebaseMessaging.onMessageOpenedApp;
 
   Future<void> initialize() async {
     final settings = await messaging.requestPermission(
@@ -16,12 +27,12 @@ class NotificationService {
     final token = await messaging.getToken();
     log('FCM token: $token');
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    onMessageStream.listen((RemoteMessage message) {
       log('Foreground message title: ${message.notification?.title}');
       log('Foreground message body: ${message.notification?.body}');
     });
 
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    onMessageOpenedAppStream.listen((RemoteMessage message) {
       log('Notification opened app: ${message.messageId}');
     });
   }
