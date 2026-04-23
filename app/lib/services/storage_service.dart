@@ -2,7 +2,10 @@ import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class StorageService {
-  final supabase = Supabase.instance.client;
+  final SupabaseClient supabase;
+
+  StorageService({SupabaseClient? client})
+      : supabase = client ?? Supabase.instance.client;
 
   Future<String> uploadIssueImage(File file, String fileName) async {
     try {
