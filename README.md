@@ -172,10 +172,13 @@ All user stories are maintained as items in the [GitHub Project board](https://g
 
 ### Domain model
 
-![UML Domain model](app/images/UMLDomainModel.png)
+![UML Domain model](app/images/DomainUML.png)
 
-Our application is a civic and environmental platform that connects citizens to municipal services to improve waste management and public spaces. The system allows a User to register pictures of Materials to learn how to handle them correctly (through Recycled Material categories with text suggestions) and direct them to the appropriate Recycling Bin.
-In parallel, the application works as a reporting and continuous improvement network: users can create geolocated Reports or Suggestions in a specific Locality (for example, reporting a damaged recycling bin or accumulated trash around the Asprela campus). These reports feature a community evaluation system (upvotes/downvotes) that helps to prioritize issues. All physical (Recycling Bins) and social (Reports) infrastructure is mapped by Localities, allowing the Municipality (such as the Porto City Council) and its respective Municipal Services to manage their collection network and act faster and more directly according to the population's needs.
+Our application is a civic and environmental platform that connects citizens to municipal services to improve waste management and public spaces. The system allows a **User** to register **Materials** to learn how to handle them correctly (categorized into specific **Recycled Material** types) and direct them to the appropriate **Recycling Bin**.
+
+In parallel, the application works as a reporting and continuous improvement network. Users can create geolocated **Reports/Suggestions** linked to a specific **Locality** (for example, reporting a damaged recycling bin or accumulated trash around the Asprela campus). To foster community engagement, these reports feature an interaction system allowing users to leave a **Comment**, as well as evaluate issues via **Upvote** or **Downvote** to help prioritize them.
+
+All physical (**Recycling Bin**) and social (**Report/Suggestion**) infrastructure is mapped to a **Locality**. These localities belong to a specific **Municipality**, which in turn falls under a broader **District**. This hierarchical organization allows the **Municipality** (such as the Porto City Council) and its respective **Municipality Services** to manage their collection network efficiently and act faster according to the population's needs.
 
 ### Empirical Validation
 
@@ -222,39 +225,48 @@ In this section you should start by briefly describing the components of the pro
 
 
 ### Logical architecture
-![UML Logical architeture](app/images/UMLLogicalArchitecture.png)
+![UML Logical architeture](app/images/PackageUML.png)
 
-The logical architecture diagram illustrates the high-level organization of the Cidade Alerta application, emphasizing the separation of concerns between internal modules and external dependencies.
+The logical architecture diagram illustrates the high-level organization of the application, emphasizing the separation of concerns across four main packages and their respective dependencies.
 
-**1. Cidade Alerta System (Internal Modules)**
-This package represents the core application running on the user's device, structured into four main components:
-* **User Interface (UI):** The presentation layer responsible for handling citizen interactions, rendering screens (maps, camera, feeds), and capturing input. It is kept "dumb" and delegates all data processing to the underlying layers.
-* **Business Logic:** The brain of the application. It enforces system rules (e.g., calculating points, assigning municipalities), processes raw data, and orchestrates the communication between the UI and the external APIs.
-* **Authentication:** A dedicated module that manages user sessions, registration, and login states, ensuring secure access to the platform.
-* **AI Processing Kit (ML Kit):** A local module invoked by the Business Logic to analyze and classify captured images (e.g., identifying the type of waste) entirely on-device, without relying on external network requests.
+### 📱 1. MobileApp
+This package represents the core application running on the user's device, structured using a presentation architectural pattern (like MVVM):
 
-**2. External Services**
-This package groups the third-party platforms and APIs consumed by the application to expand its capabilities:
-* **Supabase Backend:** Acts as the primary backend-as-a-service (BaaS). It provides the database (PostgreSQL), file storage for images, and validates requests from the Authentication module. 
-* **Stadia Maps API:** Consumed directly by the Business Logic to fetch high-quality map tiles and perform geocoding (translating raw GPS coordinates into street addresses).
-* **Firebase Cloud Messaging:** Used by the application to push real-time notifications to the users' smartphones (e.g., status updates on reported issues).
-* **Resend Email API:** An external mailing service. Unlike the other APIs, it is not called by the mobile app, but rather invoked directly by the Supabase Backend (via Edge Functions) to dispatch automated email alerts to the respective municipal authorities.
+* **UI:** The presentation layer responsible for handling user interactions and rendering screens. It delegates data handling to the underlying layers.
+* **ViewModel:** Acts as the bridge between the UI and the services, managing presentation state, user input logic, and updating the views.
+* **Service:** Handles local operations and orchestrates data flows. As shown by the dependencies, this layer communicates directly with both the **Backend** and specific **ExternalServices**.
 
+### ⚙️ 2. Backend
+This package represents the server-side infrastructure, which is consumed by the MobileApp. It follows a standard layered architecture:
+
+* **API:** Exposes the necessary endpoints (e.g., REST or GraphQL) for the mobile client to communicate with the server.
+* **BusinessLogic:** The core layer where the system's rules are enforced. It orchestrates data processing and connects with both the database layer and external modules.
+* **DataAccess:** Responsible for database interactions, abstracting the storage, querying, and retrieval of information.
+
+### 🌐 3. ExternalServices
+This package groups the third-party platforms and APIs consumed by the system to expand its capabilities. It is accessed by both the **MobileApp** and the **Backend**:
+
+* **MapsService:** Provides map rendering, geocoding, and location-based functionalities.
+* **NotificationService:** Handles the delivery of real-time alerts and push notifications to the users' devices.
+* **EmailService:** An external mailing service used for dispatching automated communications and alerts.
+
+### 🏛️ 4. MunicipalManagement
+A dedicated domain package that the **Backend** relies on to organize core entities related to city operations:
+
+* **Reports:** Manages the submission, tracking, and lifecycle of the specific issues reported by citizens.
+* **Recycling:** Handles operations, data, and business rules related to waste management and recycling points.
+* **Localities:** Manages data concerning municipal zones, administrative regions, and specific geographic areas.
 
 ### Physical architecture
-![UML Physical architeture](app/images/UMLPhysicalArchitetures.png)
+![UML Physical architeture](app/images/DeploymentUML.png)
 
-The physical architecture diagram presents five main nodes: 
+The physical architecture (deployment) diagram presents five main device nodes communicating securely via HTTPS:
 
-* **Smartphone:** represents the user's mobile device running the Flutter application (APK/IPA) and interacting with the citizen. It also integrates Google ML Kit locally to scan and classify images without needing network requests. 
-
-* **Supabase Cloud:** acts as the core backend of the application. It manages user authentication, stores structured data (PostgreSQL) and media files (Storage), and runs server-side logic through Edge Functions. 
-
-* **Stadia Cloud:** an external service that provides map rendering (map tiles) and geocoding services directly to the mobile app via API.
-
-* **Firebase Cloud:** responsible for delivering push notifications to the users. 
-
-* **Resend Server:** an external email infrastructure that receives commands from the Supabase Edge Functions to send automated alerts directly to the municipalities.
+* **Smartphone:** Represents the user's mobile device. It features two distinct execution environments: **Android OS** (running the `cidadealerta.apk` artifact) and **iOS** (running the `cidadealerta.ipa` artifact). This node acts as the central client, interacting with the citizen and communicating directly with the backend and external APIs.
+* **Supabase Cloud:** Acts as the core backend of the application. Its execution environment (`Supabase Platform`) hosts the `PostgreSQL Database` artifact for structured data storage and the `Backend Service` artifact to manage server-side logic and API requests coming from the smartphone.
+* **Maps Provider:** An external service node hosting the `Maps Service` execution environment. It provides the `Map Tiles Api` artifact, which is consumed directly by the mobile app for map rendering and location-based features.
+* **Firebase Cloud:** Responsible for delivering push notifications to the users. It hosts the `Cloud Messaging` execution environment and artifact, communicating directly with the client's smartphone.
+* **Email Server:** An external email infrastructure that hosts the `EmailService` execution environment and its `Email API` artifact. Unlike the other external services, it receives backend commands directly from the **Supabase Cloud** to dispatch automated alerts (e.g., to municipal authorities).
 
 ### Functional prototype
 <!--
