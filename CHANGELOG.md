@@ -11,6 +11,12 @@
 - Added location adjustment on the map [#18](https://github.com/LEIC-ES-2025-26/2LEIC11T5/pull/18)
 - Added a review step before submission [#26](https://github.com/LEIC-ES-2025-26/2LEIC11T5/pull/26)
 
+### Infrastructure / Configuration
+- Configured Supabase for database, authentication, and storage.
+- Configured Firebase for push notifications.
+- Configured Stadia for map display and location handling.
+- Configured Google ML Kit for image recognition support.
+
 ### Notes
 - Sprint 0 focused on setting up the core technologies and services required for the project, including Supabase, Firebase Notifications, Stadia, and Google ML Kit.
 - This sprint also delivered the initial report creation and submission flow, covering the main steps required to create a report from start to finish.
@@ -27,12 +33,12 @@
 - Added splash screen [#30](https://github.com/LEIC-ES-2025-26/2LEIC11T5/pull/30)
 - Added icon identification [#29](https://github.com/LEIC-ES-2025-26/2LEIC11T5/pull/29)
 - Added municipality email notification when a report is submitted [#14](https://github.com/LEIC-ES-2025-26/2LEIC11T5/pull/14)
+
+### Development / Tooling
 - Added Lefthook configuration for pre-commit and pre-push automation.
 
 ### Fixed
 - Fixed an issue that allowed duplicate report submissions [#43](https://github.com/LEIC-ES-2025-26/2LEIC11T5/pull/43)
-
-##
 
 ### Notes
 - Sprint 1 focused on expanding the user experience beyond report creation by introducing authentication, navigation, interaction with reports, and municipality notification.
