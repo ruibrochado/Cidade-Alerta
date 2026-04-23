@@ -24,6 +24,8 @@ It is organised by the following activities:
   * [Logical architecture](#Logical-Architecture)
   * [Physical architecture](#Physical-Architecture)
   * [Functional prototype](#Functional-Prototype)
+* [Acceptance tests](#Acceptance-tests)
+* [Happiness meters](#Happiness-meters)
 * [Project management](#Project-Management)
   * [Sprint 0](#Sprint-0)
   * [Sprint 1](#Sprint-1)
@@ -290,12 +292,14 @@ The functional prototype currently implements the main report submission flow of
 
 This prototype already integrates important project technologies, including Supabase for data, authentication, and photo storage, and Stadia Maps for map support. It was developed to confirm that the main technologies of the system work well together.
 
-
-
 https://github.com/user-attachments/assets/b04837a8-2f4d-4807-a654-42710cd514ee
 
+## Acceptance tests
+
+You can find the acceptance test videos [here](docs/acceptance-tests)
+
 ## Happiness meters 
-This is the spreadsheet with the happiness meters of all sprints (the table was filled horizontally):
+This is the spreadsheet with the happiness meters of all sprints:
 
 https://docs.google.com/spreadsheets/d/1YrbhEQnvNBC4zYHSgOrt7BGwlMn3i2FC6W3B4y6gu90/edit?usp=sharing
 
