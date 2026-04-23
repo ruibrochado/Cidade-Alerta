@@ -320,15 +320,60 @@ class _FeedPageState extends State<FeedPage> {
 
   Widget _buildReportCard(ReportData report) {
     // Adicionado o GestureDetector para navegar para os detalhes
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ReportDetailPage(report: report),
+  return GestureDetector(
+onTap: () {
+  showGeneralDialog(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: 'Detalhes da denúncia',
+    barrierColor: Colors.black.withOpacity(0.12),
+    transitionDuration: const Duration(milliseconds: 220),
+    pageBuilder: (context, animation, secondaryAnimation) {
+      final Size size = MediaQuery.of(context).size;
+      final double dialogWidth = size.width > 700 ? 640 : size.width - 24;
+      final double dialogHeight = size.height * 0.88;
+
+      return SafeArea(
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                width: dialogWidth,
+                height: dialogHeight,
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF7F7F7),
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                child: ReportDetailSheet(report: report),
+              ),
+            ),
           ),
-        );
-      },
+        ),
+      );
+    },
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      final curved = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+      );
+
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.08),
+          end: Offset.zero,
+        ).animate(curved),
+        child: FadeTransition(
+          opacity: curved,
+          child: child,
+        ),
+      );
+    },
+  );
+},
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
