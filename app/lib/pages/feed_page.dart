@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import '../models/report_data.dart';
 import '../services/auth_service.dart';
 import '../services/issue_service.dart';
-import '../models/report_data.dart';
 
 class FeedPage extends StatefulWidget {
   const FeedPage({super.key});
@@ -11,11 +11,12 @@ class FeedPage extends StatefulWidget {
 }
 
 class _FeedPageState extends State<FeedPage> {
-  final authService = AuthService();
-  final issueService = IssueService();
+  final AuthService authService = AuthService();
+  final IssueService issueService = IssueService();
 
   final ScrollController _scrollController = ScrollController();
   final List<ReportData> _reports = [];
+
   int _totalCount = 0;
   int _currentPage = 0;
   bool _isLoading = false;
@@ -27,6 +28,7 @@ class _FeedPageState extends State<FeedPage> {
     super.initState();
     _fetchTotalCount();
     _loadMore();
+
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent - 200) {
@@ -36,8 +38,35 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Future<void> _fetchTotalCount() async {
-    final count = await issueService.fetchIssuesCount();
-    setState(() => _totalCount = count);
+    final int count = await issueService.fetchIssuesCount();
+    if (!mounted) return;
+
+    setState(() {
+      _totalCount = count;
+    });
+  }
+
+  Future<void> _loadMore() async {
+    if (_isFetching || !_hasMore) return;
+
+    _isFetching = true;
+    setState(() => _isLoading = true);
+
+    final newData = await issueService.fetchIssues(page: _currentPage);
+    final List<ReportData> newReports = newData
+        .map((item) => ReportData.fromMap(item))
+        .toList();
+
+    if (!mounted) return;
+
+    setState(() {
+      _reports.addAll(newReports);
+      _currentPage++;
+      _hasMore = newReports.length == IssueService.pageSize;
+      _isLoading = false;
+    });
+
+    _isFetching = false;
   }
 
   @override
@@ -46,140 +75,35 @@ class _FeedPageState extends State<FeedPage> {
     super.dispose();
   }
 
-  Future<void> _loadMore() async {
-    if (_isFetching || !_hasMore) return;
-    _isFetching = true;
-    setState(() => _isLoading = true);
-
-    final newData = await issueService.fetchIssues(page: _currentPage);
-    final newReports = newData.map((m) => ReportData.fromMap(m)).toList();
-
-    setState(() {
-      _reports.addAll(newReports);
-      _currentPage++;
-      _hasMore = newReports.length == IssueService.pageSize;
-      _isLoading = false;
-    });
-    _isFetching = false;
-  }
-
   @override
   Widget build(BuildContext context) {
     final user = authService.getCurrentUser();
-    final displayName =
-        user?.userMetadata?['first_name']?.toString() ??
-        user?.email ??
-        'Utilizador';
+    final String userName = user?.email?.split('@').first ?? 'Utilizador';
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFCDE5CB),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
-          Navigator.pushNamed(context, '/categories');
-        },
-        backgroundColor: const Color(0xFF00D159),
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add, color: Colors.white, size: 32),
-      ),
-      body: SafeArea(
+    return Container(
+      color: const Color(0xFFCDE5CB),
+      child: SafeArea(
+        bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 25,
-                    backgroundColor: Colors.white,
-                    child: Icon(
-                      Icons.person,
-                      size: 35,
-                      color: Colors.grey[400],
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Olá,',
-                          style: TextStyle(fontSize: 16, color: Colors.black54),
-                        ),
-                        Text(
-                          displayName,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF333333),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0),
-              child: Text(
-                'Viste algum problema\nna cidade?',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700,
-                  height: 1.2,
-                  letterSpacing: 0,
-                  color: Color(0xFF333333),
-                ),
-              ),
-            ),
+            _buildHeader(userName),
             const SizedBox(height: 20),
-            _buildSearchBar(),
-            const SizedBox(height: 25),
+            _buildSearchAndFilter(),
+            const SizedBox(height: 26),
             Expanded(
               child: Container(
                 width: double.infinity,
                 decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.zero,
+                  color: Color(0xFFF6F6F6),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 25, 20, 0),
+                  padding: const EdgeInsets.fromLTRB(20, 28, 20, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          Text(
-                            'Denúncias recentes',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF333333),
-                            ),
-                          ),
-                          Text(
-                            'Ver todas',
-                            style: TextStyle(
-                              color: Color(0xFF00D159),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        '$_totalCount denúncias ativas',
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 14,
-                        ),
-                      ),
+                      _buildSectionHeader(),
                       const SizedBox(height: 20),
                       if (_reports.isEmpty && _isLoading)
                         const Expanded(
@@ -199,22 +123,23 @@ class _FeedPageState extends State<FeedPage> {
                         Expanded(
                           child: ListView.separated(
                             controller: _scrollController,
-                            padding: const EdgeInsets.only(bottom: 20),
+                            padding: const EdgeInsets.only(bottom: 120),
                             itemCount: _reports.length + (_hasMore ? 1 : 0),
                             separatorBuilder: (context, index) =>
                                 const SizedBox(height: 20),
                             itemBuilder: (context, index) {
                               if (index == _reports.length) {
-                                return const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16),
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 16),
+                                  child: Center(
                                     child: CircularProgressIndicator(
                                       color: Color(0xFF00D159),
                                     ),
                                   ),
                                 );
                               }
-                              return _buildCard(_reports[index]);
+
+                              return _buildReportCard(_reports[index]);
                             },
                           ),
                         ),
@@ -229,188 +154,332 @@ class _FeedPageState extends State<FeedPage> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildHeader(String userName) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const CircleAvatar(
+                radius: 24,
+                backgroundColor: Colors.white,
+                child: Icon(Icons.person, size: 28, color: Color(0xFFB0B0B0)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Olá,',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black.withValues(alpha: 0.55),
+                        height: 1.0,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      userName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Viste algum problema\nna cidade?',
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w700,
+              height: 1.2,
+              color: Color(0xFF0F172A),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchAndFilter() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
           Expanded(
             child: Container(
-              height: 50,
+              height: 52,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x12000000),
+                    blurRadius: 10,
+                    offset: Offset(0, 3),
+                  ),
+                ],
               ),
               child: Row(
                 children: const [
-                  SizedBox(width: 15),
-                  Icon(Icons.search, color: Colors.grey),
+                  Icon(Icons.search, color: Color(0xFF98A2B3)),
                   SizedBox(width: 10),
                   Text(
                     'Buscar denúncias...',
-                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                    style: TextStyle(fontSize: 16, color: Color(0xFF98A2B3)),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Container(
-            height: 50,
-            width: 50,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x12000000),
+                  blurRadius: 10,
+                  offset: Offset(0, 3),
+                ),
+              ],
             ),
-            child: const Icon(Icons.tune, color: Colors.grey),
+            child: const Icon(Icons.tune, color: Color(0xFF98A2B3)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildImagePlaceholder({required IconData icon, String? message}) {
-    return Container(
-      height: 180,
-      width: double.infinity,
-      color: Colors.grey[200],
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 40, color: Colors.grey[400]),
-          if (message != null) ...[
-            const SizedBox(height: 8),
+  Widget _buildSectionHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Denúncias prioritárias',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(height: 4),
             Text(
-              message,
-              style: TextStyle(color: Colors.grey[500], fontSize: 12),
+              '$_totalCount denúncias ativas',
+              style: const TextStyle(fontSize: 14, color: Color(0xFF98A2B3)),
             ),
           ],
-        ],
-      ),
+        ),
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3F4F6),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFD0D5DD)),
+          ),
+          child: const Icon(Icons.swap_vert, color: Color(0xFF667085)),
+        ),
+      ],
     );
   }
 
-  Widget _buildCard(ReportData report) {
+  Widget _buildReportCard(ReportData report) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFEAEAEA)),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Color(0x12000000),
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: report.photos.isNotEmpty
-                ? Image.network(
-                    report.photos.first,
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        _buildImagePlaceholder(
-                          icon: Icons.broken_image,
-                          message: 'Erro ao carregar imagem',
-                        ),
-                  )
-                : _buildImagePlaceholder(
-                    icon: Icons.image_not_supported,
-                    message: 'Sem imagem disponível',
-                  ),
-          ),
+          _buildReportImage(report),
           Padding(
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   report.title,
                   style: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 17,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF333333),
+                    color: Color(0xFF0F172A),
                   ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 8),
                 Text(
                   report.description,
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    height: 1.45,
+                    color: Color(0xFF475467),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
                     const Icon(
-                      Icons.location_on,
+                      Icons.location_on_outlined,
                       size: 16,
-                      color: Color(0xFF00D159),
+                      color: Color(0xFF667085),
                     ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         report.address ?? 'Localização registada',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF667085),
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 15),
+                const SizedBox(height: 16),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: const [
-                        Icon(
-                          Icons.arrow_upward,
-                          size: 20,
-                          color: Colors.black54,
-                        ),
-                        SizedBox(width: 5),
-                        Text(
-                          '0',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(width: 10),
-                        Icon(
-                          Icons.arrow_downward,
-                          size: 20,
-                          color: Colors.black54,
-                        ),
-                      ],
+                  children: const [
+                    Icon(
+                      Icons.arrow_upward,
+                      size: 20,
+                      color: Color(0xFF667085),
                     ),
-                    Row(
-                      children: const [
-                        Icon(
-                          Icons.chat_bubble_outline,
-                          size: 20,
-                          color: Colors.black54,
-                        ),
-                        SizedBox(width: 5),
-                        Text(
-                          '0',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    SizedBox(width: 6),
+                    Text(
+                      '0',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF344054),
+                      ),
+                    ),
+                    SizedBox(width: 18),
+                    Icon(
+                      Icons.arrow_downward,
+                      size: 20,
+                      color: Color(0xFF667085),
+                    ),
+                    Spacer(),
+                    Icon(
+                      Icons.chat_bubble_outline,
+                      size: 20,
+                      color: Color(0xFF667085),
+                    ),
+                    SizedBox(width: 6),
+                    Text(
+                      '0',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF344054),
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReportImage(ReportData report) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      child: SizedBox(
+        height: 170,
+        width: double.infinity,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: report.photos.isNotEmpty
+                  ? Image.network(
+                      report.photos.first,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return _buildImagePlaceholder(
+                          icon: Icons.broken_image_outlined,
+                          message: 'Erro ao carregar imagem',
+                        );
+                      },
+                    )
+                  : _buildImagePlaceholder(
+                      icon: Icons.image_not_supported_outlined,
+                      message: 'Sem imagem disponível',
+                    ),
+            ),
+            Positioned(
+              top: 12,
+              right: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF3E8),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Text(
+                  'Pendente',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFEC6A00),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImagePlaceholder({required IconData icon, String? message}) {
+    return Container(
+      color: const Color(0xFFE5E7EB),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 38, color: const Color(0xFF98A2B3)),
+          if (message != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              message,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF98A2B3)),
+            ),
+          ],
         ],
       ),
     );

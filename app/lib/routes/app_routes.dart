@@ -4,22 +4,24 @@ import '../pages/adjust_location_page.dart';
 import '../pages/confirm_report_page.dart';
 import '../pages/detect_location_page.dart';
 import '../pages/email_test_page.dart';
-import '../pages/home_page.dart';
 import '../pages/issue_category_page.dart';
 import '../pages/login_page.dart';
-import '../pages/map_page.dart';
-import '../pages/recycling_scanner_page.dart';
-import '../pages/feed_page.dart';
+import '../pages/main_navigation_screen.dart';
 
 class AppRoutes {
   static Map<String, WidgetBuilder> routes = {
     '/login': (context) => const LoginPage(),
-    '/home': (context) => const HomePage(),
+
+    // Main entry after login
+    '/home': (context) => const MainNavigationScreen(),
+
     '/email-test': (context) => const EmailTestPage(),
-    '/scanner': (context) => const RecyclingScannerPage(),
     '/categories': (context) => const SelectCategory(),
-    '/map': (context) => const MapPage(),
-    '/feed': (context) => const FeedPage(),
+
+    // Optional direct tab routes
+    '/feed': (context) => const MainNavigationScreen(initialIndex: 0),
+    '/scanner': (context) => const MainNavigationScreen(initialIndex: 1),
+    '/map': (context) => const MainNavigationScreen(initialIndex: 2),
 
     '/detect-location': (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
@@ -31,17 +33,20 @@ class AppRoutes {
 
     '/adjust-location': (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
-      if (args is ReportData) return AdjustLocationPage(report: args);
-      return const HomePage();
+      if (args is ReportData) {
+        return AdjustLocationPage(report: args);
+      }
+      return const MainNavigationScreen();
     },
 
     '/confirm': (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
-      if (args is ReportData) return ConfirmPage(report: args);
+      if (args is ReportData) {
+        return ConfirmPage(report: args);
+      }
 
-      // Se chegar aqui sem dados, avisa mas não crasha a rota
-      debugPrint("ERRO: /confirm sem ReportData!");
-      return const HomePage();
+      debugPrint('ERROR: /confirm opened without ReportData');
+      return const MainNavigationScreen();
     },
   };
 }
