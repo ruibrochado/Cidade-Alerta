@@ -170,4 +170,73 @@ class IssueService {
       throw Exception('Erro ao adicionar comentário: $e');
     }
   }
+
+  // Vai buscar a pontuação total (upvotes - downvotes) e o voto do user atual
+  Future<Map<String, dynamic>> fetchVoteInfo(String issueId) async {
+    final user = supabase.auth.currentUser;
+
+    try {
+      final response = await supabase
+          .from('issue_votes')
+          .select('vote_type, user_id')
+          .eq('issue_id', issueId);
+
+      int score = 0;
+      int userVote = 0;
+
+      for (var row in response) {
+        int vote = row['vote_type'] as int;
+        score += vote;
+        if (user != null && row['user_id'] == user.id) {
+          userVote = vote;
+        }
+      }
+
+      return {'score': score, 'userVote': userVote};
+    } catch (e) {
+      debugPrint('Erro a buscar votos: $e');
+      return {'score': 0, 'userVote': 0};
+    }
+  }
+
+  // Regista, atualiza ou remove um voto
+  Future<void> castVote(String issueId, int voteType) async {
+    final user = supabase.auth.currentUser;
+    if (user == null) throw Exception('User not logged in');
+
+    try {
+      // Verifica se o user já votou nesta issue
+      final existingVote = await supabase
+          .from('issue_votes')
+          .select()
+          .eq('issue_id', issueId)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+      if (existingVote != null) {
+        if (existingVote['vote_type'] == voteType) {
+          // Se clicar no mesmo botão, remove o voto (toggle)
+          await supabase
+              .from('issue_votes')
+              .delete()
+              .eq('id', existingVote['id']);
+        } else {
+          // Muda de upvote para downvote ou vice-versa
+          await supabase
+              .from('issue_votes')
+              .update({'vote_type': voteType})
+              .eq('id', existingVote['id']);
+        }
+      } else {
+        // Insere um voto novo
+        await supabase.from('issue_votes').insert({
+          'issue_id': issueId,
+          'user_id': user.id,
+          'vote_type': voteType,
+        });
+      }
+    } catch (e) {
+      throw Exception('Erro ao registar voto: $e');
+    }
+  }
 }
