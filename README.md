@@ -321,7 +321,9 @@ You can find below information and references related with the project managemen
 You can find below information and references related with the project management in our team:
 
 * Backlog management: Product backlog and Sprint backlog in a [Github Projects Board](https://github.com/orgs/LEIC-ES-2025-26-2LEIC11/projects/6)
-* Release management: [Sprint 0](https://github.com/LEIC-ES-2025-26-2LEIC11/2LEIC11T5/releases/tag/sprint-0)
+* Release management:
+  * [Sprint 0](https://github.com/LEIC-ES-2025-26-2LEIC11/2LEIC11T5/releases/tag/sprint-0)
+  * [Sprint 1](https://github.com/LEIC-ES-2025-26-2LEIC11/2LEIC11T5/releases/tag/sprint-1)
 * Sprint planning and retrospectives:
   * [Sprint 0](#sprint-0)
   * [Sprint 1](#sprint-1)
