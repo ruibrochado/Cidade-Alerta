@@ -6,10 +6,7 @@ import '../services/issue_service.dart';
 class ReportDetailSheet extends StatefulWidget {
   final ReportData report;
 
-  const ReportDetailSheet({
-    super.key,
-    required this.report,
-  });
+  const ReportDetailSheet({super.key, required this.report});
 
   @override
   State<ReportDetailSheet> createState() => _ReportDetailSheetState();
@@ -69,10 +66,7 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
         'content': text,
         'created_at': DateTime.now().toIso8601String(),
         'user_id': currentUserId,
-        'profiles': {
-          'first_name': 'Tu',
-          'last_name': '',
-        },
+        'profiles': {'first_name': 'Tu', 'last_name': ''},
       });
     });
 
@@ -91,17 +85,16 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
         ),
       );
     } finally {
-      if (!mounted) return;
-
-      setState(() {
-        _isSending = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSending = false;
+        });
+      }
     }
   }
 
   String _getUserName(Map<String, dynamic> comment) {
-    final String? currentUserId =
-        Supabase.instance.client.auth.currentUser?.id;
+    final String? currentUserId = Supabase.instance.client.auth.currentUser?.id;
     final String? commentUserId = comment['user_id'];
 
     if (currentUserId != null && currentUserId == commentUserId) {
@@ -152,43 +145,43 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
     return null;
   }
 
-@override
-Widget build(BuildContext context) {
-  return Column(
-    children: [
-      _buildTopBar(context),
-      const Divider(height: 1, color: Color(0xFFE5E7EB)),
-      Expanded(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-          children: [
-            _buildReportImage(),
-            const SizedBox(height: 18),
-            _buildTitleAndStatus(),
-            const SizedBox(height: 10),
-            _buildDescription(),
-            const SizedBox(height: 12),
-            _buildLocation(),
-            const SizedBox(height: 22),
-            const Text(
-              'Comentários',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1F2937),
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _buildTopBar(context),
+        const Divider(height: 1, color: Color(0xFFE5E7EB)),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+            children: [
+              _buildReportImage(),
+              const SizedBox(height: 18),
+              _buildTitleAndStatus(),
+              const SizedBox(height: 10),
+              _buildDescription(),
+              const SizedBox(height: 12),
+              _buildLocation(),
+              const SizedBox(height: 22),
+              const Text(
+                'Comentários',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1F2937),
+                ),
               ),
-            ),
-            const SizedBox(height: 14),
-            const Divider(height: 1, color: Color(0xFFE5E7EB)),
-            const SizedBox(height: 16),
-            _buildCommentsSection(),
-          ],
+              const SizedBox(height: 14),
+              const Divider(height: 1, color: Color(0xFFE5E7EB)),
+              const SizedBox(height: 16),
+              _buildCommentsSection(),
+            ],
+          ),
         ),
-      ),
-      _buildCommentInputBar(),
-    ],
-  );
-}
+        _buildCommentInputBar(),
+      ],
+    );
+  }
 
   Widget _buildTopBar(BuildContext context) {
     return Padding(
@@ -207,11 +200,7 @@ Widget build(BuildContext context) {
           ),
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(
-              Icons.close,
-              color: Color(0xFF6B7280),
-              size: 26,
-            ),
+            icon: const Icon(Icons.close, color: Color(0xFF6B7280), size: 26),
           ),
         ],
       ),
@@ -243,7 +232,7 @@ Widget build(BuildContext context) {
         width: double.infinity,
         height: 185,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) {
+        errorBuilder: (context, error, stackTrace) {
           return Container(
             height: 185,
             color: const Color(0xFFE5E7EB),
@@ -321,10 +310,7 @@ Widget build(BuildContext context) {
         Expanded(
           child: Text(
             widget.report.address ?? 'Localização registada',
-            style: const TextStyle(
-              fontSize: 15,
-              color: Color(0xFF667085),
-            ),
+            style: const TextStyle(fontSize: 15, color: Color(0xFF667085)),
           ),
         ),
       ],
@@ -336,9 +322,7 @@ Widget build(BuildContext context) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 24),
         child: Center(
-          child: CircularProgressIndicator(
-            color: Color(0xFF00D159),
-          ),
+          child: CircularProgressIndicator(color: Color(0xFF00D159)),
         ),
       );
     }
@@ -348,10 +332,7 @@ Widget build(BuildContext context) {
         padding: EdgeInsets.symmetric(vertical: 8),
         child: Text(
           'Ainda sem comentários. Sê o primeiro!',
-          style: TextStyle(
-            fontSize: 15,
-            color: Color(0xFF98A2B3),
-          ),
+          style: TextStyle(fontSize: 15, color: Color(0xFF98A2B3)),
         ),
       );
     }
@@ -384,11 +365,7 @@ Widget build(BuildContext context) {
           backgroundColor: const Color(0xFFE5E7EB),
           backgroundImage: avatar,
           child: avatar == null
-              ? const Icon(
-                  Icons.person,
-                  size: 18,
-                  color: Color(0xFF9CA3AF),
-                )
+              ? const Icon(Icons.person, size: 18, color: Color(0xFF9CA3AF))
               : null,
         ),
         const SizedBox(width: 12),
@@ -444,87 +421,70 @@ Widget build(BuildContext context) {
   }
 
   Widget _buildCommentInputBar() {
-  return Container(
-    padding: const EdgeInsets.only(
-      left: 16,
-      right: 16,
-      top: 14,
-      bottom: 14,
-    ),
-    decoration: const BoxDecoration(
-      color: Colors.white,
-      border: Border(
-        top: BorderSide(
-          color: Color(0xFFE5E7EB),
-          width: 1,
-        ),
+    return Container(
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 14, bottom: 14),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
       ),
-    ),
-    child: Row(
-      children: [
-        const CircleAvatar(
-          radius: 18,
-          backgroundColor: Color(0xFFE5E7EB),
-          child: Icon(
-            Icons.person,
-            size: 18,
-            color: Color(0xFF9CA3AF),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            radius: 18,
+            backgroundColor: Color(0xFFE5E7EB),
+            child: Icon(Icons.person, size: 18, color: Color(0xFF9CA3AF)),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Container(
-            height: 42,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF2F4F7),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: TextField(
-              controller: _commentController,
-              textInputAction: TextInputAction.send,
-              onSubmitted: (_) => _submitComment(),
-              decoration: const InputDecoration(
-                hintText: 'Adicionar comentário...',
-                hintStyle: TextStyle(
-                  color: Color(0xFF98A2B3),
-                  fontSize: 15,
-                ),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Container(
+              height: 42,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF2F4F7),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: TextField(
+                controller: _commentController,
+                textInputAction: TextInputAction.send,
+                onSubmitted: (_) => _submitComment(),
+                decoration: const InputDecoration(
+                  hintText: 'Adicionar comentário...',
+                  hintStyle: TextStyle(color: Color(0xFF98A2B3), fontSize: 15),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 10),
-        GestureDetector(
-          onTap: _submitComment,
-          child: Container(
-            width: 42,
-            height: 42,
-            decoration: const BoxDecoration(
-              color: Color(0xFF00D159),
-              shape: BoxShape.circle,
-            ),
-            child: _isSending
-                ? const Padding(
-                    padding: EdgeInsets.all(11),
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          const SizedBox(width: 10),
+          GestureDetector(
+            onTap: _submitComment,
+            child: Container(
+              width: 42,
+              height: 42,
+              decoration: const BoxDecoration(
+                color: Color(0xFF00D159),
+                shape: BoxShape.circle,
+              ),
+              child: _isSending
+                  ? const Padding(
+                      padding: EdgeInsets.all(11),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Icon(
+                      Icons.send_rounded,
+                      color: Colors.white,
+                      size: 20,
                     ),
-                  )
-                : const Icon(
-                    Icons.send_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 }
