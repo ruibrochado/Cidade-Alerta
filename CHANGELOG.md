@@ -27,9 +27,12 @@
 - Added splash screen [#30](https://github.com/LEIC-ES-2025-26/2LEIC11T5/pull/30)
 - Added icon identification [#29](https://github.com/LEIC-ES-2025-26/2LEIC11T5/pull/29)
 - Added municipality email notification when a report is submitted [#14](https://github.com/LEIC-ES-2025-26/2LEIC11T5/pull/14)
+- Added Lefthook configuration for pre-commit and pre-push automation.
 
 ### Fixed
 - Fixed an issue that allowed duplicate report submissions [#43](https://github.com/LEIC-ES-2025-26/2LEIC11T5/pull/43)
+
+##
 
 ### Notes
 - Sprint 1 focused on expanding the user experience beyond report creation by introducing authentication, navigation, interaction with reports, and municipality notification.
