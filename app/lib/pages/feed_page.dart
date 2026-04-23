@@ -81,8 +81,8 @@ class _FeedPageState extends State<FeedPage> {
     final user = authService.getCurrentUser();
     final String userName =
         user?.userMetadata?['first_name']?.toString() ??
-            user?.email?.split('@').first ??
-            'Utilizador';
+        user?.email?.split('@').first ??
+        'Utilizador';
 
     return Scaffold(
       backgroundColor: const Color(0xFFCDE5CB),
@@ -139,7 +139,7 @@ class _FeedPageState extends State<FeedPage> {
                             padding: const EdgeInsets.only(bottom: 120),
                             itemCount: _reports.length + (_hasMore ? 1 : 0),
                             separatorBuilder: (context, index) =>
-                            const SizedBox(height: 20),
+                                const SizedBox(height: 20),
                             itemBuilder: (context, index) {
                               if (index == _reports.length) {
                                 return const Padding(
@@ -481,19 +481,19 @@ class _FeedPageState extends State<FeedPage> {
             Positioned.fill(
               child: report.photos.isNotEmpty
                   ? Image.network(
-                report.photos.first,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return _buildImagePlaceholder(
-                    icon: Icons.broken_image_outlined,
-                    message: 'Erro ao carregar imagem',
-                  );
-                },
-              )
+                      report.photos.first,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return _buildImagePlaceholder(
+                          icon: Icons.broken_image_outlined,
+                          message: 'Erro ao carregar imagem',
+                        );
+                      },
+                    )
                   : _buildImagePlaceholder(
-                icon: Icons.image_not_supported_outlined,
-                message: 'Sem imagem disponível',
-              ),
+                      icon: Icons.image_not_supported_outlined,
+                      message: 'Sem imagem disponível',
+                    ),
             ),
             Positioned(
               top: 12,
@@ -650,8 +650,8 @@ class _VoteWidgetState extends State<VoteWidget> {
             color: _userVote == 1
                 ? const Color(0xFF00D159)
                 : (_userVote == -1
-                ? const Color(0xFFEC6A00)
-                : const Color(0xFF344054)),
+                      ? const Color(0xFFEC6A00)
+                      : const Color(0xFF344054)),
           ),
         ),
         const SizedBox(width: 6),

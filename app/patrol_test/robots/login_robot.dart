@@ -10,7 +10,9 @@ class LoginRobot {
     await $(TextField).at(1).enterText(pass);
     await $('Login').tap();
 
+    // ignore: deprecated_member_use
     if (await $.native.isPermissionDialogVisible()) {
+      // ignore: deprecated_member_use
       await $.native.grantPermissionWhenInUse();
     }
     await $.pumpAndSettle();

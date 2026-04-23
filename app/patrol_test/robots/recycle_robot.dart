@@ -9,18 +9,23 @@ class RecycleRobot {
     await $('Scan object').tap();
 
     // Handle camera permission
+    // ignore: deprecated_member_use
     if (await $.native.isPermissionDialogVisible()) {
+      // ignore: deprecated_member_use
       await $.native.grantPermissionWhenInUse();
     }
 
     // Emulate taking a photo
+    // ignore: deprecated_member_use
     await $.native.pressVolumeDown();
     await Future.delayed(const Duration(seconds: 2));
 
     // Accept photo
     try {
+      // ignore: deprecated_member_use
       await $.native.tap(Selector(text: 'OK'));
     } catch (e) {
+      // ignore: deprecated_member_use
       await $.native.pressBack();
     }
 

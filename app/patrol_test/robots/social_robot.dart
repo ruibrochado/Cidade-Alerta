@@ -14,7 +14,9 @@ class SocialRobot {
 
   Future<void> openComments() async {
     // Tap the comment icon (chat bubble)
-    await $(Icons.chat_bubble_outline).first.tap(); // Or Icons.chat if it's filled
+    await $(
+      Icons.chat_bubble_outline,
+    ).first.tap(); // Or Icons.chat if it's filled
     await $.pumpAndSettle();
   }
 

@@ -32,22 +32,26 @@ class ReportRobot {
   Future<void> takePhoto() async {
     await $('Tirar Foto').tap();
 
+    // ignore: deprecated_member_use
     if (await $.native.isPermissionDialogVisible()) {
+      // ignore: deprecated_member_use
       await $.native.grantPermissionWhenInUse();
     }
 
     await Future.delayed(const Duration(seconds: 4));
 
+    // ignore: deprecated_member_use
     await $.native.pressVolumeDown();
 
     await Future.delayed(const Duration(seconds: 4));
 
     try {
-      await $.native.tap(Selector(text: 'OK'));
+      await $.platformAutomator.tap(Selector(text: 'OK'));
     } catch (e) {
       try {
-        await $.native.tap(Selector(contentDescription: 'Done'));
+        await $.platformAutomator.tap(Selector(contentDescription: 'Done'));
       } catch (e2) {
+        // ignore: deprecated_member_use
         await $.native.pressBack();
       }
     }
@@ -56,30 +60,28 @@ class ReportRobot {
   }
 
   Future<void> handleLocationAndConfirm() async {
+    // ignore: deprecated_member_use
     if (await $.native.isPermissionDialogVisible()) {
+      // ignore: deprecated_member_use
       await $.native.grantPermissionWhenInUse();
     }
 
     await Future.delayed(const Duration(seconds: 2));
     await $.pumpAndSettle();
 
-    final hasContinuar = await $('Continuar').exists;
+    final hasContinuar = $('Continuar').exists;
 
     if (hasContinuar) {
       await $('Continuar').last.tap();
     } else {
-      await $('Confirmar localização').scrollTo(
-        view: $(Scrollable).last,
-      ).tap();
+      await $('Confirmar localização').scrollTo(view: $(Scrollable).last).tap();
     }
 
     await $.pumpAndSettle();
   }
 
   Future<void> finalSubmit() async {
-    await $('Enviar Denúncia').scrollTo(
-      view: $(Scrollable).first,
-    ).tap();
+    await $('Enviar Denúncia').scrollTo(view: $(Scrollable).first).tap();
 
     await $.pumpAndSettle();
   }

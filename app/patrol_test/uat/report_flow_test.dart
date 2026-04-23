@@ -5,7 +5,9 @@ import '../robots/home_robot.dart';
 import '../robots/report_robot.dart';
 
 void main() {
-  patrolTest('UAT: Complete Report Submission Flow', (PatrolIntegrationTester $) async {
+  patrolTest('UAT: Complete Report Submission Flow', (
+    PatrolIntegrationTester $,
+  ) async {
     final loginRobot = LoginRobot($);
     final homeRobot = HomeRobot($);
     final reportRobot = ReportRobot($);
