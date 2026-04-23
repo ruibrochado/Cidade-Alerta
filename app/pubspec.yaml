@@ -33,6 +33,16 @@ dev_dependencies:
   mocktail: ^1.0.3
   flutter_launcher_icons: ^0.13.1
   flutter_native_splash: ^2.4.0
+  patrol: ^4.3.1
+
+patrol:
+  app_name: app
+  android:
+    package_name: com.example.app
+  ios:
+    bundle_id: com.example.app
+  macos:
+    bundle_id: com.example.app
 
 flutter_launcher_icons:
   android: "launcher_icon"
