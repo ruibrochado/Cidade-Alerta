@@ -67,7 +67,6 @@ void main() {
       when(() => mockSupabaseClient.from('issues')).thenAnswer((_) => mockQueryBuilder);
       when(() => mockQueryBuilder.select()).thenAnswer((_) => mockChain);
 
-      // Corrigido para thenAnswer para evitar o erro de Future do Mocktail
       when(() => mockChain.neq(any(), any())).thenAnswer((_) => mockChain);
       when(() => mockChain.order(any(), ascending: any(named: 'ascending'))).thenAnswer((_) => mockChain);
       when(() => mockChain.range(any(), any())).thenAnswer((_) => mockChain);
