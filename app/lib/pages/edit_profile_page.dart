@@ -155,6 +155,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
+  Future<void> _logout() async {
+    await _supabase.auth.signOut();
+
+    if (!mounted) return;
+
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+  }
+
   Future<void> _confirmDeleteAccount() async {
     final shouldDelete = await showDialog<bool>(
       context: context,
@@ -431,6 +439,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                   ),
                                 )
                               : const Text('Save changes'),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 52,
+                        child: OutlinedButton.icon(
+                          onPressed: _isSaving || _isDeleting ? null : _logout,
+                          icon: const Icon(Icons.logout),
+                          label: const Text('Logout'),
                         ),
                       ),
                       const SizedBox(height: 16),
