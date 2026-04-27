@@ -70,7 +70,7 @@ class _LoginPageState extends State<LoginPage> {
                   radius: 45,
                   backgroundColor: Colors.white,
                   child: Image.asset(
-                    'assets/images/logo_app.png',
+                    'images/logo_app.png',
                     height: 40,
                   ),
                 ),
