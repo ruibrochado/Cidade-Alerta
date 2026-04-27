@@ -177,7 +177,7 @@ class _FeedPageState extends State<FeedPage> {
             children: [
               GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(context, '/edit-profile');
+                  Navigator.pushNamed(context, '/profile');
                 },
                 child: const CircleAvatar(
                   radius: 24,
