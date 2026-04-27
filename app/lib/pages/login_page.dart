@@ -18,7 +18,6 @@ class _LoginPageState extends State<LoginPage> {
   bool isLoading = false;
   String errorMessage = '';
 
-  // 🎨 Cores ajustadas para bater com o design
   final Color topGreen = const Color(0xFFD6E6D5);
   final Color buttonGreen = const Color(0xFFA8C3A5);
   final Color inputColor = const Color(0xFFF4F6F4);
@@ -55,7 +54,6 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Fundo dividido
           Column(
             children: [
               Expanded(child: Container(color: topGreen)),
@@ -68,7 +66,6 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 const SizedBox(height: 90),
 
-                // 🧢 Ícone no topo (igual imagem)
                 CircleAvatar(
                   radius: 45,
                   backgroundColor: Colors.white,
@@ -80,7 +77,6 @@ class _LoginPageState extends State<LoginPage> {
 
                 const SizedBox(height: 40),
 
-                // 🧾 Card
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Container(
@@ -127,14 +123,13 @@ class _LoginPageState extends State<LoginPage> {
 
                         const SizedBox(height: 30),
 
-                        // 🔘 Botão principal
                         SizedBox(
                           width: double.infinity,
                           height: 52,
                           child: ElevatedButton(
                             onPressed: isLoading ? null : signIn,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: buttonGreen,
+                              backgroundColor: buttonGreen.withOpacity(0.9),
                               shape: const StadiumBorder(),
                               elevation: 0,
                             ),
@@ -159,7 +154,6 @@ class _LoginPageState extends State<LoginPage> {
 
                         const SizedBox(height: 25),
 
-                        // 🔗 Social buttons
                         Row(
                           children: [
                             Expanded(child: _social("Google")),
@@ -210,7 +204,10 @@ class _LoginPageState extends State<LoginPage> {
         padding: const EdgeInsets.only(left: 10, bottom: 6),
         child: Text(
           text,
-          style: const TextStyle(color: Colors.grey, fontSize: 13),
+          style: TextStyle(
+            color: Colors.grey.shade500,
+            fontSize: 12,
+          ),
         ),
       ),
     );
@@ -220,15 +217,16 @@ class _LoginPageState extends State<LoginPage> {
     return TextField(
       controller: controller,
       obscureText: obscure,
+      cursorColor: Colors.black, // ✅ cursor preto
       decoration: InputDecoration(
         filled: true,
         fillColor: inputColor,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
         contentPadding:
-        const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       ),
     );
   }
@@ -240,19 +238,26 @@ class _LoginPageState extends State<LoginPage> {
         border: Border.all(color: Colors.grey.shade300),
         borderRadius: BorderRadius.circular(30),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (type == "Google")
-            Image.network(
-              'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_"G"_logo.svg',
-              height: 18,
-            )
-          else
-            const Icon(Icons.apple, size: 20),
-          const SizedBox(width: 8),
-          Text(type),
-        ],
+      child: Center(
+        child: FittedBox(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (type == "Google")
+                Image.network(
+                  'https://developers.google.com/identity/images/g-logo.png',
+                  height: 18,
+                )
+              else
+                const Icon(Icons.apple, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                type,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -281,7 +286,8 @@ class _LoginPageState extends State<LoginPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(text, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(text,
+            style: const TextStyle(fontSize: 12, color: Colors.grey)),
         GestureDetector(
           onTap: onTap,
           child: Text(
