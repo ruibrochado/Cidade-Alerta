@@ -199,6 +199,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
     } catch (error) {
       _showSnackBar('Failed to delete account.');
+      _showSnackBar('Failed to delete account: $error');
     } finally {
       if (mounted) {
         setState(() => _isDeleting = false);
