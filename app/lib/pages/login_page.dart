@@ -19,7 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   String errorMessage = '';
 
   final Color topGreen = const Color(0xFFCDE5CB);
-  final Color buttonGreen = const Color(0xFF00D159);
+  final Color buttonGreen = const Color(0xFF16A34A);
   final Color inputColor = const Color(0xFFF4F6F4);
   final Color bottomColor = const Color(0xFFF7F7F7);
 
@@ -132,7 +132,7 @@ class _LoginPageState extends State<LoginPage> {
                     padding: const EdgeInsets.all(28),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(35),
+                      borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.04),
