@@ -19,7 +19,8 @@ class _LoginPageState extends State<LoginPage> {
   String errorMessage = '';
 
   final Color topGreen = const Color(0xFFD6E6D5);
-  final Color buttonGreen = const Color(0xFFA8C3A5);
+  // ✅ Atualizado para o verde solicitado: FF00D159
+  final Color buttonGreen = const Color(0xFF00D159);
   final Color inputColor = const Color(0xFFF4F6F4);
   final Color bottomColor = const Color(0xFFF7F7F7);
 
@@ -129,7 +130,7 @@ class _LoginPageState extends State<LoginPage> {
                           child: ElevatedButton(
                             onPressed: isLoading ? null : signIn,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: buttonGreen.withOpacity(0.9),
+                              backgroundColor: buttonGreen, // ✅ Aplica o novo verde
                               shape: const StadiumBorder(),
                               elevation: 0,
                             ),
@@ -217,7 +218,7 @@ class _LoginPageState extends State<LoginPage> {
     return TextField(
       controller: controller,
       obscureText: obscure,
-      cursorColor: Colors.black, // ✅ cursor preto
+      cursorColor: Colors.black,
       decoration: InputDecoration(
         filled: true,
         fillColor: inputColor,
@@ -274,7 +275,7 @@ class _LoginPageState extends State<LoginPage> {
           "Terms and Conditions",
           style: TextStyle(
             fontSize: 11,
-            color: buttonGreen,
+            color: buttonGreen, // ✅ Aplica o novo verde
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -295,7 +296,7 @@ class _LoginPageState extends State<LoginPage> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: buttonGreen,
+              color: buttonGreen, // ✅ Aplica o novo verde
             ),
           ),
         )
