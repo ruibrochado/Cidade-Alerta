@@ -66,15 +66,19 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               children: [
                 const SizedBox(height: 90),
+                const SizedBox(height: 80),
 
-                CircleAvatar(
-                  radius: 45,
-                  backgroundColor: Colors.white,
+                Center(
                   child: Image.asset(
                     'images/logo_app.png',
-                    height: 40,
+                    height: 120,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.construction, size: 80, color: Colors.white),
                   ),
                 ),
+
+                const SizedBox(height: 30),
 
                 const SizedBox(height: 40),
 
