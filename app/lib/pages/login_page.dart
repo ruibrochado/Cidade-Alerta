@@ -49,6 +49,54 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  // ✅ GOOGLE LOGIN
+  Future<void> signInWithGoogle() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = '';
+    });
+
+    try {
+      await authService.signInWithGoogle();
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
+    } catch (_) {
+      setState(() {
+        errorMessage = "Erro ao entrar com Google.";
+      });
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
+
+  // ✅ APPLE LOGIN
+  Future<void> signInWithApple() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = '';
+    });
+
+    try {
+      await authService.signInWithApple();
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
+    } catch (_) {
+      setState(() {
+        errorMessage = "Erro ao entrar com Apple.";
+      });
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,7 +112,7 @@ class _LoginPageState extends State<LoginPage> {
           SingleChildScrollView(
             child: Column(
               children: [
-                const SizedBox(height: 55),
+                const SizedBox(height: 50),
 
                 Center(
                   child: Image.asset(
@@ -75,7 +123,6 @@ class _LoginPageState extends State<LoginPage> {
                     const Icon(Icons.construction, size: 80, color: Colors.white),
                   ),
                 ),
-
 
                 const SizedBox(height: 25),
 
@@ -125,7 +172,6 @@ class _LoginPageState extends State<LoginPage> {
 
                         const SizedBox(height: 30),
 
-
                         SizedBox(
                           width: double.infinity,
                           height: 52,
@@ -152,7 +198,6 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 15),
                         _terms(),
                         const SizedBox(height: 25),
-
 
                         Row(
                           children: [
@@ -227,30 +272,41 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _social(String type) {
-    return Container(
-      height: 48,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: Center(
-        child: FittedBox(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (type == "Google")
-                Image.network(
-                  'https://developers.google.com/identity/images/g-logo.png',
-                  height: 18,
-                )
-              else
-                const Icon(Icons.apple, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                type,
-                style: const TextStyle(fontWeight: FontWeight.w500),
-              ),
-            ],
+    return GestureDetector(
+      onTap: isLoading
+          ? null
+          : () {
+        if (type == "Google") {
+          signInWithGoogle();
+        } else {
+          signInWithApple();
+        }
+      },
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Center(
+          child: FittedBox(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (type == "Google")
+                  Image.network(
+                    'https://developers.google.com/identity/images/g-logo.png',
+                    height: 18,
+                  )
+                else
+                  const Icon(Icons.apple, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  type,
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
           ),
         ),
       ),
