@@ -66,4 +66,4 @@ flutter:
   uses-material-design: true
   assets:
     - .env
-    - images/logo_app.png
+    - images/logo_login_page.png

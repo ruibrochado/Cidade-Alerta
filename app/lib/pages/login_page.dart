@@ -54,7 +54,6 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Fundo Bicolor
           Column(
             children: [
               Expanded(child: Container(color: topGreen)),
@@ -65,24 +64,21 @@ class _LoginPageState extends State<LoginPage> {
           SingleChildScrollView(
             child: Column(
               children: [
-                // ✅ Reduzi o espaçamento superior para evitar o excesso de scroll
                 const SizedBox(height: 60),
 
-                // --- LOGO DA APP ---
                 Center(
                   child: Image.asset(
-                    'images/logo_app.png',
-                    height: 130, // Tamanho ajustado para equilíbrio visual
+                    'images/logo_login_page.png',
+                    height: 130,
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) =>
                     const Icon(Icons.construction, size: 80, color: Colors.white),
                   ),
                 ),
 
-                // ✅ Reduzi o espaço entre a logo e o card
+
                 const SizedBox(height: 25),
 
-                // --- CARTÃO DE LOGIN ---
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Container(
@@ -129,7 +125,7 @@ class _LoginPageState extends State<LoginPage> {
 
                         const SizedBox(height: 30),
 
-                        // Botão Principal
+
                         SizedBox(
                           width: double.infinity,
                           height: 52,
@@ -157,7 +153,7 @@ class _LoginPageState extends State<LoginPage> {
                         _terms(),
                         const SizedBox(height: 25),
 
-                        // Botões Sociais
+
                         Row(
                           children: [
                             Expanded(child: _social("Google")),
@@ -217,7 +213,7 @@ class _LoginPageState extends State<LoginPage> {
     return TextField(
       controller: controller,
       obscureText: obscure,
-      cursorColor: Colors.black, // Cursor preto conforme pedido
+      cursorColor: Colors.black,
       decoration: InputDecoration(
         filled: true,
         fillColor: inputColor,
