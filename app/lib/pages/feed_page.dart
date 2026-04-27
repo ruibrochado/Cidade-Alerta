@@ -175,10 +175,15 @@ class _FeedPageState extends State<FeedPage> {
         children: [
           Row(
             children: [
-              const CircleAvatar(
-                radius: 24,
-                backgroundColor: Colors.white,
-                child: Icon(Icons.person, size: 28, color: Color(0xFFB0B0B0)),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, '/edit-profile');
+                },
+                child: const CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.person, size: 28, color: Color(0xFFB0B0B0)),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
