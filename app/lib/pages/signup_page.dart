@@ -12,7 +12,9 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final AuthService authService = AuthService();
 
-  final TextEditingController nameController = TextEditingController();
+  // Controllers separados para Nome e Apelido
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
@@ -21,7 +23,6 @@ class _SignUpPageState extends State<SignUpPage> {
   String errorMessage = '';
   bool isFormValid = false;
 
-  // Cores idênticas à LoginPage
   final Color topGreen = const Color(0xFFCDE5CB);
   final Color buttonGreen = const Color(0xFF16A34A);
   final Color disabledButtonColor = const Color(0xFFCCCCCC);
@@ -31,15 +32,17 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   void initState() {
     super.initState();
-    // Validar se todos os campos estão preenchidos para ativar o botão
-    nameController.addListener(_validateForm);
+    // Ouvintes para validar todos os campos
+    firstNameController.addListener(_validateForm);
+    lastNameController.addListener(_validateForm);
     emailController.addListener(_validateForm);
     passwordController.addListener(_validateForm);
     confirmPasswordController.addListener(_validateForm);
   }
 
   void _validateForm() {
-    final isValid = nameController.text.isNotEmpty &&
+    final isValid = firstNameController.text.isNotEmpty &&
+        lastNameController.text.isNotEmpty &&
         emailController.text.isNotEmpty &&
         passwordController.text.isNotEmpty &&
         confirmPasswordController.text.isNotEmpty;
@@ -50,7 +53,8 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   void dispose() {
-    nameController.dispose();
+    firstNameController.dispose();
+    lastNameController.dispose();
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
@@ -61,7 +65,7 @@ class _SignUpPageState extends State<SignUpPage> {
     if (!isFormValid) return;
 
     if (passwordController.text != confirmPasswordController.text) {
-      setState(() => errorMessage = "As passwords não coincidem.");
+      setState(() => errorMessage = "As palavras-passe não coincidem.");
       return;
     }
 
@@ -71,14 +75,9 @@ class _SignUpPageState extends State<SignUpPage> {
     });
 
     try {
-      // Dividindo o nome para manter compatibilidade com seu AuthService (firstName, lastName)
-      List<String> nameParts = nameController.text.trim().split(' ');
-      String firstName = nameParts.first;
-      String lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
-
       await authService.signUp(
-        firstName,
-        lastName,
+        firstNameController.text.trim(),
+        lastNameController.text.trim(),
         emailController.text.trim(),
         passwordController.text.trim(),
       );
@@ -105,7 +104,6 @@ class _SignUpPageState extends State<SignUpPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Fundo dividido
           Column(
             children: [
               Expanded(child: Container(color: topGreen)),
@@ -117,11 +115,10 @@ class _SignUpPageState extends State<SignUpPage> {
             child: Column(
               children: [
                 const SizedBox(height: 50),
-                // Logo
                 Center(
                   child: Image.asset(
                     'images/logo_login_page.png',
-                    height: 110,
+                    height: 130,
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) =>
                     const Icon(Icons.construction, size: 80, color: Colors.white),
@@ -147,24 +144,29 @@ class _SignUpPageState extends State<SignUpPage> {
                     child: Column(
                       children: [
                         const Text(
-                          "Sign up",
+                          "Criar Conta",
                           style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 25),
 
-                        _label("Full Name"),
-                        _input(nameController, false, "John Doe"),
+                        // Campos de Nome e Apelido lado a lado (opcional) ou em lista
+                        _label("Nome"),
+                        _input(firstNameController, false, "Ex: João"),
 
                         const SizedBox(height: 15),
-                        _label("Email"),
-                        _input(emailController, false, "email@example.com"),
+                        _label("Apelido"),
+                        _input(lastNameController, false, "Ex: Silva"),
 
                         const SizedBox(height: 15),
-                        _label("Password"),
+                        _label("E-mail"),
+                        _input(emailController, false, "exemplo@email.com"),
+
+                        const SizedBox(height: 15),
+                        _label("Palavra-passe"),
                         _input(passwordController, true, "••••••••"),
 
                         const SizedBox(height: 15),
-                        _label("Confirm Password"),
+                        _label("Confirmar Palavra-passe"),
                         _input(confirmPasswordController, true, "••••••••"),
 
                         if (errorMessage.isNotEmpty)
@@ -175,7 +177,6 @@ class _SignUpPageState extends State<SignUpPage> {
 
                         const SizedBox(height: 25),
 
-                        // Botão Sign Up
                         SizedBox(
                           width: double.infinity,
                           height: 52,
@@ -189,7 +190,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             child: isLoading
                                 ? const CircularProgressIndicator(color: Colors.white)
                                 : const Text(
-                              "Sign up",
+                              "Registar",
                               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
                             ),
                           ),
@@ -199,7 +200,6 @@ class _SignUpPageState extends State<SignUpPage> {
                         _terms(),
                         const SizedBox(height: 20),
 
-                        // Redes Sociais (Mantendo consistência visual)
                         Row(
                           children: [
                             Expanded(child: _social("Google")),
@@ -209,7 +209,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
 
                         const SizedBox(height: 25),
-                        _footer("Already have an account? ", "Sign in", () {
+                        _footer("Já tens uma conta? ", "Entrar", () {
                           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPage()));
                         }),
                       ],
@@ -225,7 +225,6 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  // Helpers de UI idênticos aos da LoginPage para total consistência
   Widget _label(String text) {
     return Align(
       alignment: Alignment.centerLeft,
@@ -282,9 +281,9 @@ class _SignUpPageState extends State<SignUpPage> {
     return Wrap(
       alignment: WrapAlignment.center,
       children: [
-        const Text("By clicking this button, you agree with our ",
+        const Text("Ao clicar neste botão, concordas com os nossos ",
             style: TextStyle(fontSize: 11, color: Colors.grey), textAlign: TextAlign.center),
-        Text("Terms and Conditions",
+        Text("Termos e Condições",
             style: TextStyle(fontSize: 11, color: buttonGreen, fontWeight: FontWeight.w600)),
       ],
     );
