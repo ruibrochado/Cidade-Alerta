@@ -1,5 +1,6 @@
 import 'package:patrol/patrol.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 class ReportRobot {
   final PatrolIntegrationTester $;
@@ -30,48 +31,72 @@ class ReportRobot {
   }
 
   Future<void> takePhoto() async {
-    await $('Tirar Foto').tap();
+    // Tenta até 3 vezes abrir a câmara
+    for (int attempt = 0; attempt < 3; attempt++) {
+      await $('Tirar Foto').tap();
 
+      if (await $.native.isPermissionDialogVisible()) {
+        await $.native.grantPermissionWhenInUse();
+      }
+
+      await Future.delayed(const Duration(seconds: 4));
+
+      // Verifica se a câmara abriu (se ainda vê 'Tirar Foto' é porque não abriu)
+      final cameraDidNotOpen = await $('Tirar Foto').exists;
+      if (cameraDidNotOpen) {
+        // Câmara não abriu, tenta de novo
+        await $.pumpAndSettle();
+        continue;
+      }
+
+      // Câmara abriu, tira a foto
+      await $.native.pressVolumeDown();
+      await Future.delayed(const Duration(seconds: 4));
+
+      try {
+        await $.native.tap(Selector(text: 'OK'));
+      } catch (e) {
+        try {
+          await $.native.tap(Selector(contentDescription: 'Done'));
+        } catch (e2) {
+          await $.native.pressBack();
+        }
+      }
+
+      await $.pumpAndSettle();
+      return; // sucesso, sai do loop
+    }
+
+    // Se chegou aqui, falhou 3 vezes — continua sem foto
+    await $('Continuar').tap();
+    await $.pumpAndSettle();
+  }
+  Future<void> handleDetectLocation() async {
     if (await $.native.isPermissionDialogVisible()) {
       await $.native.grantPermissionWhenInUse();
     }
 
-    await Future.delayed(const Duration(seconds: 4));
+    await Future.delayed(const Duration(seconds: 3));
+    await $.pumpAndSettle();
 
-    await $.native.pressVolumeDown();
-
-    await Future.delayed(const Duration(seconds: 4));
-
-    try {
-      await $.native.tap(Selector(text: 'OK'));
-    } catch (e) {
-      try {
-        await $.native.tap(Selector(contentDescription: 'Done'));
-      } catch (e2) {
-        await $.native.pressBack();
-      }
+    // Aqui tanto pode ser 'Continuar' como 'Escolher no mapa'
+    if (await $('Continuar').exists) {
+      await $('Continuar').tap();
+    } else {
+      await $('Escolher no mapa').tap();
     }
 
     await $.pumpAndSettle();
   }
 
-  Future<void> handleLocationAndConfirm() async {
-    if (await $.native.isPermissionDialogVisible()) {
-      await $.native.grantPermissionWhenInUse();
-    }
-
+// Lida com o AdjustLocationPage (tem scroll com mapa)
+  Future<void> handleAdjustLocation() async {
     await Future.delayed(const Duration(seconds: 2));
     await $.pumpAndSettle();
 
-    final hasContinuar = await $('Continuar').exists;
-
-    if (hasContinuar) {
-      await $('Continuar').last.tap();
-    } else {
-      await $('Confirmar localização').scrollTo(
-        view: $(Scrollable).last,
-      ).tap();
-    }
+    await $('Confirmar localização').scrollTo(
+      view: $(const Key('mainScroll')),
+    ).tap();
 
     await $.pumpAndSettle();
   }

@@ -35,7 +35,8 @@ void main() {
     await reportRobot.tapContinue();
 
     // 5. Handle native GPS and confirm map location
-    await reportRobot.handleLocationAndConfirm();
+    await reportRobot.handleDetectLocation();
+    await reportRobot.handleAdjustLocation();
 
     // 6. Submit the final report
     await reportRobot.finalSubmit();
