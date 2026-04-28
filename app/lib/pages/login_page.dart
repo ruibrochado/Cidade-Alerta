@@ -127,14 +127,14 @@ class _LoginPageState extends State<LoginPage> {
                     child: Column(
                       children: [
                         const Text(
-                          "Sign in",
+                          "Iniciar Sessão",
                           style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 30),
                         _label("Email"),
                         _input(emailController, false),
                         const SizedBox(height: 20),
-                        _label("Password"),
+                        _label("Palavra-passe"),
                         _input(passwordController, true),
 
                         if (errorMessage.isNotEmpty)
@@ -163,7 +163,7 @@ class _LoginPageState extends State<LoginPage> {
                             child: isLoading
                                 ? const CircularProgressIndicator(color: Colors.white)
                                 : const Text(
-                              "Sign in",
+                              "Iniciar Sessão",
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -185,11 +185,11 @@ class _LoginPageState extends State<LoginPage> {
                           ],
                         ),
                         const SizedBox(height: 30),
-                        _footer("Don't have an account? ", "Sign up", () {
+                        _footer("Não tens conta? ", "Criar Conta", () {
                           Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpPage()));
                         }),
                         const SizedBox(height: 10),
-                        _footer("Are you a municipality worker? ", "Sign in", () {}),
+                        _footer("És trabalhador municipal? ", "Iniciar Sessão", () {}),
                       ],
                     ),
                   ),
@@ -263,8 +263,8 @@ class _LoginPageState extends State<LoginPage> {
     return Wrap(
       alignment: WrapAlignment.center,
       children: [
-        const Text("By clicking this button, you agree with our ", style: TextStyle(fontSize: 11, color: Colors.grey)),
-        Text("Terms and Conditions", style: TextStyle(fontSize: 11, color: buttonGreen, fontWeight: FontWeight.w600)),
+        const Text("Ao clicar neste botão, concordas com os nossos ", style: TextStyle(fontSize: 11, color: Colors.grey)),
+        Text("Termos e Condições", style: TextStyle(fontSize: 11, color: buttonGreen, fontWeight: FontWeight.w600)),
       ],
     );
   }
