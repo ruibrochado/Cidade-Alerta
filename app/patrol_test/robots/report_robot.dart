@@ -91,13 +91,18 @@ class ReportRobot {
 
 // Lida com o AdjustLocationPage (tem scroll com mapa)
   Future<void> handleAdjustLocation() async {
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 3));
+    FocusManager.instance.primaryFocus?.unfocus();
     await $.pumpAndSettle();
 
-    await $('Confirmar localização').scrollTo(
-      view: $(const Key('mainScroll')),
-    ).tap();
+    // Arrasto por Coordenadas Absolutas (Força Bruta).
+    // X=200 (meio do ecrã horizontal), Y=600 (fundo do ecrã, garantidamente fora do mapa).
+    // O Offset(0, -400) puxa a página fortemente para cima.
+    await $.tester.dragFrom(const Offset(200, 600), const Offset(0, -400));
+    await $.pumpAndSettle();
 
+    // Agora o botão está visível no ecrã. Clica nele.
+    await $('Confirmar localização').tap();
     await $.pumpAndSettle();
   }
 
