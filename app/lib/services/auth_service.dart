@@ -4,14 +4,14 @@ class AuthService {
   final SupabaseClient supabase;
 
   AuthService({SupabaseClient? client})
-    : supabase = client ?? Supabase.instance.client;
+      : supabase = client ?? Supabase.instance.client;
 
   Future<AuthResponse> signUp(
-    String firstName,
-    String lastName,
-    String email,
-    String password,
-  ) async {
+      String firstName,
+      String lastName,
+      String email,
+      String password,
+      ) async {
     try {
       final AuthResponse response = await supabase.auth.signUp(
         email: email,
@@ -43,6 +43,28 @@ class AuthService {
       );
     } catch (e) {
       throw Exception('Error signing in: $e');
+    }
+  }
+
+  Future<void> signInWithGoogle() async {
+    try {
+      await supabase.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.supabase.flutter://login-callback/',
+      );
+    } catch (e) {
+      throw Exception('Error signing in with Google: $e');
+    }
+  }
+
+  Future<void> signInWithApple() async {
+    try {
+      await supabase.auth.signInWithOAuth(
+        OAuthProvider.apple,
+        redirectTo: 'io.supabase.flutter://login-callback/',
+      );
+    } catch (e) {
+      throw Exception('Error signing in with Apple: $e');
     }
   }
 

@@ -91,7 +91,7 @@ class _FeedPageState extends State<FeedPage> {
           Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
           Navigator.pushNamed(context, '/categories');
         },
-        backgroundColor: const Color(0xFF00D159),
+        backgroundColor: const Color(0xFF16A34A),
         shape: const CircleBorder(),
         child: const Icon(Icons.add, color: Colors.white, size: 32),
       ),
@@ -122,7 +122,7 @@ class _FeedPageState extends State<FeedPage> {
                         const Expanded(
                           child: Center(
                             child: CircularProgressIndicator(
-                              color: Color(0xFF00D159),
+                              color: Color(0xFF16A34A),
                             ),
                           ),
                         )
@@ -146,7 +146,7 @@ class _FeedPageState extends State<FeedPage> {
                                   padding: EdgeInsets.symmetric(vertical: 16),
                                   child: Center(
                                     child: CircularProgressIndicator(
-                                      color: Color(0xFF00D159),
+                                      color: Color(0xFF16A34A),
                                     ),
                                   ),
                                 );
@@ -626,7 +626,7 @@ class _VoteWidgetState extends State<VoteWidget> {
             height: 14,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: Color(0xFF00D159),
+              color: Color(0xFF16A34A),
             ),
           ),
         ),
@@ -642,7 +642,7 @@ class _VoteWidgetState extends State<VoteWidget> {
             Icons.arrow_upward,
             size: 22,
             color: _userVote == 1
-                ? const Color(0xFF00D159)
+                ? const Color(0xFF16A34A)
                 : const Color(0xFF667085),
           ),
         ),
@@ -653,7 +653,7 @@ class _VoteWidgetState extends State<VoteWidget> {
             fontSize: 16,
             fontWeight: FontWeight.w600,
             color: _userVote == 1
-                ? const Color(0xFF00D159)
+                ? const Color(0xFF16A34A)
                 : (_userVote == -1
                       ? const Color(0xFFEC6A00)
                       : const Color(0xFF344054)),
