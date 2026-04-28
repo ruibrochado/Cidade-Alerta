@@ -12,7 +12,6 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final AuthService authService = AuthService();
 
-  // Controllers separados para Nome e Apelido
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -32,7 +31,6 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   void initState() {
     super.initState();
-    // Ouvintes para validar todos os campos
     firstNameController.addListener(_validateForm);
     lastNameController.addListener(_validateForm);
     emailController.addListener(_validateForm);
@@ -149,7 +147,6 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
                         const SizedBox(height: 25),
 
-                        // Campos de Nome e Apelido lado a lado (opcional) ou em lista
                         _label("Nome"),
                         _input(firstNameController, false, "Ex: João"),
 
@@ -158,15 +155,15 @@ class _SignUpPageState extends State<SignUpPage> {
                         _input(lastNameController, false, "Ex: Silva"),
 
                         const SizedBox(height: 15),
-                        _label("E-mail"),
+                        _label("Email"),
                         _input(emailController, false, "exemplo@email.com"),
 
                         const SizedBox(height: 15),
-                        _label("Palavra-passe"),
+                        _label("Palavra-Passe"),
                         _input(passwordController, true, "••••••••"),
 
                         const SizedBox(height: 15),
-                        _label("Confirmar Palavra-passe"),
+                        _label("Confirmar Palavra-Passe"),
                         _input(confirmPasswordController, true, "••••••••"),
 
                         if (errorMessage.isNotEmpty)
@@ -211,6 +208,12 @@ class _SignUpPageState extends State<SignUpPage> {
                         const SizedBox(height: 25),
                         _footer("Já tens uma conta? ", "Entrar", () {
                           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPage()));
+                        }),
+
+                        // O FOOTER QUE FALTAVA:
+                        const SizedBox(height: 10),
+                        _footer("És um trabalhador municipal? ", "Entrar", () {
+                          // Ação para login municipal
                         }),
                       ],
                     ),
