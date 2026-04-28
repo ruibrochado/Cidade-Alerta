@@ -2,7 +2,7 @@ import 'package:patrol/patrol.dart';
 import 'package:flutter/material.dart';
 
 class LoginRobot {
-  final PatrolIntegrationTester $; // Atualizado aqui
+  final PatrolIntegrationTester $;
   LoginRobot(this.$);
 
   Future<void> fullLogin(String email, String pass) async {
@@ -10,11 +10,16 @@ class LoginRobot {
     await $(TextField).at(1).enterText(pass);
     await $('Login').tap();
 
-    // ignore: deprecated_member_use
+    // Dá tempo para o Supabase responder
+    await Future.delayed(const Duration(seconds: 3));
+    await $.pump();
+
     if (await $.native.isPermissionDialogVisible()) {
-      // ignore: deprecated_member_use
       await $.native.grantPermissionWhenInUse();
     }
-    await $.pumpAndSettle();
+
+    // Espera que a animação de navegação para a Home termine (sem encravar)
+    await Future.delayed(const Duration(seconds: 2));
+    await $.pump();
   }
 }

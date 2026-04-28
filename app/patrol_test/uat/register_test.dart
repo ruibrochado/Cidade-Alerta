@@ -38,6 +38,6 @@ void main() {
     await loginRobot.fullLogin(dynamicEmail, 'password123');
 
     // 5. Verify we successfully entered the app
-    homeRobot.validateHomeLoaded();
+    await homeRobot.validateHomeLoaded();
   });
 }

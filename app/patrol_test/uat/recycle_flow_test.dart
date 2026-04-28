@@ -22,6 +22,6 @@ void main() {
     await recycleRobot.startScan();
 
     // Validate result
-    recycleRobot.verifyScanResult();
+    await recycleRobot.verifyScanResult();
   });
 }
