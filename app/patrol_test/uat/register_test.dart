@@ -16,7 +16,7 @@ void main() {
     await $.pumpAndSettle();
 
     // 1. Navigate to Register Page
-    await $('Clica aqui').tap();
+    await $('Sign up').tap();
     await $.pumpAndSettle();
 
     // 🧠 O TRUQUE PARA NÃO SER BURRO: Gerar email único

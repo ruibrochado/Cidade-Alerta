@@ -8,7 +8,7 @@ class LoginRobot {
   Future<void> fullLogin(String email, String pass) async {
     await $(TextField).at(0).enterText(email);
     await $(TextField).at(1).enterText(pass);
-    await $('Login').tap();
+    await $('Sign in').at(1).tap();
 
     // Dá tempo para o Supabase responder
     await Future.delayed(const Duration(seconds: 3));
