@@ -12,6 +12,6 @@ void main() {
     await $.pumpAndSettle();
 
     await loginRobot.fullLogin('uat@gmail.com', 'uatuat');
-    homeRobot.validateHomeLoaded();
+    await homeRobot.validateHomeLoaded();
   });
 }

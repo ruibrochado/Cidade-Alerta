@@ -19,6 +19,6 @@ void main() {
     await homeRobot.tapMapTab();
 
     // Verify map screen
-    mapRobot.verifyMapIsVisible();
+    await mapRobot.verifyMapIsVisible();
   });
 }

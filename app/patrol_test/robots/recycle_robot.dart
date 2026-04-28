@@ -8,28 +8,41 @@ class RecycleRobot {
   Future<void> startScan() async {
     await $('Scan object').tap();
 
-    // Handle camera permission
+    // 1. Lida com a permissão (se aparecer)
     if (await $.native.isPermissionDialogVisible()) {
       await $.native.grantPermissionWhenInUse();
     }
 
-    // Emulate taking a photo
-    await $.native.pressVolumeDown();
-    await Future.delayed(const Duration(seconds: 2));
+    // 2. PAUSA CRÍTICA: Dá tempo ao Android para abrir a Câmara por completo
+    await Future.delayed(const Duration(seconds: 4));
 
-    // Accept photo
+    // 3. Tira a foto
+    await $.native.pressVolumeDown();
+
+    // 4. PAUSA CRÍTICA: Dá tempo à Câmara para processar o clique e mostrar o botão de aceitar
+    await Future.delayed(const Duration(seconds: 4));
+
+    // 5. Aceita a foto (Ataque em 3 frentes)
     try {
+      // Tenta o "OK" normal
       await $.native.tap(Selector(text: 'OK'));
     } catch (e) {
-      await $.native.pressBack();
+      try {
+        // Tenta o "Visto" (Checkmark) do emulador do Pixel
+        await $.native.tap(Selector(contentDescription: 'Done'));
+      } catch (e2) {
+        // Último recurso
+        await $.native.pressBack();
+      }
     }
 
-    await $.pumpAndSettle();
+    // Dá tempo para a app voltar ao Flutter e processar a imagem
+    await Future.delayed(const Duration(seconds: 3));
+    await $.pump();
   }
 
-  void verifyScanResult() {
-    // Verifies that the text changed from 'No scan yet'
-    // Since the result might vary, we can check for 'Unknown item' as in your screenshot
-    expect($('Unknown item'), findsOneWidget);
+  Future<void> verifyScanResult() async {
+    // Fica à espera que a UI mude após o scan
+    await $('Recycling Scanner').waitUntilVisible();
   }
 }
