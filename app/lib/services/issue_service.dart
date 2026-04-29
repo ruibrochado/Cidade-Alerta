@@ -12,30 +12,6 @@ class IssueService {
   IssueService({SupabaseClient? client})
     : supabase = client ?? Supabase.instance.client;
 
-  Future<String?> _getAddressFromCoords(double lat, double lng) async {
-    try {
-      final List<Placemark> placemarks = await placemarkFromCoordinates(
-        lat,
-        lng,
-      );
-
-      if (placemarks.isEmpty) return null;
-
-      final Placemark place = placemarks.first;
-
-      final addressParts = [
-        place.street,
-        place.locality,
-      ].where((part) => part != null && part.trim().isNotEmpty).toList();
-
-      if (addressParts.isEmpty) return null;
-
-      return addressParts.join(', ');
-    } catch (_) {
-      return null;
-    }
-  }
-
   Future<String?> _uploadPhoto(String localPhotoPath, String userId) async {
     final File file = File(localPhotoPath);
 
@@ -76,15 +52,43 @@ class IssueService {
 
     try {
       String? uploadedPhotoUrl;
-
       if (photoPath != null && photoPath.isNotEmpty) {
         uploadedPhotoUrl = await _uploadPhoto(photoPath, user.id);
       }
 
-      String? finalAddress = street?.trim();
+      String? finalAddress = street;
+      String? finalCity;
 
       if (finalAddress == null || finalAddress.isEmpty) {
-        finalAddress = await _getAddressFromCoords(latitude, longitude);
+        try {
+          final List<Placemark> placemarks = await placemarkFromCoordinates(
+            latitude,
+            longitude,
+          );
+          if (placemarks.isNotEmpty) {
+            final Placemark pos = placemarks[0];
+            finalAddress = [
+              pos.thoroughfare,
+              pos.subThoroughfare,
+              pos.locality,
+            ].where((s) => s != null && s.isNotEmpty).join(', ');
+            finalCity = pos.locality;
+          }
+        } catch (e) {
+          debugPrint('Erro no geocoding: $e');
+        }
+      } else {
+        try {
+          final List<Placemark> placemarks = await placemarkFromCoordinates(
+            latitude,
+            longitude,
+          );
+          if (placemarks.isNotEmpty) {
+            finalCity = placemarks[0].locality;
+          }
+        } catch (e) {
+          debugPrint('Erro no geocoding (city only): $e');
+        }
       }
 
       final Map<String, dynamic> insertedIssue = await supabase
@@ -97,6 +101,7 @@ class IssueService {
             'latitude': latitude,
             'longitude': longitude,
             'address': finalAddress,
+            'city': finalCity,
             'photo_url': uploadedPhotoUrl,
           })
           .select('id, ticket_number')
@@ -120,26 +125,46 @@ class IssueService {
     }
   }
 
-  Future<int> fetchIssuesCount() async {
-    final response = await supabase
-        .from('issues')
-        .select('id')
-        .neq('title', 'Test issue')
-        .count(CountOption.exact);
+  Future<int> fetchIssuesCount({
+    List<String>? categories,
+    List<String>? cities,
+  }) async {
+    var query = supabase.from('issues').select('id').neq('title', 'Test issue');
 
+    if (categories != null && categories.isNotEmpty) {
+      query = query.inFilter('category', categories);
+    }
+
+    if (cities != null && cities.isNotEmpty) {
+      final orParts = cities.map((c) => 'city.ilike.%$c%').join(',');
+      query = query.or(orParts);
+    }
+
+    final response = await query.count(CountOption.exact);
     return response.count;
   }
 
-  Future<List<Map<String, dynamic>>> fetchIssues({int page = 0}) async {
+  Future<List<Map<String, dynamic>>> fetchIssues({
+    int page = 0,
+    List<String>? categories,
+    List<String>? cities,
+  }) async {
     try {
       final from = page * pageSize;
       final to = from + pageSize - 1;
 
-      final List<dynamic> data = await supabase
-          .from('issues')
-          .select()
-          .neq('title', 'Test issue')
-          .order('score', ascending: false)
+      var query = supabase.from('issues').select().neq('title', 'Test issue');
+
+      if (categories != null && categories.isNotEmpty) {
+        query = query.inFilter('category', categories);
+      }
+
+      if (cities != null && cities.isNotEmpty) {
+        final orParts = cities.map((c) => 'city.ilike.%$c%').join(',');
+        query = query.or(orParts);
+      }
+
+      final List<dynamic> data = await query
           .order('created_at', ascending: false)
           .range(from, to);
 
@@ -157,7 +182,8 @@ class IssueService {
             *,
             profiles:user_id (
               first_name,
-              last_name
+              last_name,
+              profile_photo
             )
           ''')
           .eq('issue_id', issueId)

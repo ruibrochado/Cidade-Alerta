@@ -62,11 +62,16 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
 
     setState(() {
       _isSending = true;
+      final userMeta = currentUser?.userMetadata;
       _comments.add({
         'content': text,
         'created_at': DateTime.now().toIso8601String(),
         'user_id': currentUserId,
-        'profiles': {'first_name': 'Tu', 'last_name': ''},
+        'profiles': {
+          'first_name': 'Tu',
+          'last_name': '',
+          'profile_photo': userMeta?['profile_photo'],
+        },
       });
     });
 

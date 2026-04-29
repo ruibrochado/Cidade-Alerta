@@ -16,7 +16,8 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
 
   bool isLoading = false;
   String errorMessage = '';
@@ -39,7 +40,8 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   void _validateForm() {
-    final isValid = firstNameController.text.isNotEmpty &&
+    final isValid =
+        firstNameController.text.isNotEmpty &&
         lastNameController.text.isNotEmpty &&
         emailController.text.isNotEmpty &&
         passwordController.text.isNotEmpty &&
@@ -118,8 +120,11 @@ class _SignUpPageState extends State<SignUpPage> {
                     'images/logo_login_page.png',
                     height: 130,
                     fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) =>
-                    const Icon(Icons.construction, size: 80, color: Colors.white),
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.construction,
+                      size: 80,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -133,17 +138,20 @@ class _SignUpPageState extends State<SignUpPage> {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: Colors.black.withValues(alpha: 0.55),
                           blurRadius: 25,
                           offset: const Offset(0, 10),
-                        )
+                        ),
                       ],
                     ),
                     child: Column(
                       children: [
                         const Text(
                           "Criar Conta",
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const SizedBox(height: 25),
 
@@ -169,7 +177,13 @@ class _SignUpPageState extends State<SignUpPage> {
                         if (errorMessage.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 10),
-                            child: Text(errorMessage, style: const TextStyle(color: Colors.red, fontSize: 12)),
+                            child: Text(
+                              errorMessage,
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 12,
+                              ),
+                            ),
                           ),
 
                         const SizedBox(height: 25),
@@ -178,18 +192,30 @@ class _SignUpPageState extends State<SignUpPage> {
                           width: double.infinity,
                           height: 52,
                           child: ElevatedButton(
-                            onPressed: (isLoading || !isFormValid) ? null : signUp,
+                            onPressed: (isLoading || !isFormValid)
+                                ? null
+                                : signUp,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isFormValid ? buttonGreen : disabledButtonColor,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              backgroundColor: isFormValid
+                                  ? buttonGreen
+                                  : disabledButtonColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                               elevation: 0,
                             ),
                             child: isLoading
-                                ? const CircularProgressIndicator(color: Colors.white)
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
                                 : const Text(
-                              "Registar",
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
-                            ),
+                                    "Registar",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                           ),
                         ),
 
@@ -207,7 +233,12 @@ class _SignUpPageState extends State<SignUpPage> {
 
                         const SizedBox(height: 25),
                         _footer("Já tens uma conta? ", "Entrar", () {
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPage()));
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const LoginPage(),
+                            ),
+                          );
                         }),
 
                         // O FOOTER QUE FALTAVA:
@@ -233,7 +264,10 @@ class _SignUpPageState extends State<SignUpPage> {
       alignment: Alignment.centerLeft,
       child: Padding(
         padding: const EdgeInsets.only(left: 10, bottom: 6),
-        child: Text(text, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+        child: Text(
+          text,
+          style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+        ),
       ),
     );
   }
@@ -252,7 +286,10 @@ class _SignUpPageState extends State<SignUpPage> {
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 14,
+        ),
       ),
     );
   }
@@ -269,7 +306,10 @@ class _SignUpPageState extends State<SignUpPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (type == "Google")
-              Image.network('https://developers.google.com/identity/images/g-logo.png', height: 18)
+              Image.network(
+                'https://developers.google.com/identity/images/g-logo.png',
+                height: 18,
+              )
             else
               const Icon(Icons.apple, size: 20),
             const SizedBox(width: 8),
@@ -284,10 +324,19 @@ class _SignUpPageState extends State<SignUpPage> {
     return Wrap(
       alignment: WrapAlignment.center,
       children: [
-        const Text("Ao clicar neste botão, concordas com os nossos ",
-            style: TextStyle(fontSize: 11, color: Colors.grey), textAlign: TextAlign.center),
-        Text("Termos e Condições",
-            style: TextStyle(fontSize: 11, color: buttonGreen, fontWeight: FontWeight.w600)),
+        const Text(
+          "Ao clicar neste botão, concordas com os nossos ",
+          style: TextStyle(fontSize: 11, color: Colors.grey),
+          textAlign: TextAlign.center,
+        ),
+        Text(
+          "Termos e Condições",
+          style: TextStyle(
+            fontSize: 11,
+            color: buttonGreen,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ],
     );
   }
@@ -299,8 +348,15 @@ class _SignUpPageState extends State<SignUpPage> {
         Text(text, style: const TextStyle(fontSize: 12, color: Colors.grey)),
         GestureDetector(
           onTap: onTap,
-          child: Text(action, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: buttonGreen)),
-        )
+          child: Text(
+            action,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: buttonGreen,
+            ),
+          ),
+        ),
       ],
     );
   }
