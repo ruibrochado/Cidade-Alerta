@@ -13,19 +13,20 @@ class AuthService {
       String password,
       ) async {
     try {
-      final AuthResponse response = await supabase.auth.signUp(
+      final response = await supabase.auth.signUp(
         email: email,
         password: password,
         data: {'first_name': firstName, 'last_name': lastName},
       );
 
-      final User? user = response.user;
+      final user = response.user;
 
       if (user != null) {
         await supabase.from('profiles').upsert({
           'id': user.id,
-          'first_name': firstName,
-          'last_name': lastName,
+          'first_name': firstName.trim(),
+          'last_name': lastName.trim(),
+          'updated_at': DateTime.now().toIso8601String(),
         });
       }
 
@@ -38,7 +39,7 @@ class AuthService {
   Future<AuthResponse> signIn(String email, String password) async {
     try {
       return await supabase.auth.signInWithPassword(
-        email: email,
+        email: email.trim(),
         password: password,
       );
     } catch (e) {
