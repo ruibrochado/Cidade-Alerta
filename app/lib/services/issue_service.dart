@@ -11,19 +11,6 @@ class IssueService {
   IssueService({SupabaseClient? client})
     : supabase = client ?? Supabase.instance.client;
 
-  Future<String?> _getAddressFromCoords(double lat, double lng) async {
-    try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
-      if (placemarks.isNotEmpty) {
-        final Placemark pos = placemarks[0];
-        return "${pos.street}, ${pos.locality}";
-      }
-    } catch (e) {
-      debugPrint("Erro no geocoding: $e");
-    }
-    return null;
-  }
-
   Future<String?> _uploadPhoto(String localPhotoPath, String userId) async {
     final File file = File(localPhotoPath);
     if (!file.existsSync()) throw Exception('Photo file does not exist.');
@@ -62,10 +49,39 @@ class IssueService {
         uploadedPhotoUrl = await _uploadPhoto(photoPath, user.id);
       }
 
-      // Se a rua não vier preenchida do ecrã anterior, tentamos obter aqui
       String? finalAddress = street;
+      String? finalCity;
+
       if (finalAddress == null || finalAddress.isEmpty) {
-        finalAddress = await _getAddressFromCoords(latitude, longitude);
+        try {
+          final List<Placemark> placemarks = await placemarkFromCoordinates(
+            latitude,
+            longitude,
+          );
+          if (placemarks.isNotEmpty) {
+            final Placemark pos = placemarks[0];
+            finalAddress = [
+              pos.thoroughfare,
+              pos.subThoroughfare,
+              pos.locality,
+            ].where((s) => s != null && s.isNotEmpty).join(', ');
+            finalCity = pos.locality;
+          }
+        } catch (e) {
+          debugPrint('Erro no geocoding: $e');
+        }
+      } else {
+        try {
+          final List<Placemark> placemarks = await placemarkFromCoordinates(
+            latitude,
+            longitude,
+          );
+          if (placemarks.isNotEmpty) {
+            finalCity = placemarks[0].locality;
+          }
+        } catch (e) {
+          debugPrint('Erro no geocoding (city only): $e');
+        }
       }
 
       final Map<String, dynamic> insertedIssue = await supabase
@@ -78,6 +94,7 @@ class IssueService {
             'latitude': latitude,
             'longitude': longitude,
             'address': finalAddress,
+            'city': finalCity,
             'photo_url': uploadedPhotoUrl,
           })
           .select('id, ticket_number')
@@ -101,25 +118,46 @@ class IssueService {
     }
   }
 
-  Future<int> fetchIssuesCount() async {
-    final response = await supabase
-        .from('issues')
-        .select('id')
-        .neq('title', 'Test issue')
-        .count(CountOption.exact);
+  Future<int> fetchIssuesCount({
+    List<String>? categories,
+    List<String>? cities,
+  }) async {
+    var query = supabase.from('issues').select('id').neq('title', 'Test issue');
+
+    if (categories != null && categories.isNotEmpty) {
+      query = query.inFilter('category', categories);
+    }
+
+    if (cities != null && cities.isNotEmpty) {
+      final orParts = cities.map((c) => 'city.ilike.%$c%').join(',');
+      query = query.or(orParts);
+    }
+
+    final response = await query.count(CountOption.exact);
     return response.count;
   }
 
-  Future<List<Map<String, dynamic>>> fetchIssues({int page = 0}) async {
+  Future<List<Map<String, dynamic>>> fetchIssues({
+    int page = 0,
+    List<String>? categories,
+    List<String>? cities,
+  }) async {
     try {
       final from = page * pageSize;
       final to = from + pageSize - 1;
 
-      final List<dynamic> data = await supabase
-          .from('issues')
-          .select()
-          .neq('title', 'Test issue')
-          .order('score', ascending: false)
+      var query = supabase.from('issues').select().neq('title', 'Test issue');
+
+      if (categories != null && categories.isNotEmpty) {
+        query = query.inFilter('category', categories);
+      }
+
+      if (cities != null && cities.isNotEmpty) {
+        final orParts = cities.map((c) => 'city.ilike.%$c%').join(',');
+        query = query.or(orParts);
+      }
+
+      final List<dynamic> data = await query
           .order('created_at', ascending: false)
           .range(from, to);
 
@@ -129,11 +167,6 @@ class IssueService {
     }
   }
 
-  // ==========================================
-  // NOVOS MÉTODOS PARA OS COMENTÁRIOS
-  // ==========================================
-
-  // Vai buscar todos os comentários de uma denúncia específica
   Future<List<Map<String, dynamic>>> fetchComments(String issueId) async {
     try {
       final data = await supabase
@@ -155,7 +188,6 @@ class IssueService {
     }
   }
 
-  // Adiciona um novo comentário à base de dados
   Future<void> addComment(String issueId, String content) async {
     final user = supabase.auth.currentUser;
     if (user == null) throw Exception('User not logged in');
@@ -171,16 +203,10 @@ class IssueService {
     }
   }
 
-  // ==========================================
-  // MÉTODOS PARA O SISTEMA DE VOTOS (OTIMIZADO)
-  // ==========================================
-
-  // Vai buscar a pontuação total (já calculada na DB) e o voto do user atual
   Future<Map<String, dynamic>> fetchVoteInfo(String issueId) async {
     final user = supabase.auth.currentUser;
 
     try {
-      // 1. Vai buscar o score atual à tabela issues
       final issueResponse = await supabase
           .from('issues')
           .select('score')
@@ -189,7 +215,6 @@ class IssueService {
 
       final int score = (issueResponse?['score'] as int?) ?? 0;
 
-      // 2. Vai buscar o voto específico deste utilizador (se estiver logado)
       int userVote = 0;
       if (user != null) {
         final voteResponse = await supabase
@@ -211,13 +236,11 @@ class IssueService {
     }
   }
 
-  // Regista, atualiza ou remove um voto
   Future<void> castVote(String issueId, int voteType) async {
     final user = supabase.auth.currentUser;
     if (user == null) throw Exception('User not logged in');
 
     try {
-      // Verifica se o user já votou nesta issue
       final existingVote = await supabase
           .from('issue_votes')
           .select()
@@ -227,20 +250,17 @@ class IssueService {
 
       if (existingVote != null) {
         if (existingVote['vote_type'] == voteType) {
-          // Se clicar no mesmo botão, remove o voto (toggle)
           await supabase
               .from('issue_votes')
               .delete()
               .eq('id', existingVote['id']);
         } else {
-          // Muda de upvote para downvote ou vice-versa
           await supabase
               .from('issue_votes')
               .update({'vote_type': voteType})
               .eq('id', existingVote['id']);
         }
       } else {
-        // Insere um voto novo
         await supabase.from('issue_votes').insert({
           'issue_id': issueId,
           'user_id': user.id,
