@@ -1,8 +1,9 @@
 import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:flutter/foundation.dart';
 
 class IssueService {
   final SupabaseClient supabase;
@@ -13,20 +14,34 @@ class IssueService {
 
   Future<String?> _getAddressFromCoords(double lat, double lng) async {
     try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
-      if (placemarks.isNotEmpty) {
-        final Placemark pos = placemarks[0];
-        return "${pos.street}, ${pos.locality}";
-      }
-    } catch (e) {
-      debugPrint("Erro no geocoding: $e");
+      final List<Placemark> placemarks = await placemarkFromCoordinates(
+        lat,
+        lng,
+      );
+
+      if (placemarks.isEmpty) return null;
+
+      final Placemark place = placemarks.first;
+
+      final addressParts = [
+        place.street,
+        place.locality,
+      ].where((part) => part != null && part.trim().isNotEmpty).toList();
+
+      if (addressParts.isEmpty) return null;
+
+      return addressParts.join(', ');
+    } catch (_) {
+      return null;
     }
-    return null;
   }
 
   Future<String?> _uploadPhoto(String localPhotoPath, String userId) async {
     final File file = File(localPhotoPath);
-    if (!file.existsSync()) throw Exception('Photo file does not exist.');
+
+    if (!file.existsSync()) {
+      throw Exception('Photo file does not exist.');
+    }
 
     final String fileExtension = path.extension(localPhotoPath).toLowerCase();
     final String fileName =
@@ -54,16 +69,20 @@ class IssueService {
     String? photoPath,
   }) async {
     final User? user = supabase.auth.currentUser;
-    if (user == null) throw Exception('User not logged in');
+
+    if (user == null) {
+      throw Exception('User not logged in');
+    }
 
     try {
       String? uploadedPhotoUrl;
+
       if (photoPath != null && photoPath.isNotEmpty) {
         uploadedPhotoUrl = await _uploadPhoto(photoPath, user.id);
       }
 
-      // Se a rua não vier preenchida do ecrã anterior, tentamos obter aqui
-      String? finalAddress = street;
+      String? finalAddress = street?.trim();
+
       if (finalAddress == null || finalAddress.isEmpty) {
         finalAddress = await _getAddressFromCoords(latitude, longitude);
       }
@@ -107,6 +126,7 @@ class IssueService {
         .select('id')
         .neq('title', 'Test issue')
         .count(CountOption.exact);
+
     return response.count;
   }
 
@@ -129,11 +149,6 @@ class IssueService {
     }
   }
 
-  // ==========================================
-  // NOVOS MÉTODOS PARA OS COMENTÁRIOS
-  // ==========================================
-
-  // Vai buscar todos os comentários de uma denúncia específica
   Future<List<Map<String, dynamic>>> fetchComments(String issueId) async {
     try {
       final data = await supabase
@@ -155,10 +170,12 @@ class IssueService {
     }
   }
 
-  // Adiciona um novo comentário à base de dados
   Future<void> addComment(String issueId, String content) async {
     final user = supabase.auth.currentUser;
-    if (user == null) throw Exception('User not logged in');
+
+    if (user == null) {
+      throw Exception('User not logged in');
+    }
 
     try {
       await supabase.from('comments').insert({
@@ -171,16 +188,10 @@ class IssueService {
     }
   }
 
-  // ==========================================
-  // MÉTODOS PARA O SISTEMA DE VOTOS (OTIMIZADO)
-  // ==========================================
-
-  // Vai buscar a pontuação total (já calculada na DB) e o voto do user atual
   Future<Map<String, dynamic>> fetchVoteInfo(String issueId) async {
     final user = supabase.auth.currentUser;
 
     try {
-      // 1. Vai buscar o score atual à tabela issues
       final issueResponse = await supabase
           .from('issues')
           .select('score')
@@ -189,8 +200,8 @@ class IssueService {
 
       final int score = (issueResponse?['score'] as int?) ?? 0;
 
-      // 2. Vai buscar o voto específico deste utilizador (se estiver logado)
       int userVote = 0;
+
       if (user != null) {
         final voteResponse = await supabase
             .from('issue_votes')
@@ -200,24 +211,26 @@ class IssueService {
             .maybeSingle();
 
         if (voteResponse != null) {
-          userVote = voteResponse['vote_type'] as int;
+          userVote = (voteResponse['vote_type'] as int?) ?? 0;
         }
       }
 
       return {'score': score, 'userVote': userVote};
     } catch (e) {
       debugPrint('Erro a buscar votos: $e');
+
       return {'score': 0, 'userVote': 0};
     }
   }
 
-  // Regista, atualiza ou remove um voto
   Future<void> castVote(String issueId, int voteType) async {
     final user = supabase.auth.currentUser;
-    if (user == null) throw Exception('User not logged in');
+
+    if (user == null) {
+      throw Exception('User not logged in');
+    }
 
     try {
-      // Verifica se o user já votou nesta issue
       final existingVote = await supabase
           .from('issue_votes')
           .select()
@@ -227,20 +240,17 @@ class IssueService {
 
       if (existingVote != null) {
         if (existingVote['vote_type'] == voteType) {
-          // Se clicar no mesmo botão, remove o voto (toggle)
           await supabase
               .from('issue_votes')
               .delete()
               .eq('id', existingVote['id']);
         } else {
-          // Muda de upvote para downvote ou vice-versa
           await supabase
               .from('issue_votes')
               .update({'vote_type': voteType})
               .eq('id', existingVote['id']);
         }
       } else {
-        // Insere um voto novo
         await supabase.from('issue_votes').insert({
           'issue_id': issueId,
           'user_id': user.id,
