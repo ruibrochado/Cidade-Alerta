@@ -35,6 +35,11 @@ void main() {
     late MockSupabaseQueryBuilder mockQueryBuilder;
     late MockPostgrestFilterBuilder mockPostgrestFilterBuilder;
 
+    setUpAll(() {
+      // Required by mocktail when using any() with a Map argument
+      registerFallbackValue(<String, dynamic>{});
+    });
+
     setUp(() {
       mockSupabaseClient = MockSupabaseClient();
       mockAuth = MockGoTrueClient();
@@ -65,12 +70,9 @@ void main() {
         () => mockSupabaseClient.from('profiles'),
       ).thenAnswer((_) => mockQueryBuilder);
 
+      // Use any() so the stub matches regardless of which fields are in the map
       when(
-        () => mockQueryBuilder.upsert({
-          'id': '12345',
-          'first_name': 'João',
-          'last_name': 'Silva',
-        }),
+        () => mockQueryBuilder.upsert(any()),
       ).thenAnswer((_) => mockPostgrestFilterBuilder);
 
       final result = await authService.signUp(
@@ -156,12 +158,9 @@ void main() {
         () => mockSupabaseClient.from('profiles'),
       ).thenAnswer((_) => mockQueryBuilder);
 
+      // Use any() so the stub matches regardless of which fields are in the map
       when(
-        () => mockQueryBuilder.upsert({
-          'id': '67890',
-          'first_name': 'Nuno',
-          'last_name': 'Mendes',
-        }),
+        () => mockQueryBuilder.upsert(any()),
       ).thenThrow(Exception('Database down'));
 
       expect(

@@ -1,8 +1,9 @@
 import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:flutter/foundation.dart';
 
 class IssueService {
   final SupabaseClient supabase;
@@ -13,7 +14,10 @@ class IssueService {
 
   Future<String?> _uploadPhoto(String localPhotoPath, String userId) async {
     final File file = File(localPhotoPath);
-    if (!file.existsSync()) throw Exception('Photo file does not exist.');
+
+    if (!file.existsSync()) {
+      throw Exception('Photo file does not exist.');
+    }
 
     final String fileExtension = path.extension(localPhotoPath).toLowerCase();
     final String fileName =
@@ -41,7 +45,10 @@ class IssueService {
     String? photoPath,
   }) async {
     final User? user = supabase.auth.currentUser;
-    if (user == null) throw Exception('User not logged in');
+
+    if (user == null) {
+      throw Exception('User not logged in');
+    }
 
     try {
       String? uploadedPhotoUrl;
@@ -190,7 +197,10 @@ class IssueService {
 
   Future<void> addComment(String issueId, String content) async {
     final user = supabase.auth.currentUser;
-    if (user == null) throw Exception('User not logged in');
+
+    if (user == null) {
+      throw Exception('User not logged in');
+    }
 
     try {
       await supabase.from('comments').insert({
@@ -216,6 +226,7 @@ class IssueService {
       final int score = (issueResponse?['score'] as int?) ?? 0;
 
       int userVote = 0;
+
       if (user != null) {
         final voteResponse = await supabase
             .from('issue_votes')
@@ -225,20 +236,24 @@ class IssueService {
             .maybeSingle();
 
         if (voteResponse != null) {
-          userVote = voteResponse['vote_type'] as int;
+          userVote = (voteResponse['vote_type'] as int?) ?? 0;
         }
       }
 
       return {'score': score, 'userVote': userVote};
     } catch (e) {
       debugPrint('Erro a buscar votos: $e');
+
       return {'score': 0, 'userVote': 0};
     }
   }
 
   Future<void> castVote(String issueId, int voteType) async {
     final user = supabase.auth.currentUser;
-    if (user == null) throw Exception('User not logged in');
+
+    if (user == null) {
+      throw Exception('User not logged in');
+    }
 
     try {
       final existingVote = await supabase
