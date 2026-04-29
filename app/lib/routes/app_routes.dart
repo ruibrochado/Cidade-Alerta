@@ -1,3 +1,4 @@
+import 'package:app/pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import '../models/report_data.dart';
 import '../pages/adjust_location_page.dart';
@@ -7,6 +8,7 @@ import '../pages/email_test_page.dart';
 import '../pages/issue_category_page.dart';
 import '../pages/login_page.dart';
 import '../pages/main_navigation_screen.dart';
+import '../pages/edit_profile_page.dart';
 
 class AppRoutes {
   static Map<String, WidgetBuilder> routes = {
@@ -20,6 +22,8 @@ class AppRoutes {
 
     // Optional direct tab routes
     '/feed': (context) => const MainNavigationScreen(initialIndex: 0),
+    '/profile': (context) => const ProfilePage(),
+    '/edit-profile': (context) => const EditProfilePage(),
     '/scanner': (context) => const MainNavigationScreen(initialIndex: 1),
     '/map': (context) => const MainNavigationScreen(initialIndex: 2),
 

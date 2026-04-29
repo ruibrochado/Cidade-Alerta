@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/report_data.dart';
-import '../services/auth_service.dart';
 import '../services/issue_service.dart';
 import '../pages/report_detail_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FeedPage extends StatefulWidget {
   const FeedPage({super.key});
@@ -12,7 +12,7 @@ class FeedPage extends StatefulWidget {
 }
 
 class _FeedPageState extends State<FeedPage> {
-  final AuthService authService = AuthService();
+  final SupabaseClient _supabase = Supabase.instance.client;
   final IssueService issueService = IssueService();
 
   final ScrollController _scrollController = ScrollController();
@@ -24,9 +24,13 @@ class _FeedPageState extends State<FeedPage> {
   bool _isFetching = false;
   bool _hasMore = true;
 
+  String _userName = 'Utilizador';
+  String? _profilePhotoUrl;
+
   @override
   void initState() {
     super.initState();
+    _loadCurrentUserProfile();
     _fetchTotalCount();
     _loadMore();
 
@@ -36,6 +40,34 @@ class _FeedPageState extends State<FeedPage> {
         _loadMore();
       }
     });
+  }
+
+  Future<void> _loadCurrentUserProfile() async {
+    try {
+      final user = _supabase.auth.currentUser;
+
+      if (user == null) return;
+
+      final profile = await _supabase
+          .from('profiles')
+          .select('first_name, last_name, profile_photo')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      final firstName = profile?['first_name']?.toString().trim() ?? '';
+
+      if (!mounted) return;
+
+      setState(() {
+        _userName = firstName.isEmpty
+            ? user.email?.split('@').first ?? 'Utilizador'
+            : firstName;
+
+        _profilePhotoUrl = profile?['profile_photo']?.toString();
+      });
+    } catch (error) {
+      debugPrint('LOAD FEED USER PROFILE ERROR: $error');
+    }
   }
 
   Future<void> _fetchTotalCount() async {
@@ -70,6 +102,22 @@ class _FeedPageState extends State<FeedPage> {
     _isFetching = false;
   }
 
+  Future<void> _goToProfile() async {
+    await Navigator.pushNamed(context, '/profile');
+
+    if (!mounted) return;
+
+    await _loadCurrentUserProfile();
+  }
+
+  ImageProvider? _getProfileImage() {
+    if (_profilePhotoUrl != null && _profilePhotoUrl!.isNotEmpty) {
+      return NetworkImage(_profilePhotoUrl!);
+    }
+
+    return null;
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -78,12 +126,6 @@ class _FeedPageState extends State<FeedPage> {
 
   @override
   Widget build(BuildContext context) {
-    final user = authService.getCurrentUser();
-    final String userName =
-        user?.userMetadata?['first_name']?.toString() ??
-        user?.email?.split('@').first ??
-        'Utilizador';
-
     return Scaffold(
       backgroundColor: const Color(0xFFCDE5CB),
       floatingActionButton: FloatingActionButton(
@@ -91,7 +133,7 @@ class _FeedPageState extends State<FeedPage> {
           Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
           Navigator.pushNamed(context, '/categories');
         },
-        backgroundColor: const Color(0xFF00D159),
+        backgroundColor: const Color(0xFF16A34A),
         shape: const CircleBorder(),
         child: const Icon(Icons.add, color: Colors.white, size: 32),
       ),
@@ -100,7 +142,7 @@ class _FeedPageState extends State<FeedPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(userName),
+            _buildHeader(),
             const SizedBox(height: 20),
             _buildSearchAndFilter(),
             const SizedBox(height: 26),
@@ -122,7 +164,7 @@ class _FeedPageState extends State<FeedPage> {
                         const Expanded(
                           child: Center(
                             child: CircularProgressIndicator(
-                              color: Color(0xFF00D159),
+                              color: Color(0xFF16A34A),
                             ),
                           ),
                         )
@@ -146,7 +188,7 @@ class _FeedPageState extends State<FeedPage> {
                                   padding: EdgeInsets.symmetric(vertical: 16),
                                   child: Center(
                                     child: CircularProgressIndicator(
-                                      color: Color(0xFF00D159),
+                                      color: Color(0xFF16A34A),
                                     ),
                                   ),
                                 );
@@ -167,7 +209,9 @@ class _FeedPageState extends State<FeedPage> {
     );
   }
 
-  Widget _buildHeader(String userName) {
+  Widget _buildHeader() {
+    final profileImage = _getProfileImage();
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
       child: Column(
@@ -175,10 +219,20 @@ class _FeedPageState extends State<FeedPage> {
         children: [
           Row(
             children: [
-              const CircleAvatar(
-                radius: 24,
-                backgroundColor: Colors.white,
-                child: Icon(Icons.person, size: 28, color: Color(0xFFB0B0B0)),
+              GestureDetector(
+                onTap: _goToProfile,
+                child: CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Colors.white,
+                  backgroundImage: profileImage,
+                  child: profileImage == null
+                      ? const Icon(
+                          Icons.person,
+                          size: 28,
+                          color: Color(0xFFB0B0B0),
+                        )
+                      : null,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -195,7 +249,7 @@ class _FeedPageState extends State<FeedPage> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      userName,
+                      _userName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -244,8 +298,8 @@ class _FeedPageState extends State<FeedPage> {
                   ),
                 ],
               ),
-              child: Row(
-                children: const [
+              child: const Row(
+                children: [
                   Icon(Icons.search, color: Color(0xFF98A2B3)),
                   SizedBox(width: 10),
                   Text(
@@ -570,13 +624,14 @@ class _VoteWidgetState extends State<VoteWidget> {
 
   Future<void> _loadVotes() async {
     final voteInfo = await widget.issueService.fetchVoteInfo(widget.issueId);
-    if (mounted) {
-      setState(() {
-        _score = voteInfo['score'];
-        _userVote = voteInfo['userVote'];
-        _isLoading = false;
-      });
-    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _score = voteInfo['score'];
+      _userVote = voteInfo['userVote'];
+      _isLoading = false;
+    });
   }
 
   Future<void> _handleVote(int voteType) async {
@@ -605,6 +660,7 @@ class _VoteWidgetState extends State<VoteWidget> {
           _userVote = previousUserVote;
         });
       }
+
       debugPrint('Falha ao votar: $e');
     }
   }
@@ -621,7 +677,7 @@ class _VoteWidgetState extends State<VoteWidget> {
             height: 14,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: Color(0xFF00D159),
+              color: Color(0xFF16A34A),
             ),
           ),
         ),
@@ -637,7 +693,7 @@ class _VoteWidgetState extends State<VoteWidget> {
             Icons.arrow_upward,
             size: 22,
             color: _userVote == 1
-                ? const Color(0xFF00D159)
+                ? const Color(0xFF16A34A)
                 : const Color(0xFF667085),
           ),
         ),
@@ -648,7 +704,7 @@ class _VoteWidgetState extends State<VoteWidget> {
             fontSize: 16,
             fontWeight: FontWeight.w600,
             color: _userVote == 1
-                ? const Color(0xFF00D159)
+                ? const Color(0xFF16A34A)
                 : (_userVote == -1
                       ? const Color(0xFFEC6A00)
                       : const Color(0xFF344054)),
