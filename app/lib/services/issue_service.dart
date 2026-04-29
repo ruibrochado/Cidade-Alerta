@@ -182,7 +182,8 @@ class IssueService {
             *,
             profiles:user_id (
               first_name,
-              last_name
+              last_name,
+              profile_photo
             )
           ''')
           .eq('issue_id', issueId)
