@@ -456,82 +456,79 @@ class _FeedPageState extends State<FeedPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFCDE5CB),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
-          Navigator.pushNamed(context, '/categories');
-        },
-        backgroundColor: const Color(0xFF16A34A),
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add, color: Colors.white, size: 32),
-      ),
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(),
-            const SizedBox(height: 20),
-            _buildSearchAndFilter(),
-            const SizedBox(height: 26),
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF6F6F6),
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 28, 20, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSectionHeader(),
-                      const SizedBox(height: 20),
-                      if (_reports.isEmpty && _isLoading)
-                        const Expanded(
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              color: Color(0xFF16A34A),
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.translucent,
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(),
+              const SizedBox(height: 20),
+              _buildSearchAndFilter(),
+              const SizedBox(height: 26),
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF6F6F6),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(0),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 28, 20, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader(),
+                        const SizedBox(height: 20),
+                        if (_reports.isEmpty && _isLoading)
+                          const Expanded(
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFF16A34A),
+                              ),
+                            ),
+                          )
+                        else if (_reports.isEmpty)
+                          const Expanded(
+                            child: Center(
+                              child: Text('Nenhuma denúncia encontrada.'),
+                            ),
+                          )
+                        else
+                          Expanded(
+                            child: ListView.separated(
+                              controller: _scrollController,
+                              padding: const EdgeInsets.only(bottom: 120),
+                              itemCount: _reports.length + (_hasMore ? 1 : 0),
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 20),
+                              itemBuilder: (context, index) {
+                                if (index == _reports.length) {
+                                  return const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 16),
+                                    child: Center(
+                                      child: CircularProgressIndicator(
+                                        color: Color(0xFF16A34A),
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                return _buildReportCard(_reports[index]);
+                              },
                             ),
                           ),
-                        )
-                      else if (_reports.isEmpty)
-                        const Expanded(
-                          child: Center(
-                            child: Text('Nenhuma denúncia encontrada.'),
-                          ),
-                        )
-                      else
-                        Expanded(
-                          child: ListView.separated(
-                            controller: _scrollController,
-                            padding: const EdgeInsets.only(bottom: 120),
-                            itemCount: _reports.length + (_hasMore ? 1 : 0),
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(height: 20),
-                            itemBuilder: (context, index) {
-                              if (index == _reports.length) {
-                                return const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 16),
-                                  child: Center(
-                                    child: CircularProgressIndicator(
-                                      color: Color(0xFF16A34A),
-                                    ),
-                                  ),
-                                );
-                              }
-
-                              return _buildReportCard(_reports[index]);
-                            },
-                          ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

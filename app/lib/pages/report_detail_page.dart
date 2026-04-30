@@ -152,39 +152,43 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildTopBar(context),
-        const Divider(height: 1, color: Color(0xFFE5E7EB)),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-            children: [
-              _buildReportImage(),
-              const SizedBox(height: 18),
-              _buildTitleAndStatus(),
-              const SizedBox(height: 10),
-              _buildDescription(),
-              const SizedBox(height: 12),
-              _buildLocation(),
-              const SizedBox(height: 22),
-              const Text(
-                'Comentários',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1F2937),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.translucent,
+      child: Column(
+        children: [
+          _buildTopBar(context),
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+              children: [
+                _buildReportImage(),
+                const SizedBox(height: 18),
+                _buildTitleAndStatus(),
+                const SizedBox(height: 10),
+                _buildDescription(),
+                const SizedBox(height: 12),
+                _buildLocation(),
+                const SizedBox(height: 22),
+                const Text(
+                  'Comentários',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1F2937),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 14),
-              const Divider(height: 1, color: Color(0xFFE5E7EB)),
-              const SizedBox(height: 16),
-              _buildCommentsSection(),
-            ],
+                const SizedBox(height: 14),
+                const Divider(height: 1, color: Color(0xFFE5E7EB)),
+                const SizedBox(height: 16),
+                _buildCommentsSection(),
+              ],
+            ),
           ),
-        ),
-        _buildCommentInputBar(),
-      ],
+          _buildCommentInputBar(),
+        ],
+      ),
     );
   }
 
