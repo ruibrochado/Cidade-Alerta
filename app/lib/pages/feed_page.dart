@@ -34,7 +34,7 @@ class _FeedPageState extends State<FeedPage> {
   String? _profilePhotoUrl;
 
   // Sort mode: 'hot' | 'new' | 'top'
-  String _sortMode = 'hot';
+  String _sortMode = 'top';
 
   @override
   void initState() {
@@ -859,7 +859,7 @@ class _FeedPageState extends State<FeedPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Denúncias prioritárias',
+              'Denúncias',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
