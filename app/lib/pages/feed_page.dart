@@ -33,6 +33,9 @@ class _FeedPageState extends State<FeedPage> {
   String _userName = 'Utilizador';
   String? _profilePhotoUrl;
 
+  // Sort mode: 'hot' | 'new' | 'top'
+  String _sortMode = 'hot';
+
   @override
   void initState() {
     super.initState();
@@ -83,6 +86,7 @@ class _FeedPageState extends State<FeedPage> {
           : _selectedCategories.toList(),
       cities: _selectedCities.isEmpty ? null : _selectedCities.toList(),
       searchQuery: _searchQuery.isEmpty ? null : _searchQuery,
+      sortMode: _sortMode,
     );
     if (!mounted) return;
     setState(() => _totalCount = count);
@@ -102,6 +106,7 @@ class _FeedPageState extends State<FeedPage> {
             : _selectedCategories.toList(),
         cities: _selectedCities.isEmpty ? null : _selectedCities.toList(),
         searchQuery: _searchQuery.isEmpty ? null : _searchQuery,
+        sortMode: _sortMode,
       );
       final List<ReportData> newReports = newData
           .map((item) => ReportData.fromMap(item))
@@ -148,6 +153,145 @@ class _FeedPageState extends State<FeedPage> {
     });
     _fetchTotalCount();
     _loadMore();
+  }
+
+  void _applySortMode(String mode) {
+    if (_sortMode == mode) return;
+    setState(() {
+      _sortMode = mode;
+      _reports.clear();
+      _currentPage = 0;
+      _hasMore = true;
+      _isFetching = false;
+    });
+    _fetchTotalCount();
+    _loadMore();
+  }
+
+  void _showSortSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD0D5DD),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Ordenar por',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF0F172A),
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildSortOption(
+                mode: 'hot',
+                icon: Icons.local_fire_department_outlined,
+                label: 'Hot',
+                description: 'Mais votadas recentemente',
+              ),
+              const SizedBox(height: 10),
+              _buildSortOption(
+                mode: 'new',
+                icon: Icons.fiber_new_outlined,
+                label: 'Recentes',
+                description: 'Mais recentes primeiro',
+              ),
+              const SizedBox(height: 10),
+              _buildSortOption(
+                mode: 'top',
+                icon: Icons.leaderboard_outlined,
+                label: 'Top',
+                description: 'Mais votadas de sempre',
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSortOption({
+    required String mode,
+    required IconData icon,
+    required String label,
+    required String description,
+  }) {
+    final bool isSelected = _sortMode == mode;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context);
+        _applySortMode(mode);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFD6EED6) : const Color(0xFFF3F4F6),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 22,
+              color: isSelected
+                  ? const Color(0xFF1A6B3A)
+                  : const Color(0xFF667085),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected
+                          ? const Color(0xFF1A6B3A)
+                          : const Color(0xFF0F172A),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF98A2B3),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              const Icon(Icons.check, size: 18, color: Color(0xFF1A6B3A)),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showFilterDialog() {
@@ -699,6 +843,15 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Widget _buildSectionHeader() {
+    // Label and icon for the current sort mode
+    final Map<String, Map<String, dynamic>> sortMeta = {
+      'hot': {'label': 'Em alta', 'icon': Icons.local_fire_department_outlined},
+      'new': {'label': 'Recentes', 'icon': Icons.fiber_new_outlined},
+      'top': {'label': 'Top', 'icon': Icons.leaderboard_outlined},
+    };
+
+    final current = sortMeta[_sortMode]!;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -720,15 +873,42 @@ class _FeedPageState extends State<FeedPage> {
             ),
           ],
         ),
-        Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFD0D5DD)),
+        GestureDetector(
+          onTap: _showSortSheet,
+          child: Container(
+            height: 42,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F4F6),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFD0D5DD)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  current['icon'] as IconData,
+                  size: 16,
+                  color: const Color(0xFF344054),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  current['label'] as String,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF344054),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 16,
+                  color: Color(0xFF667085),
+                ),
+              ],
+            ),
           ),
-          child: const Icon(Icons.swap_vert, color: Color(0xFF667085)),
         ),
       ],
     );

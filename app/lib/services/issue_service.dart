@@ -129,6 +129,7 @@ class IssueService {
     List<String>? categories,
     List<String>? cities,
     String? searchQuery,
+    String sortMode = 'hot',
   }) async {
     var query = supabase.from('issues').select('id').neq('title', 'Test issue');
 
@@ -145,6 +146,15 @@ class IssueService {
       query = query.or(orParts);
     }
 
+    // 'hot' only counts issues from the last 7 days
+    if (sortMode == 'hot') {
+      final cutoff = DateTime.now()
+          .subtract(const Duration(days: 7))
+          .toUtc()
+          .toIso8601String();
+      query = query.gte('created_at', cutoff);
+    }
+
     final response = await query.count(CountOption.exact);
     return response.count;
   }
@@ -154,6 +164,7 @@ class IssueService {
     List<String>? categories,
     List<String>? cities,
     String? searchQuery,
+    String sortMode = 'hot',
   }) async {
     try {
       final from = page * pageSize;
@@ -174,12 +185,41 @@ class IssueService {
         query = query.or(orParts);
       }
 
-      final List<dynamic> data = await query
-          .order('score', ascending: false)
-          .order('created_at', ascending: false)
-          .range(from, to);
+      // Apply sort-mode specific ordering and filtering:
+      //
+      // hot  — issues from the last 7 days, ranked by score then recency.
+      //        Mirrors Reddit's "Hot": relevance is time-bounded.
+      //
+      // new  — purely chronological, newest first.
+      //
+      // top  — all-time highest score, ties broken by recency.
+      switch (sortMode) {
+        case 'new':
+          final List<dynamic> data = await query
+              .order('created_at', ascending: false)
+              .range(from, to);
+          return List<Map<String, dynamic>>.from(data);
 
-      return List<Map<String, dynamic>>.from(data);
+        case 'top':
+          final List<dynamic> data = await query
+              .order('score', ascending: false)
+              .order('created_at', ascending: false)
+              .range(from, to);
+          return List<Map<String, dynamic>>.from(data);
+
+        case 'hot':
+        default:
+          final cutoff = DateTime.now()
+              .subtract(const Duration(days: 7))
+              .toUtc()
+              .toIso8601String();
+          final List<dynamic> data = await query
+              .gte('created_at', cutoff)
+              .order('score', ascending: false)
+              .order('created_at', ascending: false)
+              .range(from, to);
+          return List<Map<String, dynamic>>.from(data);
+      }
     } catch (e) {
       throw Exception('Error fetching issues: $e');
     }
