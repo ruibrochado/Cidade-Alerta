@@ -97,12 +97,23 @@ void main() {
         when(
           () => mockSupabaseClient.from('issues'),
         ).thenAnswer((_) => mockQueryBuilder);
-        when(() => mockQueryBuilder.select()).thenAnswer((_) => mockChain);
+
+        when(() => mockQueryBuilder.select(any())).thenAnswer((_) => mockChain);
+
+        when(() => mockChain.eq(any(), any())).thenAnswer((_) => mockChain);
 
         when(() => mockChain.neq(any(), any())).thenAnswer((_) => mockChain);
+
+        when(() => mockChain.ilike(any(), any())).thenAnswer((_) => mockChain);
+
+        when(
+          () => mockChain.inFilter(any(), any()),
+        ).thenAnswer((_) => mockChain);
+
         when(
           () => mockChain.order(any(), ascending: any(named: 'ascending')),
         ).thenAnswer((_) => mockChain);
+
         when(() => mockChain.range(any(), any())).thenAnswer((_) => mockChain);
 
         final results = await issueService.fetchIssues();
