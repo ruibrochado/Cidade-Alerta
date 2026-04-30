@@ -128,8 +128,13 @@ class IssueService {
   Future<int> fetchIssuesCount({
     List<String>? categories,
     List<String>? cities,
+    String? searchQuery,
   }) async {
     var query = supabase.from('issues').select('id').neq('title', 'Test issue');
+
+    if (searchQuery != null && searchQuery.isNotEmpty) {
+      query = query.ilike('title', '%$searchQuery%');
+    }
 
     if (categories != null && categories.isNotEmpty) {
       query = query.inFilter('category', categories);
@@ -148,12 +153,17 @@ class IssueService {
     int page = 0,
     List<String>? categories,
     List<String>? cities,
+    String? searchQuery,
   }) async {
     try {
       final from = page * pageSize;
       final to = from + pageSize - 1;
 
       var query = supabase.from('issues').select().neq('title', 'Test issue');
+
+      if (searchQuery != null && searchQuery.isNotEmpty) {
+        query = query.ilike('title', '%$searchQuery%');
+      }
 
       if (categories != null && categories.isNotEmpty) {
         query = query.inFilter('category', categories);
@@ -165,6 +175,7 @@ class IssueService {
       }
 
       final List<dynamic> data = await query
+          .order('score', ascending: false)
           .order('created_at', ascending: false)
           .range(from, to);
 

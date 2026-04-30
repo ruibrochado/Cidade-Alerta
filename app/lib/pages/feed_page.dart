@@ -27,6 +27,9 @@ class _FeedPageState extends State<FeedPage> {
   Set<String> _selectedCategories = {};
   Set<String> _selectedCities = {};
 
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
   String _userName = 'Utilizador';
   String? _profilePhotoUrl;
 
@@ -79,6 +82,7 @@ class _FeedPageState extends State<FeedPage> {
           ? null
           : _selectedCategories.toList(),
       cities: _selectedCities.isEmpty ? null : _selectedCities.toList(),
+      searchQuery: _searchQuery.isEmpty ? null : _searchQuery,
     );
     if (!mounted) return;
     setState(() => _totalCount = count);
@@ -97,6 +101,7 @@ class _FeedPageState extends State<FeedPage> {
             ? null
             : _selectedCategories.toList(),
         cities: _selectedCities.isEmpty ? null : _selectedCities.toList(),
+        searchQuery: _searchQuery.isEmpty ? null : _searchQuery,
       );
       final List<ReportData> newReports = newData
           .map((item) => ReportData.fromMap(item))
@@ -118,6 +123,18 @@ class _FeedPageState extends State<FeedPage> {
         _isFetching = false;
       });
     }
+  }
+
+  void _applySearch(String value) {
+    setState(() {
+      _searchQuery = value.trim();
+      _reports.clear();
+      _currentPage = 0;
+      _hasMore = true;
+      _isFetching = false;
+    });
+    _fetchTotalCount();
+    _loadMore();
   }
 
   void _applyFilters({Set<String>? categories, Set<String>? cities}) {
@@ -431,6 +448,7 @@ class _FeedPageState extends State<FeedPage> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -608,14 +626,43 @@ class _FeedPageState extends State<FeedPage> {
                   ),
                 ],
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.search, color: Color(0xFF98A2B3)),
-                  SizedBox(width: 10),
-                  Text(
-                    'Buscar denúncias...',
-                    style: TextStyle(fontSize: 16, color: Color(0xFF98A2B3)),
+                  const Icon(Icons.search, color: Color(0xFF98A2B3)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      onSubmitted: _applySearch,
+                      textInputAction: TextInputAction.search,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Color(0xFF0F172A),
+                      ),
+                      decoration: const InputDecoration(
+                        hintText: 'Buscar denúncias...',
+                        hintStyle: TextStyle(
+                          fontSize: 15,
+                          color: Color(0xFF98A2B3),
+                        ),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
                   ),
+                  if (_searchQuery.isNotEmpty)
+                    GestureDetector(
+                      onTap: () {
+                        _searchController.clear();
+                        _applySearch('');
+                      },
+                      child: const Icon(
+                        Icons.close,
+                        size: 18,
+                        color: Color(0xFF98A2B3),
+                      ),
+                    ),
                 ],
               ),
             ),
