@@ -110,6 +110,9 @@ void main() {
           () => mockChain.inFilter(any(), any()),
         ).thenAnswer((_) => mockChain);
 
+        // MISSING STUB ADDED HERE:
+        when(() => mockChain.gte(any(), any())).thenAnswer((_) => mockChain);
+
         when(
           () => mockChain.order(any(), ascending: any(named: 'ascending')),
         ).thenAnswer((_) => mockChain);
