@@ -201,6 +201,7 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
                       child: LayoutBuilder(
                         builder: (BuildContext context, BoxConstraints constraints) {
                           return SingleChildScrollView(
+                            key: const Key('mainScroll'),
                             child: ConstrainedBox(
                               constraints: BoxConstraints(
                                 minHeight: constraints.maxHeight,
