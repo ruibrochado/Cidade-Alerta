@@ -23,7 +23,9 @@ class _LoginPageState extends State<LoginPage> {
 
   final Color topGreen = const Color(0xFFCDE5CB);
   final Color buttonGreen = const Color(0xFF16A34A);
-  final Color disabledButtonColor = const Color(0xFFCCCCCC); // Cinza para quando está desativado
+  final Color disabledButtonColor = const Color(
+    0xFFCCCCCC,
+  ); // Cinza para quando está desativado
   final Color inputColor = const Color(0xFFF4F6F4);
   final Color bottomColor = const Color(0xFFF7F7F7);
 
@@ -36,7 +38,8 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _validateForm() {
-    final isValid = emailController.text.isNotEmpty && passwordController.text.isNotEmpty;
+    final isValid =
+        emailController.text.isNotEmpty && passwordController.text.isNotEmpty;
     if (isValid != isFormValid) {
       setState(() {
         isFormValid = isValid;
@@ -80,8 +83,12 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   // Métodos do Google e Apple permanecem iguais...
-  Future<void> signInWithGoogle() async { /* ... teu código ... */ }
-  Future<void> signInWithApple() async { /* ... teu código ... */ }
+  Future<void> signInWithGoogle() async {
+    /* ... teu código ... */
+  }
+  Future<void> signInWithApple() async {
+    /* ... teu código ... */
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,8 +111,11 @@ class _LoginPageState extends State<LoginPage> {
                     'images/logo_login_page.png',
                     height: 130,
                     fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) =>
-                    const Icon(Icons.construction, size: 80, color: Colors.white),
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.construction,
+                      size: 80,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 25),
@@ -118,17 +128,20 @@ class _LoginPageState extends State<LoginPage> {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: Colors.black.withValues(alpha: 0.55),
                           blurRadius: 25,
                           offset: const Offset(0, 10),
-                        )
+                        ),
                       ],
                     ),
                     child: Column(
                       children: [
                         const Text(
                           "Iniciar Sessão",
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const SizedBox(height: 30),
                         _label("Email"),
@@ -140,7 +153,10 @@ class _LoginPageState extends State<LoginPage> {
                         if (errorMessage.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 10),
-                            child: Text(errorMessage, style: const TextStyle(color: Colors.red)),
+                            child: Text(
+                              errorMessage,
+                              style: const TextStyle(color: Colors.red),
+                            ),
                           ),
 
                         const SizedBox(height: 30),
@@ -150,10 +166,14 @@ class _LoginPageState extends State<LoginPage> {
                           width: double.infinity,
                           height: 52,
                           child: ElevatedButton(
-                            onPressed: (isLoading || !isFormValid) ? null : signIn,
+                            onPressed: (isLoading || !isFormValid)
+                                ? null
+                                : signIn,
                             style: ElevatedButton.styleFrom(
                               // Se estiver preenchido fica verde, senão fica cinza
-                              backgroundColor: isFormValid ? buttonGreen : disabledButtonColor,
+                              backgroundColor: isFormValid
+                                  ? buttonGreen
+                                  : disabledButtonColor,
                               // Borda igual aos fields (radius 14)
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
@@ -161,15 +181,17 @@ class _LoginPageState extends State<LoginPage> {
                               elevation: 0,
                             ),
                             child: isLoading
-                                ? const CircularProgressIndicator(color: Colors.white)
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
                                 : const Text(
-                              "Iniciar Sessão",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
+                                    "Iniciar Sessão",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                           ),
                         ),
 
@@ -186,10 +208,19 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 30),
                         _footer("Não tens conta? ", "Criar Conta", () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpPage()));
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const SignUpPage(),
+                            ),
+                          );
                         }),
                         const SizedBox(height: 10),
-                        _footer("És trabalhador municipal? ", "Iniciar Sessão", () {}),
+                        _footer(
+                          "És trabalhador municipal? ",
+                          "Iniciar Sessão",
+                          () {},
+                        ),
                       ],
                     ),
                   ),
@@ -208,7 +239,10 @@ class _LoginPageState extends State<LoginPage> {
       alignment: Alignment.centerLeft,
       child: Padding(
         padding: const EdgeInsets.only(left: 10, bottom: 6),
-        child: Text(text, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+        child: Text(
+          text,
+          style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+        ),
       ),
     );
   }
@@ -225,14 +259,21 @@ class _LoginPageState extends State<LoginPage> {
           borderRadius: BorderRadius.circular(14), // Mantido como referência
           borderSide: BorderSide.none,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 14,
+        ),
       ),
     );
   }
 
   Widget _social(String type) {
     return GestureDetector(
-      onTap: isLoading ? null : () { /* login google/apple */ },
+      onTap: isLoading
+          ? null
+          : () {
+              /* login google/apple */
+            },
       child: Container(
         height: 48,
         decoration: BoxDecoration(
@@ -246,7 +287,10 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (type == "Google")
-                  Image.network('https://developers.google.com/identity/images/g-logo.png', height: 18)
+                  Image.network(
+                    'https://developers.google.com/identity/images/g-logo.png',
+                    height: 18,
+                  )
                 else
                   const Icon(Icons.apple, size: 20),
                 const SizedBox(width: 8),
@@ -263,8 +307,18 @@ class _LoginPageState extends State<LoginPage> {
     return Wrap(
       alignment: WrapAlignment.center,
       children: [
-        const Text("Ao clicar neste botão, concordas com os nossos ", style: TextStyle(fontSize: 11, color: Colors.grey)),
-        Text("Termos e Condições", style: TextStyle(fontSize: 11, color: buttonGreen, fontWeight: FontWeight.w600)),
+        const Text(
+          "Ao clicar neste botão, concordas com os nossos ",
+          style: TextStyle(fontSize: 11, color: Colors.grey),
+        ),
+        Text(
+          "Termos e Condições",
+          style: TextStyle(
+            fontSize: 11,
+            color: buttonGreen,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ],
     );
   }
@@ -276,8 +330,15 @@ class _LoginPageState extends State<LoginPage> {
         Text(text, style: const TextStyle(fontSize: 12, color: Colors.grey)),
         GestureDetector(
           onTap: onTap,
-          child: Text(action, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: buttonGreen)),
-        )
+          child: Text(
+            action,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: buttonGreen,
+            ),
+          ),
+        ),
       ],
     );
   }

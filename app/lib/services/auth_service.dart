@@ -4,14 +4,14 @@ class AuthService {
   final SupabaseClient supabase;
 
   AuthService({SupabaseClient? client})
-      : supabase = client ?? Supabase.instance.client;
+    : supabase = client ?? Supabase.instance.client;
 
   Future<AuthResponse> signUp(
-      String firstName,
-      String lastName,
-      String email,
-      String password,
-      ) async {
+    String firstName,
+    String lastName,
+    String email,
+    String password,
+  ) async {
     try {
       final response = await supabase.auth.signUp(
         email: email,
