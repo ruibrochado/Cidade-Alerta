@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/report_data.dart';
 import '../services/issue_service.dart';
 import '../pages/report_detail_page.dart';
+import '../widgets/slide_card.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FeedPage extends StatefulWidget {
@@ -172,59 +173,65 @@ class _FeedPageState extends State<FeedPage> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(
+        minWidth: double.infinity,
+        maxWidth: double.infinity,
+      ),
       builder: (context) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle bar
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD0D5DD),
-                    borderRadius: BorderRadius.circular(2),
+        return SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD0D5DD),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Ordenar por',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF0F172A),
+                const SizedBox(height: 20),
+                const Text(
+                  'Ordenar por',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0F172A),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              _buildSortOption(
-                mode: 'hot',
-                icon: Icons.local_fire_department_outlined,
-                label: 'Hot',
-                description: 'Mais votadas recentemente',
-              ),
-              const SizedBox(height: 10),
-              _buildSortOption(
-                mode: 'new',
-                icon: Icons.fiber_new_outlined,
-                label: 'Recentes',
-                description: 'Mais recentes primeiro',
-              ),
-              const SizedBox(height: 10),
-              _buildSortOption(
-                mode: 'top',
-                icon: Icons.leaderboard_outlined,
-                label: 'Top',
-                description: 'Mais votadas de sempre',
-              ),
-            ],
+                const SizedBox(height: 16),
+                _buildSortOption(
+                  mode: 'hot',
+                  icon: Icons.local_fire_department_outlined,
+                  label: 'Em alta',
+                  description: 'Mais votadas recentemente',
+                ),
+                const SizedBox(height: 10),
+                _buildSortOption(
+                  mode: 'new',
+                  icon: Icons.fiber_new_outlined,
+                  label: 'Recentes',
+                  description: 'Mais recentes primeiro',
+                ),
+                const SizedBox(height: 10),
+                _buildSortOption(
+                  mode: 'top',
+                  icon: Icons.leaderboard_outlined,
+                  label: 'Top',
+                  description: 'Mais votadas de sempre',
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -315,259 +322,268 @@ class _FeedPageState extends State<FeedPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(
+        minWidth: double.infinity,
+        maxWidth: double.infinity,
+      ),
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.82,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Handle bar
-                  Center(
-                    child: Container(
-                      margin: const EdgeInsets.only(top: 12),
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD0D5DD),
-                        borderRadius: BorderRadius.circular(2),
+        return SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: StatefulBuilder(
+            builder: (context, setModalState) {
+              return Container(
+                height: MediaQuery.of(context).size.height * 0.82,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Handle bar
+                    Center(
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 12),
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD0D5DD),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
                     ),
-                  ),
-                  // Header row
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 20, 20, 0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Filtros',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF0F172A),
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF3F4F6),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Icons.close,
-                              size: 20,
-                              color: Color(0xFF667085),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  // Scrollable content
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    // Header row
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 20, 20, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // --- Por cidade ---
                           const Text(
-                            'Por cidade',
+                            'Filtros',
                             style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF667085),
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF0F172A),
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: cityController,
-                            textCapitalization: TextCapitalization.words,
-                            decoration: InputDecoration(
-                              hintText: 'Ex: Lisboa, Porto...',
-                              hintStyle: const TextStyle(
-                                color: Color(0xFF9CA3AF),
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF3F4F6),
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                              prefixIcon: const Icon(
-                                Icons.location_city_outlined,
-                                color: Color(0xFF9CA3AF),
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFFF3F4F6),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide.none,
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 18,
-                                vertical: 16,
+                              child: const Icon(
+                                Icons.close,
+                                size: 20,
+                                color: Color(0xFF667085),
                               ),
                             ),
-                            onChanged: (value) {
-                              setModalState(() {
-                                if (value.trim().isEmpty) {
-                                  tempCities.clear();
-                                } else {
-                                  tempCities = {value.trim()};
-                                }
-                              });
-                            },
                           ),
-                          const SizedBox(height: 24),
-                          // --- Por tipo ---
-                          const Text(
-                            'Por tipo',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF667085),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          ...allCategories.map((cat) {
-                            final bool isAll = cat == 'Todos os tipos';
-                            final bool isSelected = isAll
-                                ? tempCategories.isEmpty
-                                : tempCategories.contains(cat);
-                            return GestureDetector(
-                              onTap: () {
-                                setModalState(() {
-                                  if (isAll) {
-                                    tempCategories.clear();
-                                  } else if (isSelected) {
-                                    tempCategories.remove(cat);
-                                  } else {
-                                    tempCategories.add(cat);
-                                  }
-                                });
-                              },
-                              child: Container(
-                                margin: const EdgeInsets.only(bottom: 10),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 18,
-                                  vertical: 16,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? const Color(0xFFD6EED6)
-                                      : const Color(0xFFF3F4F6),
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        cat,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: isSelected
-                                              ? FontWeight.w600
-                                              : FontWeight.w400,
-                                          color: isSelected
-                                              ? const Color(0xFF1A6B3A)
-                                              : const Color(0xFF344054),
-                                        ),
-                                      ),
-                                    ),
-                                    if (isSelected)
-                                      const Icon(
-                                        Icons.check,
-                                        size: 18,
-                                        color: Color(0xFF1A6B3A),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }),
-                          const SizedBox(height: 24),
                         ],
                       ),
                     ),
-                  ),
-                  // Footer buttons
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-                    decoration: const BoxDecoration(
-                      border: Border(top: BorderSide(color: Color(0xFFEAEAEA))),
-                    ),
-                    child: Row(
-                      children: [
-                        // Clear button
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              setModalState(() {
-                                tempCategories.clear();
-                                tempCities.clear();
-                                cityController.clear();
-                              });
-                            },
-                            child: Container(
-                              height: 52,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF3F4F6),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              alignment: Alignment.center,
-                              child: const Text(
-                                'Limpar',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF667085),
-                                ),
+                    const SizedBox(height: 28),
+                    // Scrollable content
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // --- Por cidade ---
+                            const Text(
+                              'Por cidade',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF667085),
                               ),
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Apply button
-                        Expanded(
-                          flex: 2,
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.pop(context);
-                              _applyFilters(
-                                categories: tempCategories,
-                                cities: tempCities,
+                            const SizedBox(height: 12),
+                            TextField(
+                              controller: cityController,
+                              textCapitalization: TextCapitalization.words,
+                              decoration: InputDecoration(
+                                hintText: 'Ex: Lisboa, Porto...',
+                                hintStyle: const TextStyle(
+                                  color: Color(0xFF9CA3AF),
+                                ),
+                                prefixIcon: const Icon(
+                                  Icons.location_city_outlined,
+                                  color: Color(0xFF9CA3AF),
+                                ),
+                                filled: true,
+                                fillColor: const Color(0xFFF3F4F6),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 18,
+                                  vertical: 16,
+                                ),
+                              ),
+                              onChanged: (value) {
+                                setModalState(() {
+                                  if (value.trim().isEmpty) {
+                                    tempCities.clear();
+                                  } else {
+                                    tempCities = {value.trim()};
+                                  }
+                                });
+                              },
+                            ),
+                            const SizedBox(height: 24),
+                            // --- Por tipo ---
+                            const Text(
+                              'Por tipo',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF667085),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            ...allCategories.map((cat) {
+                              final bool isAll = cat == 'Todos os tipos';
+                              final bool isSelected = isAll
+                                  ? tempCategories.isEmpty
+                                  : tempCategories.contains(cat);
+                              return GestureDetector(
+                                onTap: () {
+                                  setModalState(() {
+                                    if (isAll) {
+                                      tempCategories.clear();
+                                    } else if (isSelected) {
+                                      tempCategories.remove(cat);
+                                    } else {
+                                      tempCategories.add(cat);
+                                    }
+                                  });
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 18,
+                                    vertical: 16,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? const Color(0xFFD6EED6)
+                                        : const Color(0xFFF3F4F6),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          cat,
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w600
+                                                : FontWeight.w400,
+                                            color: isSelected
+                                                ? const Color(0xFF1A6B3A)
+                                                : const Color(0xFF344054),
+                                          ),
+                                        ),
+                                      ),
+                                      if (isSelected)
+                                        const Icon(
+                                          Icons.check,
+                                          size: 18,
+                                          color: Color(0xFF1A6B3A),
+                                        ),
+                                    ],
+                                  ),
+                                ),
                               );
-                            },
-                            child: Container(
-                              height: 52,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF00D159),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              alignment: Alignment.center,
-                              child: const Text(
-                                'Aplicar filtros',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
+                            }),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Footer buttons
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          top: BorderSide(color: Color(0xFFEAEAEA)),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          // Clear button
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                setModalState(() {
+                                  tempCategories.clear();
+                                  tempCities.clear();
+                                  cityController.clear();
+                                });
+                              },
+                              child: Container(
+                                height: 52,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF3F4F6),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                alignment: Alignment.center,
+                                child: const Text(
+                                  'Limpar',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF667085),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 12),
+                          // Apply button
+                          Expanded(
+                            flex: 2,
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.pop(context);
+                                _applyFilters(
+                                  categories: tempCategories,
+                                  cities: tempCities,
+                                );
+                              },
+                              child: Container(
+                                height: 52,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF00D159),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                alignment: Alignment.center,
+                                child: const Text(
+                                  'Aplicar filtros',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
+                  ],
+                ),
+              );
+            },
+          ),
         );
       },
     );
@@ -748,6 +764,9 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Widget _buildSearchAndFilter() {
+    final bool hasActiveFilters =
+        _selectedCategories.isNotEmpty || _selectedCities.isNotEmpty;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
@@ -809,33 +828,13 @@ class _FeedPageState extends State<FeedPage> {
             ),
           ),
           const SizedBox(width: 10),
-          GestureDetector(
+          SlideCard(
+            isActive: hasActiveFilters,
             onTap: _showFilterDialog,
-            child: Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color:
-                    _selectedCategories.isNotEmpty || _selectedCities.isNotEmpty
-                    ? const Color(0xFF00D159)
-                    : Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x12000000),
-                    blurRadius: 10,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Icon(
-                Icons.tune,
-                color:
-                    _selectedCategories.isNotEmpty || _selectedCities.isNotEmpty
-                    ? Colors.white
-                    : const Color(0xFF98A2B3),
-              ),
-            ),
+            icon: Icons.tune,
+            width: 52,
+            height: 52,
+            borderRadius: 18,
           ),
         ],
       ),
@@ -873,8 +872,10 @@ class _FeedPageState extends State<FeedPage> {
             ),
           ],
         ),
-        GestureDetector(
+        SlideCard(
+          isActive: false,
           onTap: _showSortSheet,
+          borderRadius: 14,
           child: Container(
             height: 42,
             padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -915,57 +916,10 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Widget _buildReportCard(ReportData report) {
-    return GestureDetector(
-      onTap: () {
-        showGeneralDialog(
-          context: context,
-          barrierDismissible: true,
-          barrierLabel: 'Detalhes da denúncia',
-          barrierColor: Colors.black.withValues(alpha: 0.12),
-          transitionDuration: const Duration(milliseconds: 220),
-          pageBuilder: (context, animation, secondaryAnimation) {
-            final Size size = MediaQuery.of(context).size;
-            final double dialogWidth = size.width > 700 ? 640 : size.width - 24;
-            final double dialogHeight = size.height * 0.88;
-
-            return SafeArea(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: Container(
-                      width: dialogWidth,
-                      height: dialogHeight,
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF7F7F7),
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                      child: ReportDetailSheet(report: report),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-          transitionBuilder: (context, animation, secondaryAnimation, child) {
-            final curved = CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-            );
-
-            return SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.08),
-                end: Offset.zero,
-              ).animate(curved),
-              child: FadeTransition(opacity: curved, child: child),
-            );
-          },
-        );
-      },
+    return SlideCard(
+      isActive: false,
+      onTap: () => _openReportDetails(report),
+      borderRadius: 20,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -1037,11 +991,17 @@ class _FeedPageState extends State<FeedPage> {
                         issueService: issueService,
                       ),
                       const Spacer(),
-                      const Icon(
-                        Icons.chat_bubble_outline,
-                        size: 20,
-                        color: Color(0xFF667085),
+
+                      // Botão dos comentários
+                      SlideCard(
+                        isActive: false,
+                        onTap: () => _openReportDetails(report),
+                        icon: Icons.chat_bubble_outline,
+                        width: 52,
+                        height: 52,
+                        borderRadius: 18,
                       ),
+
                       const SizedBox(width: 6),
                       FutureBuilder<List<Map<String, dynamic>>>(
                         future: issueService.fetchComments(report.id),
@@ -1049,6 +1009,7 @@ class _FeedPageState extends State<FeedPage> {
                           final count = snapshot.hasData
                               ? snapshot.data!.length
                               : 0;
+
                           return Text(
                             count.toString(),
                             style: const TextStyle(
@@ -1067,6 +1028,52 @@ class _FeedPageState extends State<FeedPage> {
           ],
         ),
       ),
+    );
+  }
+
+  void _openReportDetails(ReportData report) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(
+        minWidth: double.infinity,
+        maxWidth: double.infinity,
+      ),
+      builder: (context) {
+        return SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.88,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                Center(
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 12, bottom: 8),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD0D5DD),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ReportDetailSheet(report: report),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
