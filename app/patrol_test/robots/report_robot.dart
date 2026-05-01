@@ -71,6 +71,7 @@ class ReportRobot {
     await $('Continuar').tap();
     await $.pumpAndSettle();
   }
+
   Future<void> handleDetectLocation() async {
     if (await $.native.isPermissionDialogVisible()) {
       await $.native.grantPermissionWhenInUse();
@@ -89,7 +90,7 @@ class ReportRobot {
     await $.pumpAndSettle();
   }
 
-// Lida com o AdjustLocationPage (tem scroll com mapa)
+  // Lida com o AdjustLocationPage (tem scroll com mapa)
   Future<void> handleAdjustLocation() async {
     await Future.delayed(const Duration(seconds: 3));
     FocusManager.instance.primaryFocus?.unfocus();
@@ -107,9 +108,7 @@ class ReportRobot {
   }
 
   Future<void> finalSubmit() async {
-    await $('Enviar Denúncia').scrollTo(
-      view: $(Scrollable).first,
-    ).tap();
+    await $('Enviar Denúncia').scrollTo(view: $(Scrollable).first).tap();
 
     await $.pumpAndSettle();
   }

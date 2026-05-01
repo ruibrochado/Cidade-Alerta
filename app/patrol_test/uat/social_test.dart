@@ -5,7 +5,9 @@ import '../robots/home_robot.dart';
 import '../robots/social_robot.dart';
 
 void main() {
-  patrolTest('UAT: Social Interactions Flow', (PatrolIntegrationTester $) async {
+  patrolTest('UAT: Social Interactions Flow', (
+    PatrolIntegrationTester $,
+  ) async {
     final loginRobot = LoginRobot($);
     final homeRobot = HomeRobot($);
     final socialRobot = SocialRobot($);
@@ -28,7 +30,8 @@ void main() {
 
     // 4. Testar Comentário
     await socialRobot.openComments();
-    final uniqueComment = 'Teste automatizado ${DateTime.now().millisecondsSinceEpoch}';
+    final uniqueComment =
+        'Teste automatizado ${DateTime.now().millisecondsSinceEpoch}';
 
     // Escreve e envia
     await socialRobot.writeAndSubmitComment(uniqueComment);

@@ -170,7 +170,7 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
     final profile = comment['profiles'];
     final String? avatarUrl =
         profile?['profile_photo']?.toString() ??
-            profile?['avatar_url']?.toString();
+        profile?['avatar_url']?.toString();
 
     if (avatarUrl != null && avatarUrl.isNotEmpty) {
       return NetworkImage(avatarUrl);
@@ -470,7 +470,7 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
 
   Widget _buildCommentInputBar() {
     final ImageProvider? currentUserAvatar =
-    _currentUserPhotoUrl != null && _currentUserPhotoUrl!.isNotEmpty
+        _currentUserPhotoUrl != null && _currentUserPhotoUrl!.isNotEmpty
         ? NetworkImage(_currentUserPhotoUrl!)
         : null;
 
@@ -519,17 +519,17 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
               ),
               child: _isSending
                   ? const Padding(
-                padding: EdgeInsets.all(11),
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
+                      padding: EdgeInsets.all(11),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
                   : const Icon(
-                Icons.send_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
+                      Icons.send_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
             ),
           ),
         ],
@@ -542,10 +542,7 @@ class _FullScreenImageViewer extends StatelessWidget {
   final String imageUrl;
   final String heroTag;
 
-  const _FullScreenImageViewer({
-    required this.imageUrl,
-    required this.heroTag,
-  });
+  const _FullScreenImageViewer({required this.imageUrl, required this.heroTag});
 
   @override
   Widget build(BuildContext context) {
@@ -562,8 +559,11 @@ class _FullScreenImageViewer extends StatelessWidget {
                 child: Image.network(
                   imageUrl,
                   fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) =>
-                  const Icon(Icons.broken_image, color: Colors.white, size: 64),
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.broken_image,
+                    color: Colors.white,
+                    size: 64,
+                  ),
                 ),
               ),
             ),
