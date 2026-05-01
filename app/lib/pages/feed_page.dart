@@ -207,7 +207,7 @@ class _FeedPageState extends State<FeedPage> {
               _buildSortOption(
                 mode: 'hot',
                 icon: Icons.local_fire_department_outlined,
-                label: 'Hot',
+                label: 'Em alta',
                 description: 'Mais votadas recentemente',
               ),
               const SizedBox(height: 10),
