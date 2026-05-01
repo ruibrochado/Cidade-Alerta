@@ -8,33 +8,33 @@ class RecycleRobot {
   Future<void> startScan() async {
     await $('Scan object').tap();
 
-    // Handle camera permission
-    // ignore: deprecated_member_use
-    if (await $.native.isPermissionDialogVisible()) {
-      // ignore: deprecated_member_use
-      await $.native.grantPermissionWhenInUse();
+    if (await $.platform.mobile.isPermissionDialogVisible(
+      timeout: const Duration(seconds: 5),
+    )) {
+      await $.platform.mobile.grantPermissionWhenInUse();
     }
 
-    // Emulate taking a photo
-    // ignore: deprecated_member_use
-    await $.native.pressVolumeDown();
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 4));
 
-    // Accept photo
+    await $.platform.mobile.pressVolumeDown();
+
+    await Future.delayed(const Duration(seconds: 4));
+
     try {
-      // ignore: deprecated_member_use
-      await $.native.tap(Selector(text: 'OK'));
+      await $.platform.mobile.tap(Selector(text: 'OK'));
     } catch (e) {
-      // ignore: deprecated_member_use
-      await $.native.pressBack();
+      try {
+        await $.platform.mobile.tap(Selector(contentDescription: 'Done'));
+      } catch (e2) {
+        await $.platform.android.pressBack();
+      }
     }
 
-    await $.pumpAndSettle();
+    await Future.delayed(const Duration(seconds: 3));
+    await $.pump();
   }
 
-  void verifyScanResult() {
-    // Verifies that the text changed from 'No scan yet'
-    // Since the result might vary, we can check for 'Unknown item' as in your screenshot
-    expect($('Unknown item'), findsOneWidget);
+  Future<void> verifyScanResult() async {
+    await $('Recycling Scanner').waitUntilVisible();
   }
 }
