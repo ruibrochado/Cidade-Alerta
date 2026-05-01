@@ -226,25 +226,23 @@ class IssueService {
   }
 
   Future<List<Map<String, dynamic>>> fetchComments(String issueId) async {
-    try {
-      final data = await supabase
-          .from('comments')
-          .select('''
-            *,
-            profiles:user_id (
-              first_name,
-              last_name,
-              profile_photo
-            )
-          ''')
-          .eq('issue_id', issueId)
-          .order('created_at', ascending: true);
+    final response = await supabase
+        .from('comments')
+        .select('''
+          id,
+          content,
+          created_at,
+          user_id,
+          profiles (
+            first_name,
+            last_name,
+            profile_photo
+          )
+        ''')
+        .eq('issue_id', issueId)
+        .order('created_at', ascending: true);
 
-      return List<Map<String, dynamic>>.from(data);
-    } catch (e) {
-      debugPrint('Erro a buscar comentários: $e');
-      return [];
-    }
+    return List<Map<String, dynamic>>.from(response);
   }
 
   Future<void> addComment(String issueId, String content) async {

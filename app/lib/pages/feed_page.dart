@@ -831,6 +831,7 @@ class _FeedPageState extends State<FeedPage> {
           SlideCard(
             isActive: hasActiveFilters,
             onTap: _showFilterDialog,
+            icon: Icons.tune,
             width: 52,
             height: 52,
             borderRadius: 18,
@@ -871,8 +872,10 @@ class _FeedPageState extends State<FeedPage> {
             ),
           ],
         ),
-        GestureDetector(
+        SlideCard(
+          isActive: false,
           onTap: _showSortSheet,
+          borderRadius: 14,
           child: Container(
             height: 42,
             padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -913,57 +916,10 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Widget _buildReportCard(ReportData report) {
-    return GestureDetector(
-      onTap: () {
-        showGeneralDialog(
-          context: context,
-          barrierDismissible: true,
-          barrierLabel: 'Detalhes da denúncia',
-          barrierColor: Colors.black.withValues(alpha: 0.12),
-          transitionDuration: const Duration(milliseconds: 220),
-          pageBuilder: (context, animation, secondaryAnimation) {
-            final Size size = MediaQuery.of(context).size;
-            final double dialogWidth = size.width > 700 ? 640 : size.width - 24;
-            final double dialogHeight = size.height * 0.88;
-
-            return SafeArea(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: Container(
-                      width: dialogWidth,
-                      height: dialogHeight,
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF7F7F7),
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                      child: ReportDetailSheet(report: report),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-          transitionBuilder: (context, animation, secondaryAnimation, child) {
-            final curved = CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-            );
-
-            return SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.08),
-                end: Offset.zero,
-              ).animate(curved),
-              child: FadeTransition(opacity: curved, child: child),
-            );
-          },
-        );
-      },
+    return SlideCard(
+      isActive: false,
+      onTap: () => _openReportDetails(report),
+      borderRadius: 20,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -1035,11 +991,17 @@ class _FeedPageState extends State<FeedPage> {
                         issueService: issueService,
                       ),
                       const Spacer(),
-                      const Icon(
-                        Icons.chat_bubble_outline,
-                        size: 20,
-                        color: Color(0xFF667085),
+
+                      // Botão dos comentários
+                      SlideCard(
+                        isActive: false,
+                        onTap: () => _openReportDetails(report),
+                        icon: Icons.chat_bubble_outline,
+                        width: 52,
+                        height: 52,
+                        borderRadius: 18,
                       ),
+
                       const SizedBox(width: 6),
                       FutureBuilder<List<Map<String, dynamic>>>(
                         future: issueService.fetchComments(report.id),
@@ -1047,6 +1009,7 @@ class _FeedPageState extends State<FeedPage> {
                           final count = snapshot.hasData
                               ? snapshot.data!.length
                               : 0;
+
                           return Text(
                             count.toString(),
                             style: const TextStyle(
@@ -1065,6 +1028,52 @@ class _FeedPageState extends State<FeedPage> {
           ],
         ),
       ),
+    );
+  }
+
+  void _openReportDetails(ReportData report) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(
+        minWidth: double.infinity,
+        maxWidth: double.infinity,
+      ),
+      builder: (context) {
+        return SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.88,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                Center(
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 12, bottom: 8),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD0D5DD),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ReportDetailSheet(report: report),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
