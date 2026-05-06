@@ -9,6 +9,7 @@ import 'package:geocoding/geocoding.dart';
 import '../models/report_data.dart';
 import '../services/issue_service.dart';
 import '../widgets/primary_button.dart';
+import '../utils/location_formatter.dart';
 
 class ConfirmPage extends StatefulWidget {
   const ConfirmPage({super.key, required this.report});
@@ -23,7 +24,7 @@ class _ConfirmPageState extends State<ConfirmPage> {
   bool _sending = false;
   bool _sent = false;
 
-  String? _street;
+  String? _address;
   String? _city;
   String? _country;
   String _locationError = '';
@@ -37,6 +38,18 @@ class _ConfirmPageState extends State<ConfirmPage> {
   }
 
   Future<void> _loadAddress() async {
+    if (widget.report.address != null ||
+        widget.report.city != null ||
+        widget.report.country != null) {
+      setState(() {
+        _address = widget.report.address;
+        _city = widget.report.city;
+        _country = widget.report.country;
+        _locationError = '';
+      });
+      return;
+    }
+
     final double? latitude = widget.report.latitude;
     final double? longitude = widget.report.longitude;
 
@@ -55,36 +68,23 @@ class _ConfirmPageState extends State<ConfirmPage> {
 
       final Placemark? place = placemarks.isNotEmpty ? placemarks.first : null;
 
-      final String street = <String?>[place?.street, place?.subThoroughfare]
-          .where((String? value) => value != null && value.trim().isNotEmpty)
-          .cast<String>()
-          .join(', ');
-
-      final List<String> cityCandidates =
-          <String?>[
-                place?.locality,
-                place?.subAdministrativeArea,
-                place?.administrativeArea,
-              ]
-              .where(
-                (String? value) => value != null && value.trim().isNotEmpty,
-              )
-              .cast<String>()
-              .toList();
+      final String? address = buildAddressFromPlacemark(place);
+      final String? city = buildCityFromPlacemark(place);
+      final String? country = buildCityFromPlacemark(place);
 
       if (!mounted) return;
 
       setState(() {
-        _street = street.isEmpty ? null : street;
-        _city = cityCandidates.isEmpty ? null : cityCandidates.first;
-        _country = place?.country;
+        _address = address;
+        _city = city;
+        _country = country;
         _locationError = '';
       });
     } catch (_) {
       if (!mounted) return;
 
       setState(() {
-        _street = null;
+        _address = null;
         _city = null;
         _country = null;
         _locationError = 'Não foi possível obter a morada.';
@@ -121,9 +121,9 @@ class _ConfirmPageState extends State<ConfirmPage> {
       final issueService = IssueService();
 
       // Criamos a morada para a DB
-      String? moradaFinal = _street;
-      if (_city != null && _street != null) {
-        moradaFinal = '$_street, $_city';
+      String? moradaFinal = _address;
+      if (_city != null && _address != null) {
+        moradaFinal = '$_address, $_city';
       }
 
       // Tenta criar a issue
@@ -602,13 +602,13 @@ class _ConfirmPageState extends State<ConfirmPage> {
                                                         const SizedBox(
                                                           height: 4,
                                                         ),
-                                                        if (_street != null &&
-                                                            _street!
+                                                        if (_address != null &&
+                                                            _address!
                                                                 .isNotEmpty) ...<
                                                           Widget
                                                         >[
                                                           Text(
-                                                            _street!,
+                                                            _address!,
                                                             style:
                                                                 const TextStyle(
                                                                   color: Color(

@@ -8,6 +8,8 @@ class ReportData {
     this.latitude,
     this.longitude,
     this.address,
+    this.city,
+    this.country,
     this.score = 0, // <-- NOVO
   });
 
@@ -19,6 +21,8 @@ class ReportData {
   final double? latitude;
   final double? longitude;
   final String? address;
+  final String? city;
+  final String? country;
   final int score; // <-- NOVO
 
   factory ReportData.fromMap(Map<String, dynamic> map) {
@@ -44,6 +48,8 @@ class ReportData {
     double? latitude,
     double? longitude,
     String? address,
+    String? city,
+    String? country,
     int? score, // <-- NOVO
     bool clearLatitude = false,
     bool clearLongitude = false,
@@ -57,6 +63,8 @@ class ReportData {
       latitude: clearLatitude ? null : (latitude ?? this.latitude),
       longitude: clearLongitude ? null : (longitude ?? this.longitude),
       address: address ?? this.address,
+      city: city ?? city,
+      country: country ?? country,
       score: score ?? this.score, // <-- NOVO
     );
   }
