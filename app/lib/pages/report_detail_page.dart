@@ -20,9 +20,12 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
   bool _isLoading = true;
   bool _isSending = false;
 
+  String? _currentUserPhotoUrl;
+
   @override
   void initState() {
     super.initState();
+    _loadCurrentUserPhoto();
     _loadComments();
   }
 
@@ -30,6 +33,27 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
   void dispose() {
     _commentController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadCurrentUserPhoto() async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) return;
+
+      final profile = await Supabase.instance.client
+          .from('profiles')
+          .select('profile_photo')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      if (!mounted) return;
+
+      setState(() {
+        _currentUserPhotoUrl = profile?['profile_photo']?.toString();
+      });
+    } catch (e) {
+      debugPrint('Error loading current user photo: $e');
+    }
   }
 
   Future<void> _loadComments() async {
@@ -62,7 +86,6 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
 
     setState(() {
       _isSending = true;
-      final userMeta = currentUser?.userMetadata;
       _comments.add({
         'content': text,
         'created_at': DateTime.now().toIso8601String(),
@@ -70,7 +93,7 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
         'profiles': {
           'first_name': 'Tu',
           'last_name': '',
-          'profile_photo': userMeta?['profile_photo'],
+          'profile_photo': _currentUserPhotoUrl,
         },
       });
     });
@@ -100,28 +123,22 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
 
   String _getUserName(Map<String, dynamic> comment) {
     final String? currentUserId = Supabase.instance.client.auth.currentUser?.id;
-    final String? commentUserId = comment['user_id'];
+    final String? commentUserId = comment['user_id']?.toString();
 
     if (currentUserId != null && currentUserId == commentUserId) {
       return 'Tu';
     }
 
     final profile = comment['profiles'];
-    final String firstName = profile?['first_name'] ?? '';
-    final String lastName = profile?['last_name'] ?? '';
+    final String firstName = profile?['first_name']?.toString() ?? '';
+    final String lastName = profile?['last_name']?.toString() ?? '';
     final String fullName = '$firstName $lastName'.trim();
 
-    if (fullName.isEmpty) {
-      return 'Utilizador';
-    }
-
-    return fullName;
+    return fullName.isEmpty ? 'Utilizador' : fullName;
   }
 
   String _formatRelativeTime(String? createdAt) {
-    if (createdAt == null || createdAt.isEmpty) {
-      return '';
-    }
+    if (createdAt == null || createdAt.isEmpty) return '';
 
     try {
       final DateTime created = DateTime.parse(createdAt).toLocal();
@@ -141,13 +158,25 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
   ImageProvider? _getCommentAvatar(Map<String, dynamic> comment) {
     final profile = comment['profiles'];
     final String? avatarUrl =
-        profile?['profile_photo'] ?? profile?['avatar_url'];
+        profile?['profile_photo']?.toString() ??
+        profile?['avatar_url']?.toString();
 
     if (avatarUrl != null && avatarUrl.isNotEmpty) {
       return NetworkImage(avatarUrl);
     }
 
     return null;
+  }
+
+  Widget _buildAvatar({ImageProvider? image}) {
+    return CircleAvatar(
+      radius: 18,
+      backgroundColor: const Color(0xFFE5E7EB),
+      backgroundImage: image,
+      child: image == null
+          ? const Icon(Icons.person, size: 18, color: Color(0xFF98A2B3))
+          : null,
+    );
   }
 
   @override
@@ -369,14 +398,7 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CircleAvatar(
-          radius: 18,
-          backgroundColor: const Color(0xFFE5E7EB),
-          backgroundImage: avatar,
-          child: avatar == null
-              ? const Icon(Icons.person, size: 18, color: Color(0xFF9CA3AF))
-              : null,
-        ),
+        _buildAvatar(image: avatar),
         const SizedBox(width: 12),
         Expanded(
           child: Padding(
@@ -414,7 +436,7 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  comment['content'] ?? '',
+                  comment['content']?.toString() ?? '',
                   style: const TextStyle(
                     fontSize: 15,
                     height: 1.4,
@@ -430,6 +452,11 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
   }
 
   Widget _buildCommentInputBar() {
+    final ImageProvider? currentUserAvatar =
+        _currentUserPhotoUrl != null && _currentUserPhotoUrl!.isNotEmpty
+        ? NetworkImage(_currentUserPhotoUrl!)
+        : null;
+
     return Container(
       padding: const EdgeInsets.only(left: 16, right: 16, top: 14, bottom: 14),
       decoration: const BoxDecoration(
@@ -438,11 +465,7 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
       ),
       child: Row(
         children: [
-          const CircleAvatar(
-            radius: 18,
-            backgroundColor: Color(0xFFE5E7EB),
-            child: Icon(Icons.person, size: 18, color: Color(0xFF9CA3AF)),
-          ),
+          _buildAvatar(image: currentUserAvatar),
           const SizedBox(width: 10),
           Expanded(
             child: Container(
