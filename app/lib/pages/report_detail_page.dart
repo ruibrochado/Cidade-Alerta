@@ -22,6 +22,17 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
 
   String? _currentUserPhotoUrl;
 
+  void _openImageViewer(String imageUrl) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _FullScreenImageViewer(
+          imageUrl: imageUrl,
+          heroTag: 'report_image_${widget.report.id}',
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -263,26 +274,32 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
       );
     }
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: Image.network(
-        widget.report.photos.first,
-        width: double.infinity,
-        height: 185,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
+    return GestureDetector(
+      onTap: () => _openImageViewer(widget.report.photos.first),
+      child: Hero(
+        tag: 'report_image_${widget.report.id}',
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Image.network(
+            widget.report.photos.first,
+            width: double.infinity,
             height: 185,
-            color: const Color(0xFFE5E7EB),
-            child: const Center(
-              child: Icon(
-                Icons.broken_image_outlined,
-                size: 42,
-                color: Color(0xFF9CA3AF),
-              ),
-            ),
-          );
-        },
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                height: 185,
+                color: const Color(0xFFE5E7EB),
+                child: const Center(
+                  child: Icon(
+                    Icons.broken_image_outlined,
+                    size: 42,
+                    color: Color(0xFF9CA3AF),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -513,6 +530,51 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
                       color: Colors.white,
                       size: 20,
                     ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FullScreenImageViewer extends StatelessWidget {
+  final String imageUrl;
+  final String heroTag;
+
+  const _FullScreenImageViewer({required this.imageUrl, required this.heroTag});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          Center(
+            child: Hero(
+              tag: heroTag,
+              child: InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.broken_image,
+                    color: Colors.white,
+                    size: 64,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close, color: Colors.white, size: 28),
+              ),
             ),
           ),
         ],
