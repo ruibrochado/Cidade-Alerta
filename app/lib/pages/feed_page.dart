@@ -993,13 +993,13 @@ class _FeedPageState extends State<FeedPage> {
                       const Spacer(),
 
                       // Botão dos comentários
-                      SlideCard(
-                        isActive: false,
+                      GestureDetector(
                         onTap: () => _openReportDetails(report),
-                        icon: Icons.chat_bubble_outline,
-                        width: 52,
-                        height: 52,
-                        borderRadius: 18,
+                        child: const Icon(
+                          Icons.chat_bubble_outline,
+                          size: 24,
+                          color: Color(0xFF344054),
+                        ),
                       ),
 
                       const SizedBox(width: 6),
