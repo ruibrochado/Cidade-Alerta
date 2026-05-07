@@ -26,16 +26,19 @@ class AppBottomNavBar extends StatelessWidget {
         alignment: Alignment.bottomCenter,
         children: [
           Positioned(
-            left: 12,
-            right: 12,
-            bottom: bottomInset > 0 ? bottomInset : 12,
+            left: 0,
+            right: 0,
+            bottom: 0,
             child: Container(
-              height: 72,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
+              height: 72 + bottomInset,
+              padding: EdgeInsets.only(
+                left: 12,
+                right: 12,
+                bottom: bottomInset,
+              ),
+              decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
                     color: Color(0x14000000),
                     blurRadius: 16,
