@@ -70,7 +70,7 @@ class _ConfirmPageState extends State<ConfirmPage> {
 
       final String? address = buildAddressFromPlacemark(place);
       final String? city = buildCityFromPlacemark(place);
-      final String? country = buildCityFromPlacemark(place);
+      final String? country = buildCountryFromPlacemark(place);
 
       if (!mounted) return;
 
