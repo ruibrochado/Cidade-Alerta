@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../models/report_data.dart';
 import '../widgets/primary_button.dart';
+import '../utils/location_formatter.dart';
 
 class AdjustLocationPage extends StatefulWidget {
   const AdjustLocationPage({super.key, required this.report});
@@ -24,7 +25,7 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
   bool _loadingAddress = true;
   String _error = '';
 
-  String? _street;
+  String? _address;
   String? _city;
   String? _country;
 
@@ -55,36 +56,23 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
 
       final Placemark? place = placemarks.isNotEmpty ? placemarks.first : null;
 
-      final String street = <String?>[place?.street, place?.subThoroughfare]
-          .where((String? value) => value != null && value.trim().isNotEmpty)
-          .cast<String>()
-          .join(', ');
-
-      final List<String> cityCandidates =
-          <String?>[
-                place?.locality,
-                place?.subAdministrativeArea,
-                place?.administrativeArea,
-              ]
-              .where(
-                (String? value) => value != null && value.trim().isNotEmpty,
-              )
-              .cast<String>()
-              .toList();
+      final String? address = buildAddressFromPlacemark(place);
+      final String? city = buildCityFromPlacemark(place);
+      final String? country = buildCountryFromPlacemark(place);
 
       if (!mounted) return;
 
       setState(() {
-        _street = street.isEmpty ? null : street;
-        _city = cityCandidates.isEmpty ? null : cityCandidates.first;
-        _country = place?.country;
+        _address = address;
+        _city = city;
+        _country = country;
         _loadingAddress = false;
       });
     } catch (_) {
       if (!mounted) return;
 
       setState(() {
-        _street = null;
+        _address = null;
         _city = null;
         _country = null;
         _loadingAddress = false;
@@ -105,6 +93,9 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
     final ReportData updatedReport = widget.report.copyWith(
       latitude: _selectedLocation.latitude,
       longitude: _selectedLocation.longitude,
+      address: _address,
+      city: _city,
+      country: _country,
     );
 
     Navigator.pushNamed(
@@ -314,8 +305,8 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
                                               ),
                                             ),
                                           ] else ...<Widget>[
-                                            if (_street != null &&
-                                                _street!
+                                            if (_address != null &&
+                                                _address!
                                                     .isNotEmpty) ...<Widget>[
                                               const Text(
                                                 'Rua:',
@@ -326,7 +317,7 @@ class _AdjustLocationPageState extends State<AdjustLocationPage> {
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
-                                                _street!,
+                                                _address!,
                                                 style: const TextStyle(
                                                   color: Color(0xFF1F2937),
                                                 ),
