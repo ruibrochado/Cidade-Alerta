@@ -15,15 +15,13 @@ void main() {
     await app.main();
     await $.pumpAndSettle();
 
-    // 1. Navigate to Register Page
-    await $('Sign up').tap();
+    await $('Criar Conta').tap();
     await $.pumpAndSettle();
 
-    // 🧠 O TRUQUE PARA NÃO SER BURRO: Gerar email único
+    // Generates a unique email to bypass database unique constraints on repeated test runs
     final uniqueId = DateTime.now().millisecondsSinceEpoch;
     final dynamicEmail = 'novo.user+$uniqueId@gmail.com';
 
-    // 2. Fill the registration form com o email dinâmico
     await registerRobot.fillRegistrationForm(
       firstName: 'Novo',
       lastName: 'Utilizador',
@@ -31,13 +29,9 @@ void main() {
       password: 'password123',
     );
 
-    // 3. Submit registration
     await registerRobot.tapSubmit();
 
-    // 4. Perform Login com o MESMO email que acabámos de gerar
     await loginRobot.fullLogin(dynamicEmail, 'password123');
-
-    // 5. Verify we successfully entered the app
     await homeRobot.validateHomeLoaded();
   });
 }

@@ -15,10 +15,8 @@ void main() {
 
     await loginRobot.fullLogin('uat@gmail.com', 'uatuat');
 
-    // Navigate to Map tab
     await homeRobot.tapMapTab();
 
-    // Verify map screen
     await mapRobot.verifyMapIsVisible();
   });
 }

@@ -15,13 +15,10 @@ void main() {
 
     await loginRobot.fullLogin('uat@gmail.com', 'uatuat');
 
-    // Navigate to Recycle tab
     await homeRobot.tapRecycleTab();
 
-    // Perform scan
     await recycleRobot.startScan();
 
-    // Validate result
     await recycleRobot.verifyScanResult();
   });
 }
