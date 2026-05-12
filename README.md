@@ -12,9 +12,9 @@ This Software Development Report, tailored for LEIC-ES-2025-26, provides compreh
 
 It is organised by the following activities: 
 
-* [Business modeling](#Business-Modelling) 
-  * [Product Vision](#Product-Vision)
-  * [Features and Assumptions](#Features-and-Assumptions)
+* [Business modeling](/docs/business-modeling/) 
+  * [Product Vision](/docs/business-modeling/product-vision.md)
+  * [Features and Assumptions](/docs/business-modeling/features-assumptions.md)
 * [Requirements](#Requirements)
   * [User stories](#User-stories)
   * [Domain model](#Domain-model)
