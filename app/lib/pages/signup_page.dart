@@ -250,7 +250,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
                         const SizedBox(height: 15),
                         _terms(),
-                        const SizedBox(height: 25),
+                        const SizedBox(height: 20),
                         _footer("Já tens uma conta? ", "Entrar", () {
                           Navigator.pushReplacement(
                             context,
