@@ -117,14 +117,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // Métodos do Google e Apple permanecem iguais...
-  Future<void> signInWithGoogle() async {
-    /* ... teu código ... */
-  }
-  Future<void> signInWithApple() async {
-    /* ... teu código ... */
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -227,15 +219,7 @@ class _LoginPageState extends State<LoginPage> {
 
                         const SizedBox(height: 15),
                         _terms(),
-                        const SizedBox(height: 25),
-
-                        Row(
-                          children: [
-                            Expanded(child: _social("Google")),
-                            const SizedBox(width: 12),
-                            Expanded(child: _social("Apple")),
-                          ],
-                        ),
+                        //const SizedBox(height: 25),
                         const SizedBox(height: 30),
                         _footer("Não tens conta? ", "Criar Conta", () {
                           Navigator.push(
@@ -307,41 +291,6 @@ class _LoginPageState extends State<LoginPage> {
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 18,
           vertical: 14,
-        ),
-      ),
-    );
-  }
-
-  Widget _social(String type) {
-    return GestureDetector(
-      onTap: isLoading
-          ? null
-          : () {
-              /* login google/apple */
-            },
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Center(
-          child: FittedBox(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (type == "Google")
-                  Image.network(
-                    'https://developers.google.com/identity/images/g-logo.png',
-                    height: 18,
-                  )
-                else
-                  const Icon(Icons.apple, size: 20),
-                const SizedBox(width: 8),
-                Text(type, style: const TextStyle(fontWeight: FontWeight.w500)),
-              ],
-            ),
-          ),
         ),
       ),
     );
