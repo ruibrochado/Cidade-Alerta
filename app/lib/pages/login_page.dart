@@ -219,7 +219,6 @@ class _LoginPageState extends State<LoginPage> {
 
                         const SizedBox(height: 15),
                         _terms(),
-                        //const SizedBox(height: 25),
                         const SizedBox(height: 30),
                         _footer("Não tens conta? ", "Criar Conta", () {
                           Navigator.push(
