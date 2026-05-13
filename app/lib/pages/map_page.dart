@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import '../models/report_data.dart';
 import '../pages/report_detail_page.dart';
 import '../services/issue_service.dart';
+import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 
 class MapPage extends StatefulWidget {
   final IssueService? issueService;
@@ -171,6 +172,7 @@ class _MapPageState extends State<MapPage> {
           point: LatLng(lat, lng),
           width: 44,
           height: 52,
+          alignment: Alignment.topCenter,
           child: GestureDetector(
             onTap: () => _openReportDetails(issue),
             child: const _IssuePin(),
@@ -216,11 +218,9 @@ class _MapPageState extends State<MapPage> {
                   userAgentPackageName: 'com.example.app',
                   retinaMode: MediaQuery.of(context).devicePixelRatio > 1.0,
                 ),
+                // User location — always visible, never clustered
                 MarkerLayer(
                   markers: [
-                    // Issue markers (red)
-                    ..._buildIssueMarkers(),
-                    // User location marker (blue)
                     Marker(
                       point: _currentLocation!,
                       width: 40,
@@ -238,6 +238,34 @@ class _MapPageState extends State<MapPage> {
                       ),
                     ),
                   ],
+                ),
+                // Issue markers — clustered when zoomed out
+                MarkerClusterLayerWidget(
+                  options: MarkerClusterLayerOptions(
+                    maxClusterRadius: 60,
+                    size: const Size(44, 44),
+                    alignment: Alignment.bottomCenter,
+                    markers: _buildIssueMarkers(),
+                    builder: (context, markers) {
+                      return Container(
+                        width: 44,
+                        height: 44,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFEF4444),
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          markers.length.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
