@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../models/report_data.dart';
+import '../widgets/custom_alert_card.dart';
 import '../widgets/primary_button.dart';
 
 class PhotoPage extends StatefulWidget {
@@ -20,7 +21,7 @@ enum PhotoState { idle, taking, processing }
 
 class _PhotoPageState extends State<PhotoPage> {
   final ImagePicker _picker = ImagePicker();
-
+  bool showErrorAlert = false;
   String? _photo;
   PhotoState _state = PhotoState.idle;
 
@@ -96,9 +97,9 @@ class _PhotoPageState extends State<PhotoPage> {
   /// ➡️ Continuar
   void _continue() {
     if (_photo == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Adiciona uma foto primeiro')),
-      );
+      setState(() {
+        showErrorAlert = true;
+      });
       return;
     }
 
@@ -292,6 +293,18 @@ class _PhotoPageState extends State<PhotoPage> {
                 ],
               ),
             ),
+            if (showErrorAlert)
+              CustomAlertCard(
+                icon: Icons.camera_enhance_outlined,
+                iconColor: Colors.red,
+                title: "Falta a fotografia",
+                message:
+                    "Para prosseguires com o reporte, precisas de tirar uma foto do problema.",
+                primaryButtonText: "Entendido",
+                onPrimaryPressed: () {
+                  setState(() => showErrorAlert = false);
+                },
+              ),
           ],
         ),
       ),
