@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:latlong2/latlong.dart' hide Path;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -48,8 +48,6 @@ class _MapPageState extends State<MapPage> {
     if (mounted) {
       setState(() => _isLoading = false);
     }
-    // Initial issue fetch runs after the map has rendered and
-    // _mapController.camera is available, so we wait one frame.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchIssuesByCurrentBounds();
     });
@@ -89,8 +87,6 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
-  /// Called whenever the map camera moves. Debounced by 400 ms to avoid
-  /// hammering the database while the user is still panning or zooming.
   void _onMapPositionChanged(MapCamera camera, bool hasGesture) {
     if (!hasGesture) return;
     _debounceTimer?.cancel();
@@ -173,21 +169,11 @@ class _MapPageState extends State<MapPage> {
       markers.add(
         Marker(
           point: LatLng(lat, lng),
-          width: 40,
-          height: 40,
+          width: 44,
+          height: 52,
           child: GestureDetector(
             onTap: () => _openReportDetails(issue),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.report_problem,
-                color: Colors.red,
-                size: 24,
-              ),
-            ),
+            child: const _IssuePin(),
           ),
         ),
       );
@@ -257,4 +243,67 @@ class _MapPageState extends State<MapPage> {
             ),
     );
   }
+}
+
+/// Teardrop-shaped red location pin with a white warning triangle inside.
+class _IssuePin extends StatelessWidget {
+  const _IssuePin();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(size: const Size(44, 52), painter: _IssuePinPainter());
+  }
+}
+
+class _IssuePinPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double w = size.width;
+    final double h = size.height;
+    final double cx = w / 2;
+    final double r = w / 2;
+
+    final pinPaint = Paint()..color = const Color(0xFFEF4444);
+
+    // Circle (top part of pin) — drawn separately to avoid even-odd fill holes
+    canvas.drawOval(
+      Rect.fromCircle(center: Offset(cx, r), radius: r),
+      pinPaint,
+    );
+
+    // Pointed tip — overlaps the circle bottom slightly to avoid any seam
+    final tipPath = Path()
+      ..moveTo(cx - r * 0.52, r + r * 0.45)
+      ..lineTo(cx, h)
+      ..lineTo(cx + r * 0.52, r + r * 0.45)
+      ..close();
+    canvas.drawPath(tipPath, pinPaint);
+
+    // All icon elements anchored to circle centre
+    final double cy = r;
+
+    // Warning triangle — sized to sit comfortably inside the circle
+    final triPath = Path()
+      ..moveTo(cx, cy - r * 0.40)
+      ..lineTo(cx - r * 0.36, cy + r * 0.26)
+      ..lineTo(cx + r * 0.36, cy + r * 0.26)
+      ..close();
+    canvas.drawPath(triPath, Paint()..color = Colors.white);
+
+    // Exclamation mark
+    final exclPaint = Paint()..color = const Color(0xFFEF4444);
+    // Stem
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(cx - r * 0.065, cy - r * 0.26, r * 0.13, r * 0.32),
+        const Radius.circular(2),
+      ),
+      exclPaint,
+    );
+    // Dot
+    canvas.drawCircle(Offset(cx, cy + r * 0.14), r * 0.075, exclPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
