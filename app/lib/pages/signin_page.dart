@@ -243,7 +243,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
 
-          // 🔴 CARD DE ERRO (MESMO DESIGN DO SIGNUP_PAGE)
+          // CARD DE ERRO (MESMO DESIGN DO SIGNUP_PAGE)
           if (showErrorCard)
             CustomAlertCard(
               icon: Icons.error_outline,
