@@ -5,8 +5,9 @@ class MapRobot {
   final PatrolIntegrationTester $;
   MapRobot(this.$);
 
-  void verifyMapIsVisible() {
-    // We check for the 'Mapa' title in the app bar to confirm we are on the screen
-    expect($('Mapa'), findsOneWidget);
+  // Agora é Future!
+  Future<void> verifyMapIsVisible() async {
+    // Garante que o titulo 'Mapa' está visível no ecrã antes de fechar o teste
+    await $('Mapa').waitUntilVisible();
   }
 }

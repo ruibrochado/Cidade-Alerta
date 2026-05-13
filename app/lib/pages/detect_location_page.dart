@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-
+import 'package:geocoding/geocoding.dart';
 import '../models/report_data.dart';
 import '../widgets/primary_button.dart';
+import '../utils/location_formatter.dart';
 
 class DetectLocationPage extends StatefulWidget {
   const DetectLocationPage({super.key, required this.report});
@@ -21,7 +21,7 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
   double? _latitude;
   double? _longitude;
 
-  String? _street;
+  String? _address;
   String? _city;
   String? _country;
 
@@ -72,31 +72,18 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
 
       final Placemark? place = placemarks.isNotEmpty ? placemarks.first : null;
 
-      final String street = <String?>[place?.street, place?.subThoroughfare]
-          .where((String? value) => value != null && value.trim().isNotEmpty)
-          .cast<String>()
-          .join(', ');
-
-      final List<String> cityCandidates =
-          <String?>[
-                place?.locality,
-                place?.subAdministrativeArea,
-                place?.administrativeArea,
-              ]
-              .where(
-                (String? value) => value != null && value.trim().isNotEmpty,
-              )
-              .cast<String>()
-              .toList();
+      final String? address = buildAddressFromPlacemark(place);
+      final String? city = buildCityFromPlacemark(place);
+      final String? country = buildCountryFromPlacemark(place);
 
       if (!mounted) return;
 
       setState(() {
         _latitude = position.latitude;
         _longitude = position.longitude;
-        _street = street.isEmpty ? null : street;
-        _city = cityCandidates.isEmpty ? null : cityCandidates.first;
-        _country = place?.country;
+        _address = address;
+        _city = city;
+        _country = country;
         _detecting = false;
         _error = '';
       });
@@ -107,7 +94,7 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
         _error = e.toString().replaceFirst('Exception: ', '');
         _latitude = null;
         _longitude = null;
-        _street = null;
+        _address = null;
         _city = null;
         _country = null;
         _detecting = false;
@@ -134,6 +121,9 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
       arguments: widget.report.copyWith(
         latitude: _latitude,
         longitude: _longitude,
+        address: _address,
+        city: _city,
+        country: _country,
       ),
     );
   }
@@ -313,8 +303,8 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
-                                  if (_street != null &&
-                                      _street!.isNotEmpty) ...<Widget>[
+                                  if (_address != null &&
+                                      _address!.isNotEmpty) ...<Widget>[
                                     const Text(
                                       'Rua:',
                                       style: TextStyle(
@@ -324,7 +314,7 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      _street!,
+                                      _address!,
                                       style: const TextStyle(
                                         color: Color(0xFF1F2937),
                                       ),
@@ -332,7 +322,8 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
                                   ],
                                   if (_city != null &&
                                       _city!.isNotEmpty) ...<Widget>[
-                                    if (_street != null && _street!.isNotEmpty)
+                                    if (_address != null &&
+                                        _address!.isNotEmpty)
                                       const SizedBox(height: 12),
                                     const Text(
                                       'Cidade:',
@@ -351,8 +342,8 @@ class _DetectLocationPageState extends State<DetectLocationPage> {
                                   ],
                                   if (_country != null &&
                                       _country!.isNotEmpty) ...<Widget>[
-                                    if ((_street != null &&
-                                            _street!.isNotEmpty) ||
+                                    if ((_address != null &&
+                                            _address!.isNotEmpty) ||
                                         (_city != null && _city!.isNotEmpty))
                                       const SizedBox(height: 12),
                                     const Text(

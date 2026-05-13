@@ -1,5 +1,6 @@
 import 'package:patrol/patrol.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 class ReportRobot {
   final PatrolIntegrationTester $;
@@ -19,7 +20,6 @@ class ReportRobot {
     required String title,
     required String description,
   }) async {
-    // Fill title and description fields
     await $(TextField).at(0).enterText(title);
     await $(TextField).at(1).enterText(description);
   }
@@ -30,59 +30,78 @@ class ReportRobot {
   }
 
   Future<void> takePhoto() async {
-    await $('Tirar Foto').tap();
+    for (int attempt = 0; attempt < 3; attempt++) {
+      await $('Tirar Foto').tap();
 
-    // ignore: deprecated_member_use
-    if (await $.native.isPermissionDialogVisible()) {
-      // ignore: deprecated_member_use
-      await $.native.grantPermissionWhenInUse();
+      if (await $.platform.mobile.isPermissionDialogVisible(
+        timeout: const Duration(seconds: 5),
+      )) {
+        await $.platform.mobile.grantPermissionWhenInUse();
+      }
+
+      await Future.delayed(const Duration(seconds: 4));
+
+      final cameraDidNotOpen = $('Tirar Foto').exists;
+      if (cameraDidNotOpen) {
+        await $.pumpAndSettle();
+        continue;
+      }
+
+      await $.platform.mobile.pressVolumeDown();
+      await Future.delayed(const Duration(seconds: 4));
+
+      // recycle_robot.dart e report_robot.dart
+      try {
+        await $.platform.mobile.tap(Selector(text: 'OK'));
+      } catch (e) {
+        try {
+          await $.platform.mobile.tap(Selector(contentDescription: 'Done'));
+        } catch (e2) {
+          await $.platform.android.pressBack(); // ← android-only
+        }
+      }
+
+      await $.pumpAndSettle();
+      return;
     }
 
-    await Future.delayed(const Duration(seconds: 4));
+    await $('Continuar').tap();
+    await $.pumpAndSettle();
+  }
 
-    // ignore: deprecated_member_use
-    await $.native.pressVolumeDown();
+  Future<void> handleDetectLocation() async {
+    if (await $.platform.mobile.isPermissionDialogVisible(
+      timeout: const Duration(seconds: 5),
+    )) {
+      await $.platform.mobile.grantPermissionWhenInUse();
+    }
 
-    await Future.delayed(const Duration(seconds: 4));
+    await Future.delayed(const Duration(seconds: 3));
+    await $.pumpAndSettle();
 
-    try {
-      await $.platformAutomator.tap(Selector(text: 'OK'));
-    } catch (e) {
-      try {
-        await $.platformAutomator.tap(Selector(contentDescription: 'Done'));
-      } catch (e2) {
-        // ignore: deprecated_member_use
-        await $.native.pressBack();
-      }
+    if ($('Continuar').exists) {
+      await $('Continuar').tap();
+    } else {
+      await $('Escolher no mapa').tap();
     }
 
     await $.pumpAndSettle();
   }
 
-  Future<void> handleLocationAndConfirm() async {
-    // ignore: deprecated_member_use
-    if (await $.native.isPermissionDialogVisible()) {
-      // ignore: deprecated_member_use
-      await $.native.grantPermissionWhenInUse();
-    }
-
-    await Future.delayed(const Duration(seconds: 2));
+  Future<void> handleAdjustLocation() async {
+    await Future.delayed(const Duration(seconds: 3));
+    FocusManager.instance.primaryFocus?.unfocus();
     await $.pumpAndSettle();
 
-    final hasContinuar = $('Continuar').exists;
+    await $.tester.dragFrom(const Offset(200, 600), const Offset(0, -400));
+    await $.pumpAndSettle();
 
-    if (hasContinuar) {
-      await $('Continuar').last.tap();
-    } else {
-      await $('Confirmar localização').scrollTo(view: $(Scrollable).last).tap();
-    }
-
+    await $('Confirmar localização').tap();
     await $.pumpAndSettle();
   }
 
   Future<void> finalSubmit() async {
     await $('Enviar Denúncia').scrollTo(view: $(Scrollable).first).tap();
-
     await $.pumpAndSettle();
   }
 }

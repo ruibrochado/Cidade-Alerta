@@ -18,6 +18,9 @@ class _ProfilePageState extends State<ProfilePage> {
   String _email = 'sem email';
   String? _profilePhotoUrl;
 
+  int _reportedIssuesCount = 0;
+  int _votedIssuesCount = 0;
+
   @override
   void initState() {
     super.initState();
@@ -32,6 +35,16 @@ class _ProfilePageState extends State<ProfilePage> {
         setState(() => _isLoading = false);
         return;
       }
+
+      final reportedIssues = await _supabase
+          .from('issues')
+          .select('id')
+          .eq('user_id', user.id);
+
+      final votedIssues = await _supabase
+          .from('issue_votes')
+          .select('id')
+          .eq('user_id', user.id);
 
       final profile = await _supabase
           .from('profiles')
@@ -50,6 +63,8 @@ class _ProfilePageState extends State<ProfilePage> {
         _email = user.email ?? 'sem email';
         _profilePhotoUrl = profile?['profile_photo']?.toString();
         _isLoading = false;
+        _reportedIssuesCount = reportedIssues.length;
+        _votedIssuesCount = votedIssues.length;
       });
     } catch (error) {
       debugPrint('LOAD PROFILE ERROR: $error');
@@ -210,18 +225,18 @@ class _ProfilePageState extends State<ProfilePage> {
                           ],
                         ),
                         const SizedBox(height: 26),
-                        const Row(
+                        Row(
                           children: [
                             Expanded(
                               child: _StatsCard(
-                                value: '5',
+                                value: _reportedIssuesCount.toString(),
                                 label: 'Denúncias reportadas',
                               ),
                             ),
-                            SizedBox(width: 16),
+                            const SizedBox(width: 16),
                             Expanded(
                               child: _StatsCard(
-                                value: '20',
+                                value: _votedIssuesCount.toString(),
                                 label: 'Denúncias votadas',
                               ),
                             ),
