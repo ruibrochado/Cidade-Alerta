@@ -12,13 +12,15 @@ This Software Development Report, tailored for LEIC-ES-2025-26, provides compreh
 
 It is organised by the following activities: 
 
+## Documentation
+
 * [Business modeling](/docs/business-modeling/) 
   * [Product Vision](/docs/business-modeling/product-vision.md)
   * [Features and Assumptions](/docs/business-modeling/features-assumptions.md)
 * [Requirements](/docs/requirements/)
   * [User stories](/docs/requirements/user-stories.md)
   * [Domain model](/docs/requirements/domain-model.md)
-  * [User interfaces](/docs/requirements/)
+  * [User interfaces](/docs/requirements/user-interface.md)
   * [Validate Requirements](/docs/requirements/validate-requirements.md)
 * [Architecture and Design](/docs/architecture-design/)
   * [Logical architecture](/docs/architecture-design/logical-architecture.md)
@@ -32,6 +34,10 @@ It is organised by the following activities:
   * [Sprint 1](/docs/project-management/sprint1.md)
   * [Sprint 2](/docs/project-management/sprint2.md)
 
+## Development
+
+* [Development Setup](/docs/setup/development-setup.md)
+
 Contributions are expected to be made exclusively by the initial team, but we may open them to the community, after the course, in all areas and topics: requirements, technologies, development, experimentation, testing, etc.
 
 Please contact us!
@@ -43,7 +49,6 @@ Thank you!
 * Ricardo Alves (<u>up202404099@up.pt</u>)
 * Rui Brochado (<u>up202405335@up.pt</u>)
 
-<!-- TO DO - user interfaces>
-<!-- video da app>
+<!-- video da app >
 
 ---
