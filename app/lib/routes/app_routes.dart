@@ -6,7 +6,7 @@ import '../pages/confirm_report_page.dart';
 import '../pages/detect_location_page.dart';
 import '../pages/email_test_page.dart';
 import '../pages/issue_category_page.dart';
-import '../pages/login_page.dart';
+import '../pages/signin_page.dart';
 import '../pages/main_navigation_screen.dart';
 import '../pages/edit_profile_page.dart';
 
