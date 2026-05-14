@@ -3,6 +3,7 @@ import 'package:app/widgets/navbar.dart';
 import 'feed_page.dart';
 import 'recycling_scanner_page.dart';
 import 'map_page.dart';
+import 'activity_page.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   final int initialIndex;
@@ -20,7 +21,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     const FeedPage(),
     const RecyclingScannerPage(),
     const MapPage(),
-    const _PlaceholderPage(title: 'Atividade'),
+    const ActivityPage(),
   ];
 
   @override
@@ -48,27 +49,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         currentIndex: _currentIndex,
         onTabSelected: _onTabSelected,
         onReportTap: _openReportFlow,
-      ),
-    );
-  }
-}
-
-class _PlaceholderPage extends StatelessWidget {
-  final String title;
-
-  const _PlaceholderPage({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFFF7F7F7),
-      child: SafeArea(
-        child: Center(
-          child: Text(
-            title,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
-          ),
-        ),
       ),
     );
   }

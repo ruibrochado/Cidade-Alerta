@@ -125,6 +125,47 @@ class IssueService {
     }
   }
 
+  Future<List<Map<String, dynamic>>> fetchUserActivity() async {
+    final user = supabase.auth.currentUser;
+
+    if (user == null) {
+      throw Exception('Utilizador não autenticado');
+    }
+
+    try {
+      // Vamos buscar comentários feitos nas tuas denúncias, ignorando os teus próprios comentários
+      final response = await supabase
+          .from('comments')
+          .select('''
+            id,
+            content,
+            created_at,
+            user_id,
+            issues!inner (
+              id,
+              title,
+              user_id
+            ),
+            profiles!inner (
+              first_name,
+              last_name,
+              profile_photo
+            )
+          ''')
+          // Só queremos comentários em denúncias onde o dono é o utilizador atual
+          .eq('issues.user_id', user.id)
+          // Não queremos ser notificados dos nossos próprios comentários
+          .neq('user_id', user.id)
+          .order('created_at', ascending: false) // Mais recentes primeiro
+          .limit(20); // Limita às últimas 20 atividades para não pesar
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      debugPrint('Erro a buscar atividade: $e');
+      return [];
+    }
+  }
+
   Future<int> fetchIssuesCount({
     List<String>? categories,
     List<String>? cities,
