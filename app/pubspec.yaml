@@ -13,6 +13,7 @@ dependencies:
     sdk: flutter
   flutter_dotenv: ^6.0.0
   flutter_map: ^8.2.2
+  flutter_map_marker_cluster: ^8.2.2
   image_picker: ^1.2.1
   latlong2: ^0.9.1
   supabase_flutter: ^2.12.2
@@ -26,6 +27,7 @@ dependencies:
   path_provider: ^2.1.5
   cached_network_image: ^3.4.1
   sqflite: ^2.3.0
+  syncfusion_flutter_pdfviewer: ^33.2.6
 
 dev_dependencies:
   flutter_test:
@@ -67,3 +69,5 @@ flutter:
   assets:
     - .env
     - images/logo_login_page.png
+    - assets/documents/terms-privacy.pdf
+

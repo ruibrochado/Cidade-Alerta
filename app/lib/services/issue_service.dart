@@ -185,14 +185,6 @@ class IssueService {
         query = query.or(orParts);
       }
 
-      // Apply sort-mode specific ordering and filtering:
-      //
-      // hot  — issues from the last 7 days, ranked by score then recency.
-      //        Mirrors Reddit's "Hot": relevance is time-bounded.
-      //
-      // new  — purely chronological, newest first.
-      //
-      // top  — all-time highest score, ties broken by recency.
       switch (sortMode) {
         case 'new':
           final List<dynamic> data = await query
@@ -222,6 +214,32 @@ class IssueService {
       }
     } catch (e) {
       throw Exception('Error fetching issues: $e');
+    }
+  }
+
+  /// Fetches all issues whose coordinates fall within the given map bounds.
+  /// No pagination — returns every issue visible in the viewport so the map
+  /// always shows the full picture as the user pans and zooms.
+  Future<List<Map<String, dynamic>>> fetchIssuesByBounds({
+    required double minLat,
+    required double maxLat,
+    required double minLng,
+    required double maxLng,
+  }) async {
+    try {
+      final List<dynamic> data = await supabase
+          .from('issues')
+          .select()
+          .neq('title', 'Test issue')
+          .gte('latitude', minLat)
+          .lte('latitude', maxLat)
+          .gte('longitude', minLng)
+          .lte('longitude', maxLng)
+          .order('created_at', ascending: false);
+
+      return List<Map<String, dynamic>>.from(data);
+    } catch (e) {
+      throw Exception('Error fetching issues by bounds: $e');
     }
   }
 

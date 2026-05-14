@@ -243,7 +243,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
 
-          // 🔴 CARD DE ERRO (MESMO DESIGN DO SIGNUP_PAGE)
+          // CARD DE ERRO (MESMO DESIGN DO SIGNUP_PAGE)
           if (showErrorCard)
             CustomAlertCard(
               icon: Icons.error_outline,
@@ -303,12 +303,17 @@ class _LoginPageState extends State<LoginPage> {
           "Ao clicar neste botão, concordas com os nossos ",
           style: TextStyle(fontSize: 11, color: Colors.grey),
         ),
-        Text(
-          "Termos e Condições",
-          style: TextStyle(
-            fontSize: 11,
-            color: buttonGreen,
-            fontWeight: FontWeight.w600,
+        GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(context, '/privacy-terms');
+          },
+          child: Text(
+            "Termos e Condições",
+            style: TextStyle(
+              fontSize: 11,
+              color: buttonGreen,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
