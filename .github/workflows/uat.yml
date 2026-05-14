@@ -66,12 +66,7 @@ jobs:
           api-level: 33
           arch: x86_64
           profile: Nexus 6
-          script: |
-            cd app
-            # 3. Alterado: Apontar para o ficheiro de testes novo que criámos!
-            patrol test \
-              --target patrol_test/uat/map_test.dart \
-              --reporter json > ../uat-results.json || true
+          script: cd app && patrol test --target patrol_test/uat/map_test.dart --reporter json > ../uat-results.json || true
 
       - name: Generate UAT HTML Report
         if: always()
