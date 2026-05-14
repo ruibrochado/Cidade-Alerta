@@ -108,7 +108,7 @@ class _MapPageState extends State<MapPage> {
       if (!mounted) return;
       setState(() => _issues = issues);
     } catch (_) {
-      // Silently fail — map still works without issue markers
+      // Falha silenciosa
     }
   }
 
@@ -189,7 +189,7 @@ class _MapPageState extends State<MapPage> {
     final String stadiaApiKey = dotenv.env['STADIA_MAPS_API_KEY'] ?? '';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Mapa')),
+      // AppBar removido para o mapa ocupar tudo
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFF16A34A)),
@@ -220,7 +220,6 @@ class _MapPageState extends State<MapPage> {
                       userAgentPackageName: 'com.example.app',
                       retinaMode: MediaQuery.of(context).devicePixelRatio > 1.0,
                     ),
-                    // User location — always visible, never clustered
                     MarkerLayer(
                       markers: [
                         Marker(
@@ -241,7 +240,6 @@ class _MapPageState extends State<MapPage> {
                         ),
                       ],
                     ),
-                    // Issue markers — clustered when zoomed out
                     MarkerClusterLayerWidget(
                       options: MarkerClusterLayerOptions(
                         maxClusterRadius: 60,
@@ -271,8 +269,11 @@ class _MapPageState extends State<MapPage> {
                     ),
                   ],
                 ),
+                // Botão de recentrar posicionado no topo direito
                 Positioned(
-                  top: 16,
+                  top:
+                      MediaQuery.of(context).padding.top +
+                      16, // Respeita a área da "notch"
                   right: 16,
                   child: _RecenterButton(
                     onTap: () {
@@ -288,7 +289,6 @@ class _MapPageState extends State<MapPage> {
   }
 }
 
-/// Teardrop-shaped red location pin with a white warning triangle inside.
 class _IssuePin extends StatelessWidget {
   const _IssuePin();
 
@@ -308,13 +308,11 @@ class _IssuePinPainter extends CustomPainter {
 
     final pinPaint = Paint()..color = const Color(0xFFEF4444);
 
-    // Circle (top part of pin) — drawn separately to avoid even-odd fill holes
     canvas.drawOval(
       Rect.fromCircle(center: Offset(cx, r), radius: r),
       pinPaint,
     );
 
-    // Pointed tip — overlaps the circle bottom slightly to avoid any seam
     final tipPath = Path()
       ..moveTo(cx - r * 0.52, r + r * 0.45)
       ..lineTo(cx, h)
@@ -322,10 +320,8 @@ class _IssuePinPainter extends CustomPainter {
       ..close();
     canvas.drawPath(tipPath, pinPaint);
 
-    // All icon elements anchored to circle centre
     final double cy = r;
 
-    // Warning triangle — sized to sit comfortably inside the circle
     final triPath = Path()
       ..moveTo(cx, cy - r * 0.40)
       ..lineTo(cx - r * 0.36, cy + r * 0.26)
@@ -333,9 +329,7 @@ class _IssuePinPainter extends CustomPainter {
       ..close();
     canvas.drawPath(triPath, Paint()..color = Colors.white);
 
-    // Exclamation mark
     final exclPaint = Paint()..color = const Color(0xFFEF4444);
-    // Stem
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(cx - r * 0.065, cy - r * 0.26, r * 0.13, r * 0.32),
@@ -343,7 +337,6 @@ class _IssuePinPainter extends CustomPainter {
       ),
       exclPaint,
     );
-    // Dot
     canvas.drawCircle(Offset(cx, cy + r * 0.14), r * 0.075, exclPaint);
   }
 
@@ -376,7 +369,7 @@ class _RecenterButton extends StatelessWidget {
         ),
         child: const Icon(
           Icons.my_location,
-          color: Color(0xFF16A34A), // green to match your app theme
+          color: Color(0xFF16A34A),
           size: 24,
         ),
       ),
