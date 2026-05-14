@@ -1,0 +1,27 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches: [ "main", "develop" ]
+    paths-ignore:
+      - '**/*.md'
+      - '.idea/**'
+      - 'images/**'
+
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - '**/*.md'
+      - '.idea/**'
+      - 'images/**'
+
+jobs:
+  quality:
+    name: Quality & Tests
+    uses: ./.github/workflows/quality.yml
+
+  build:
+    name: Build
+    needs: quality
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/build.yml
