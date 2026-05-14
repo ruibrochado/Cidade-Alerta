@@ -275,10 +275,6 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
           ),
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.close),
-          ),
         ],
       ),
     );
