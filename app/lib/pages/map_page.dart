@@ -225,6 +225,7 @@ class _MapPageState extends State<MapPage> {
         height: 52,
         alignment: Alignment.topCenter,
         child: GestureDetector(
+          key: const Key('ecocenter_marker'),
           onTap: () => _openEcocenterDetails(eco),
           child: const _EcocenterPin(),
         ),
@@ -303,8 +304,11 @@ class _MapPageState extends State<MapPage> {
                         size: const Size(44, 44),
                         alignment: Alignment.bottomCenter,
                         markers: _buildEcocenterMarkers(),
-                        builder: (context, markers) =>
-                            _buildCluster(markers, const Color(0xFF16A34A)),
+                        builder: (context, markers) => _buildCluster(
+                          markers,
+                          const Color(0xFF16A34A),
+                          key: const Key('ecocenter_cluster'),
+                        ),
                       ),
                     ),
                   ],
@@ -325,8 +329,9 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  Widget _buildCluster(List<Marker> markers, Color color) {
+  Widget _buildCluster(List<Marker> markers, Color color, {Key? key}) {
     return Container(
+      key: key,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       alignment: Alignment.center,
       child: Text(

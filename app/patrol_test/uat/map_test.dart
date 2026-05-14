@@ -3,10 +3,10 @@ import 'package:app/main.dart' as app;
 import '../robots/login_robot.dart';
 import '../robots/home_robot.dart';
 import '../robots/map_robot.dart';
-import '../robots/social_robot.dart'; // <--- Importamos o teu SocialRobot!
+import '../robots/social_robot.dart';
 
 void main() {
-  patrolTest('UAT: Tapping an issue pin on the map opens details', (
+  patrolTest('UAT: Tapping map pins opens respective details', (
     PatrolIntegrationTester $,
   ) async {
     final loginRobot = LoginRobot($);
@@ -22,10 +22,13 @@ void main() {
     await homeRobot.tapMapTab();
     await mapRobot.verifyMapIsVisible();
 
+    // 1. Issue Pin Flow (Red)
     await mapRobot.tapFirstIssuePin();
-
     await socialRobot.verifyReportDetailsVisible();
+    await socialRobot.closeComments(); // Ensure sheet is fully closed
 
-    await socialRobot.closeComments();
+    // 2. Ecocenter Pin Flow (Green)
+    await mapRobot.findAndTapEcocenterPin();
+    await mapRobot.verifyEcocenterDetailsVisible();
   });
 }
