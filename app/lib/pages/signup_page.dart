@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'login_page.dart';
+import '../widgets/custom_alert_card.dart';
+import 'signin_page.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -22,6 +23,8 @@ class _SignUpPageState extends State<SignUpPage> {
   bool isLoading = false;
   String errorMessage = '';
   bool isFormValid = false;
+  bool showErrorCard = false;
+  bool showSuccessCard = false; // ✅ NOVO
 
   final Color topGreen = const Color(0xFFCDE5CB);
   final Color buttonGreen = const Color(0xFF16A34A);
@@ -46,6 +49,7 @@ class _SignUpPageState extends State<SignUpPage> {
         emailController.text.isNotEmpty &&
         passwordController.text.isNotEmpty &&
         confirmPasswordController.text.isNotEmpty;
+
     if (isValid != isFormValid) {
       setState(() => isFormValid = isValid);
     }
@@ -65,7 +69,10 @@ class _SignUpPageState extends State<SignUpPage> {
     if (!isFormValid) return;
 
     if (passwordController.text != confirmPasswordController.text) {
-      setState(() => errorMessage = "As palavras-passe não coincidem.");
+      setState(() {
+        errorMessage = "As palavras-passe não coincidem.";
+        showErrorCard = true;
+      });
       return;
     }
 
@@ -84,24 +91,54 @@ class _SignUpPageState extends State<SignUpPage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Conta criada com sucesso!')),
-      );
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-      );
+      // ✅ MOSTRA CARD DE SUCESSO
+      setState(() => showSuccessCard = true);
     } catch (e) {
-      setState(() => errorMessage = "Erro ao criar conta.");
+      String message = "Erro ao criar conta.";
+
+      final error = e.toString().toLowerCase();
+
+      // 🔥 MELHOR DETEÇÃO
+      if (error.contains("email-already-in-use") ||
+          error.contains("already exists") ||
+          error.contains("email exists")) {
+        message = "Este email já está registado.";
+      } else if (error.contains("invalid-email")) {
+        message = "O email introduzido é inválido.";
+      } else if (error.contains("weak-password")) {
+        message = "A palavra-passe é demasiado fraca.";
+      } else if (error.contains("network")) {
+        message = "Sem ligação à internet.";
+      } else {
+        message = "Não foi possível criar a conta. Tenta novamente.";
+      }
+
+      setState(() {
+        errorMessage = message;
+        showErrorCard = true;
+      });
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
   }
 
+  void _closeError() {
+    setState(() => showErrorCard = false);
+  }
+
+  void _closeSuccess() {
+    setState(() => showSuccessCard = false);
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           Column(
@@ -112,6 +149,9 @@ class _SignUpPageState extends State<SignUpPage> {
           ),
 
           SingleChildScrollView(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
             child: Column(
               children: [
                 const SizedBox(height: 50),
@@ -127,6 +167,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 20),
 
                 Padding(
@@ -138,7 +179,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.55),
+                          color: Colors.black.withValues(alpha: 0.04),
                           blurRadius: 25,
                           offset: const Offset(0, 10),
                         ),
@@ -173,18 +214,6 @@ class _SignUpPageState extends State<SignUpPage> {
                         const SizedBox(height: 15),
                         _label("Confirmar Palavra-Passe"),
                         _input(confirmPasswordController, true, "••••••••"),
-
-                        if (errorMessage.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 10),
-                            child: Text(
-                              errorMessage,
-                              style: const TextStyle(
-                                color: Colors.red,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
 
                         const SizedBox(height: 25),
 
@@ -222,16 +251,6 @@ class _SignUpPageState extends State<SignUpPage> {
                         const SizedBox(height: 15),
                         _terms(),
                         const SizedBox(height: 20),
-
-                        Row(
-                          children: [
-                            Expanded(child: _social("Google")),
-                            const SizedBox(width: 12),
-                            Expanded(child: _social("Apple")),
-                          ],
-                        ),
-
-                        const SizedBox(height: 25),
                         _footer("Já tens uma conta? ", "Entrar", () {
                           Navigator.pushReplacement(
                             context,
@@ -240,20 +259,37 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                           );
                         }),
-
-                        // O FOOTER QUE FALTAVA:
-                        const SizedBox(height: 10),
-                        _footer("És um trabalhador municipal? ", "Entrar", () {
-                          // Ação para login municipal
-                        }),
                       ],
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 50),
               ],
             ),
           ),
+
+          // 🔴 ERROR CARD
+          if (showErrorCard)
+            CustomAlertCard(
+              icon: Icons.error_outline,
+              iconColor: Colors.red,
+              title: "Erro ao criar conta",
+              message: "Email existente ou palavra-passe fora dos requisitos",
+              primaryButtonText: "OK",
+              onPrimaryPressed: _closeError,
+            ),
+
+          // 🟢 SUCCESS CARD
+          if (showSuccessCard)
+            CustomAlertCard(
+              icon: Icons.check_circle_outline,
+              iconColor: buttonGreen,
+              title: "Conta criada com sucesso",
+              message: "Agora já podes iniciar sessão.",
+              primaryButtonText: "OK",
+              onPrimaryPressed: _closeSuccess,
+            ),
         ],
       ),
     );
@@ -294,32 +330,6 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Widget _social(String type) {
-    return Container(
-      height: 48,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Center(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (type == "Google")
-              Image.network(
-                'https://developers.google.com/identity/images/g-logo.png',
-                height: 18,
-              )
-            else
-              const Icon(Icons.apple, size: 20),
-            const SizedBox(width: 8),
-            Text(type, style: const TextStyle(fontWeight: FontWeight.w500)),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _terms() {
     return Wrap(
       alignment: WrapAlignment.center,
@@ -327,14 +337,18 @@ class _SignUpPageState extends State<SignUpPage> {
         const Text(
           "Ao clicar neste botão, concordas com os nossos ",
           style: TextStyle(fontSize: 11, color: Colors.grey),
-          textAlign: TextAlign.center,
         ),
-        Text(
-          "Termos e Condições",
-          style: TextStyle(
-            fontSize: 11,
-            color: buttonGreen,
-            fontWeight: FontWeight.w600,
+        GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(context, '/privacy-terms');
+          },
+          child: Text(
+            "Termos e Condições",
+            style: TextStyle(
+              fontSize: 11,
+              color: buttonGreen,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],

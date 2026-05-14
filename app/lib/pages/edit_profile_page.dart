@@ -1,8 +1,10 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../widgets/custom_alert_card.dart';
+import '../widgets/success_banner.dart';
+import 'profile_page.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -20,7 +22,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _lastNameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool showErrorCard = false;
+  bool showSuccessBanner = false;
 
+  String errorMessage = '';
   bool _isLoading = true;
   bool _isSaving = false;
   bool _showPassword = false;
@@ -42,6 +47,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  void _closeErrorCard() {
+    setState(() => showErrorCard = false);
+  }
+
+  void showSuccessUpdate() {
+    setState(() => showSuccessBanner = true);
+
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() => showSuccessBanner = false);
+      }
+    });
   }
 
   Future<void> _loadProfile() async {
@@ -139,9 +158,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
         _confirmPasswordController.clear();
       });
 
-      _showSnackBar('Profile updated successfully.');
+      showSuccessUpdate();
+
+      Future.delayed(const Duration(milliseconds: 1200), () {
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const ProfilePage()),
+        );
+      });
     } catch (_) {
-      _showSnackBar('Failed to update profile.');
+      setState(() {
+        errorMessage = 'Falha ao atualizar perfil.';
+        showErrorCard = true;
+      });
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);
@@ -173,189 +203,269 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 28),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 12),
-                      Row(
+
+      body: Stack(
+        children: [
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SafeArea(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 28),
+
+                    child: Form(
+                      key: _formKey,
+
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+
                         children: [
-                          IconButton(
-                            onPressed: () => Navigator.pop(context),
-                            icon: const Icon(
-                              Icons.arrow_back,
+                          const SizedBox(height: 12),
+
+                          Row(
+                            children: [
+                              IconButton(
+                                onPressed: () => Navigator.pop(context),
+
+                                icon: const Icon(
+                                  Icons.arrow_back,
+                                  color: Color(0xFF00112C),
+                                ),
+                              ),
+
+                              const Expanded(
+                                child: Text(
+                                  'Editar Perfil',
+                                  textAlign: TextAlign.center,
+
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF00112C),
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(width: 48),
+                            ],
+                          ),
+
+                          const SizedBox(height: 44),
+
+                          Center(
+                            child: Stack(
+                              children: [
+                                CircleAvatar(
+                                  radius: 54,
+                                  backgroundColor: const Color(0xFFF1F1F1),
+                                  backgroundImage: _getProfileImage(),
+
+                                  child: _getProfileImage() == null
+                                      ? const Icon(
+                                          Icons.person,
+                                          size: 54,
+                                          color: Color(0xFF9CA3AF),
+                                        )
+                                      : null,
+                                ),
+
+                                Positioned(
+                                  right: 2,
+                                  bottom: 4,
+
+                                  child: InkWell(
+                                    onTap: _pickProfileImage,
+                                    borderRadius: BorderRadius.circular(24),
+
+                                    child: Container(
+                                      padding: const EdgeInsets.all(10),
+
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFF111827),
+                                        shape: BoxShape.circle,
+                                      ),
+
+                                      child: const Icon(
+                                        Icons.camera_alt_outlined,
+                                        size: 18,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 38),
+
+                          _buildProfileField(
+                            label: 'Primeiro Nome',
+                            controller: _firstNameController,
+                            hintText: 'Maria',
+                            textInputAction: TextInputAction.next,
+                            validatorMessage: 'Introduza o primeiro nome.',
+                          ),
+
+                          const SizedBox(height: 22),
+
+                          _buildProfileField(
+                            label: 'Apelido',
+                            controller: _lastNameController,
+                            hintText: 'Silva',
+                            textInputAction: TextInputAction.next,
+                            validatorMessage: 'Introduza o apelido.',
+                          ),
+
+                          const SizedBox(height: 22),
+
+                          const Text(
+                            'Password',
+
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                               color: Color(0xFF00112C),
                             ),
                           ),
-                          const Expanded(
-                            child: Text(
-                              'Editar Perfil',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF00112C),
+
+                          const SizedBox(height: 10),
+
+                          _buildPasswordField(
+                            controller: _passwordController,
+                            hintText: 'Digite a nova password',
+                            showPassword: _showPassword,
+
+                            onToggle: () {
+                              setState(() => _showPassword = !_showPassword);
+                            },
+
+                            validator: (value) {
+                              final password = value?.trim() ?? '';
+
+                              if (password.isEmpty) {
+                                return null;
+                              }
+
+                              if (password.length < 6) {
+                                return 'A password deve ter pelo menos 6 caracteres.';
+                              }
+
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          _buildPasswordField(
+                            controller: _confirmPasswordController,
+                            hintText: 'Confirme a nova password',
+                            showPassword: _showConfirmPassword,
+
+                            onToggle: () {
+                              setState(
+                                () => _showConfirmPassword =
+                                    !_showConfirmPassword,
+                              );
+                            },
+
+                            validator: (value) {
+                              final password = _passwordController.text.trim();
+
+                              final confirmPassword = value?.trim() ?? '';
+
+                              if (password.isEmpty && confirmPassword.isEmpty) {
+                                return null;
+                              }
+
+                              if (confirmPassword != password) {
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  _,
+                                ) {
+                                  if (mounted) {
+                                    setState(() {
+                                      errorMessage =
+                                          'As passwords não coincidem.';
+
+                                      showErrorCard = true;
+                                    });
+                                  }
+                                });
+
+                                return '';
+                              }
+
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 40),
+
+                          SizedBox(
+                            height: 56,
+
+                            child: ElevatedButton(
+                              onPressed: _isSaving ? null : _saveProfile,
+
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF08A83D),
+
+                                foregroundColor: Colors.white,
+
+                                disabledBackgroundColor: const Color(
+                                  0xFF08A83D,
+                                ).withValues(alpha: 0.55),
+
+                                elevation: 0,
+
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
                               ),
+
+                              child: _isSaving
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Guardar Alterações',
+
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                             ),
                           ),
-                          const SizedBox(width: 48),
+
+                          const SizedBox(height: 32),
                         ],
                       ),
-                      const SizedBox(height: 44),
-                      Center(
-                        child: Stack(
-                          children: [
-                            CircleAvatar(
-                              radius: 54,
-                              backgroundColor: const Color(0xFFF1F1F1),
-                              backgroundImage: _getProfileImage(),
-                              child: _getProfileImage() == null
-                                  ? const Icon(
-                                      Icons.person,
-                                      size: 54,
-                                      color: Color(0xFF9CA3AF),
-                                    )
-                                  : null,
-                            ),
-                            Positioned(
-                              right: 2,
-                              bottom: 4,
-                              child: InkWell(
-                                onTap: _pickProfileImage,
-                                borderRadius: BorderRadius.circular(24),
-                                child: Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF111827),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.camera_alt_outlined,
-                                    size: 18,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 38),
-                      _buildProfileField(
-                        label: 'Primeiro Nome',
-                        controller: _firstNameController,
-                        hintText: 'Maria',
-                        textInputAction: TextInputAction.next,
-                        validatorMessage: 'Introduza o primeiro nome.',
-                      ),
-                      const SizedBox(height: 22),
-                      _buildProfileField(
-                        label: 'Apelido',
-                        controller: _lastNameController,
-                        hintText: 'Silva',
-                        textInputAction: TextInputAction.next,
-                        validatorMessage: 'Introduza o apelido.',
-                      ),
-                      const SizedBox(height: 22),
-                      const Text(
-                        'Password',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF00112C),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      _buildPasswordField(
-                        controller: _passwordController,
-                        hintText: 'Digite a nova password',
-                        showPassword: _showPassword,
-                        onToggle: () {
-                          setState(() => _showPassword = !_showPassword);
-                        },
-                        validator: (value) {
-                          final password = value?.trim() ?? '';
-
-                          if (password.isEmpty) return null;
-
-                          if (password.length < 6) {
-                            return 'A password deve ter pelo menos 6 caracteres.';
-                          }
-
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      _buildPasswordField(
-                        controller: _confirmPasswordController,
-                        hintText: 'Confirme a nova password',
-                        showPassword: _showConfirmPassword,
-                        onToggle: () {
-                          setState(
-                            () => _showConfirmPassword = !_showConfirmPassword,
-                          );
-                        },
-                        validator: (value) {
-                          final password = _passwordController.text.trim();
-                          final confirmPassword = value?.trim() ?? '';
-
-                          if (password.isEmpty && confirmPassword.isEmpty) {
-                            return null;
-                          }
-
-                          if (confirmPassword != password) {
-                            return 'As passwords não coincidem.';
-                          }
-
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 40),
-                      SizedBox(
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: _isSaving ? null : _saveProfile,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF08A83D),
-                            foregroundColor: Colors.white,
-                            disabledBackgroundColor: const Color(
-                              0xFF08A83D,
-                            ).withValues(alpha: 0.55),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          child: _isSaving
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text(
-                                  'Guardar Alterações',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+
+          // 🔴 CUSTOM ALERT CARD
+          if (showErrorCard)
+            CustomAlertCard(
+              icon: Icons.error_outline,
+              iconColor: Colors.red,
+              title: "Erro ao atualizar perfil",
+              message: errorMessage,
+              primaryButtonText: "OK",
+              onPrimaryPressed: _closeErrorCard,
             ),
+
+          // 🟢 SUCCESS BANNER
+          if (showSuccessBanner)
+            const SuccessBanner(message: "Perfil atualizado com sucesso!"),
+        ],
+      ),
     );
   }
 

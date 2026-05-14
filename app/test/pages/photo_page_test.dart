@@ -1,3 +1,4 @@
+import 'package:app/widgets/custom_alert_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:app/models/report_data.dart';
@@ -30,16 +31,18 @@ void main() {
     );
 
     testWidgets(
-      'Should show SnackBar if the user tries to continue without taking a photo',
+      'Should show error alert if user tries to continue without taking a photo',
       (WidgetTester tester) async {
         await setupPage(tester);
 
         final buttonFinder = find.byType(PrimaryButton);
 
         await tester.tap(buttonFinder);
-        await tester.pumpAndSettle();
+        await tester.pump();
 
-        expect(find.text('Adiciona uma foto primeiro'), findsOneWidget);
+        expect(find.byType(CustomAlertCard), findsOneWidget);
+
+        expect(find.text('Falta a fotografia'), findsOneWidget);
       },
     );
   });
