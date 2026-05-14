@@ -5,9 +5,12 @@ import '../services/issue_service.dart';
 
 class ReportDetailSheet extends StatefulWidget {
   final ReportData report;
-
-  const ReportDetailSheet({super.key, required this.report});
-
+  final String? highlightCommentId;
+  const ReportDetailSheet({
+    super.key,
+    required this.report,
+    this.highlightCommentId,
+  });
   @override
   State<ReportDetailSheet> createState() => _ReportDetailSheetState();
 }
@@ -15,6 +18,7 @@ class ReportDetailSheet extends StatefulWidget {
 class _ReportDetailSheetState extends State<ReportDetailSheet> {
   final IssueService _issueService = IssueService();
   final TextEditingController _commentController = TextEditingController();
+  String? _activeHighlightId;
 
   List<Map<String, dynamic>> _comments = [];
   bool _isLoading = true;
@@ -36,8 +40,18 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
   @override
   void initState() {
     super.initState();
+    _activeHighlightId = widget.highlightCommentId;
     _loadCurrentUserPhoto();
     _loadComments();
+    if (_activeHighlightId != null) {
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted) {
+          setState(() {
+            _activeHighlightId = null; // O cinza desaparece aqui
+          });
+        }
+      });
+    }
   }
 
   @override
@@ -412,59 +426,74 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
     final String relativeTime = _formatRelativeTime(comment['created_at']);
     final ImageProvider? avatar = _getCommentAvatar(comment);
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildAvatar(image: avatar),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 1),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        userName,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1F2937),
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (relativeTime.isNotEmpty) ...[
-                      const SizedBox(width: 8),
+    // Usamos a variável _activeHighlightId que criámos no State
+    // para que o fundo cinza possa desaparecer após os 5 segundos.
+    final bool isHighlighted = comment['id']?.toString() == _activeHighlightId;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOut,
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
+      margin: const EdgeInsets.symmetric(vertical: 4.0),
+      decoration: BoxDecoration(
+        // Se estiver destacado, fica cinza; caso contrário, transparente
+        color: isHighlighted ? Colors.grey.shade200 : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isHighlighted ? Colors.grey.shade300 : Colors.transparent,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildAvatar(image: avatar),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 1),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
                       Flexible(
                         child: Text(
+                          userName,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1F2937),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (relativeTime.isNotEmpty)
+                        Text(
                           relativeTime,
                           style: const TextStyle(
                             fontSize: 13,
                             color: Color(0xFF98A2B3),
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
                     ],
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  comment['content']?.toString() ?? '',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    height: 1.4,
-                    color: Color(0xFF344054),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 6),
+                  Text(
+                    comment['content']?.toString() ?? '',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      height: 1.4,
+                      color: Color(0xFF344054),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

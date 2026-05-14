@@ -1,42 +1,9 @@
+import 'package:app/pages/report_detail_page.dart';
 import 'package:flutter/material.dart';
+// Ajusta este import para o caminho correto do teu IssueService
+import '../models/report_data.dart';
+import '../services/issue_service.dart';
 
-// ----------------------------------------------------------------------
-// Modelos de Dados (Mocks) para simular as notificações
-// Numa fase posterior, isto virá do teu backend/Firebase
-// ----------------------------------------------------------------------
-enum ActivityType { comment, statusUpdate }
-
-class ActivityItem {
-  final String id;
-  final ActivityType type;
-  final String? user;
-  final String? avatarUrl;
-  final String reportTitle;
-  final String time;
-
-  // Específico para status updates
-  final String? entity;
-  final String? oldStatus;
-  final String? newStatus;
-  final bool? isResolved;
-
-  ActivityItem({
-    required this.id,
-    required this.type,
-    required this.reportTitle,
-    required this.time,
-    this.user,
-    this.avatarUrl,
-    this.entity,
-    this.oldStatus,
-    this.newStatus,
-    this.isResolved,
-  });
-}
-
-// ----------------------------------------------------------------------
-// Página Principal
-// ----------------------------------------------------------------------
 class ActivityPage extends StatefulWidget {
   const ActivityPage({super.key});
 
@@ -45,56 +12,29 @@ class ActivityPage extends StatefulWidget {
 }
 
 class _ActivityPageState extends State<ActivityPage> {
-  // Simulação da lista de atividades recebida da API
-  final List<ActivityItem> _activities = [
-    ActivityItem(
-      id: '1',
-      type: ActivityType.comment,
-      user: 'João Pedro',
-      avatarUrl: 'https://i.pravatar.cc/150?img=11',
-      reportTitle: 'Buraco na via',
-      time: 'Há 2 horas',
-    ),
-    ActivityItem(
-      id: '2',
-      type: ActivityType.statusUpdate,
-      entity: 'Câmara Municipal do Porto',
-      isResolved: false,
-      reportTitle: 'Iluminação pública',
-      oldStatus: 'Pendente',
-      newStatus: 'Em Progresso',
-      time: 'Há 5 horas',
-    ),
-    ActivityItem(
-      id: '3',
-      type: ActivityType.comment,
-      user: 'Ana Costa',
-      avatarUrl: 'https://i.pravatar.cc/150?img=5',
-      reportTitle: 'Buraco na via',
-      time: 'Há 1 dia',
-    ),
-    ActivityItem(
-      id: '4',
-      type: ActivityType.statusUpdate,
-      entity: 'Câmara Municipal do Porto',
-      isResolved: true,
-      reportTitle: 'Lixo acumulado',
-      oldStatus: 'Em Progresso',
-      newStatus: 'Resolvido',
-      time: 'Há 2 dias',
-    ),
-  ];
+  final IssueService _issueService = IssueService();
+  late Future<List<Map<String, dynamic>>> _activityFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicia a chamada à BD quando a página carrega
+    _activityFuture = _issueService.fetchUserActivity();
+  }
+
+  // Função auxiliar para formatar a data
+  String _formatDate(String isoString) {
+    final date = DateTime.parse(isoString);
+    return '${date.day}/${date.month}/${date.year} às ${date.hour}h${date.minute.toString().padLeft(2, '0')}';
+  }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      // Usamos bottom: false porque o extendBody no Scaffold pai lida com a nav bar,
-      // mas precisamos de adicionar padding manual na ListView
       bottom: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Título da Página
           const Padding(
             padding: EdgeInsets.fromLTRB(24.0, 32.0, 24.0, 16.0),
             child: Text(
@@ -107,165 +47,212 @@ class _ActivityPageState extends State<ActivityPage> {
             ),
           ),
 
-          // Lista de Atividades ou Empty State
           Expanded(
-            child: _activities.isEmpty
-                ? _buildEmptyState()
-                : ListView.builder(
-                    padding: const EdgeInsets.only(
-                      left: 20.0,
-                      right: 20.0,
-                      bottom:
-                          100.0, // Padding para não ficar debaixo da BottomNavBar
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: _activityFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.green),
+                  );
+                }
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Erro ao carregar atividades.',
+                      style: TextStyle(color: Colors.grey.shade600),
                     ),
-                    itemCount: _activities.length,
-                    itemBuilder: (context, index) {
-                      return _buildActivityCard(_activities[index]);
-                    },
+                  );
+                }
+
+                final activities = snapshot.data ?? [];
+
+                if (activities.isEmpty) {
+                  return _buildEmptyState();
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.only(
+                    left: 20.0,
+                    right: 20.0,
+                    bottom: 100.0,
                   ),
+                  itemCount: activities.length,
+                  itemBuilder: (context, index) {
+                    final activity = activities[index];
+                    return _buildCommentCard(context, activity);
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
     );
   }
 
-  // ----------------------------------------------------------------------
-  // Componente: Card Individual de Atividade
-  // ----------------------------------------------------------------------
-  Widget _buildActivityCard(ActivityItem activity) {
+  Widget _buildCommentCard(
+    BuildContext context,
+    Map<String, dynamic> activity,
+  ) {
+    // Extrair os dados de forma segura com base na query do Supabase
+    final profile = activity['profiles'] ?? {};
+    final issue = activity['issues'] ?? {};
+
+    // O ID da denúncia que precisamos para abrir os detalhes
+    final issueId = issue['id'];
+    //final bool isRead = activity['is_read'] ?? false;
+
+    final firstName = profile['first_name'] ?? 'Utilizador';
+    final lastName = profile['last_name'] ?? '';
+    final fullName = '$firstName $lastName'.trim();
+    final avatarUrl = profile['profile_photo'];
+
+    final reportTitle = issue['title'] ?? 'Denúncia';
+    final content = activity['content'] ?? '';
+    final timeString = activity['created_at'] != null
+        ? _formatDate(activity['created_at'])
+        : '';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12.0),
-      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: const Color(
-          0xFFF0FDF4,
-        ), // Fundo verde super claro (semelhante ao mockup)
+        color: const Color(0xFFF0FDF4),
         border: Border.all(color: Colors.green.shade100, width: 1.5),
         borderRadius: BorderRadius.circular(16.0),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Avatar ou Ícone
-          _buildLeadingIcon(activity),
-
-          const SizedBox(width: 12),
-
-          // Conteúdo de Texto
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildContentText(activity),
-                const SizedBox(height: 6),
-                Text(
-                  activity.time,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
+      // Usamos o Material com cor transparente para que o InkWell funcione bem com o border radius
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16.0),
+          onTap: () {
+            setState(() {
+              activity['is_read'] = true;
+            });
+            if (issueId != null) {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.white, // Força o fundo branco aqui
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+                ),
+                builder: (context) => DraggableScrollableSheet(
+                  initialChildSize: 0.9,
+                  minChildSize: 0.5,
+                  maxChildSize: 0.95,
+                  expand: false,
+                  builder: (context, scrollController) => ReportDetailSheet(
+                    // Passamos o ID. A página vai carregar o resto sozinha.
+                    report: ReportData(id: issueId, title: '', category: ''),
+                    highlightCommentId: activity['id']?.toString(),
                   ),
                 ),
-              ],
-            ),
+              );
+            }
+          },
+
+          // SUBSTITUI O TEU BLOCO "child: Padding(...)" POR ESTE:
+          child: Stack(
+            children: [
+              // 1. O teu Padding original (NÃO MEXEMOS EM NADA AQUI DENTRO)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundImage: avatarUrl != null
+                          ? NetworkImage(avatarUrl)
+                          : null,
+                      backgroundColor: Colors.grey.shade300,
+                      child: avatarUrl == null
+                          ? const Icon(Icons.person, color: Colors.white)
+                          : null,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          RichText(
+                            text: TextSpan(
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontSize: 14,
+                                height: 1.4,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: '$fullName ',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const TextSpan(
+                                  text: 'comentou na sua denúncia ',
+                                ),
+                                TextSpan(
+                                  text: '"$reportTitle": ',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '"$content"',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black54,
+                              fontStyle: FontStyle.italic,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            timeString,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 2. A BOLINHA VERDE (ADICIONADA AQUI)
+              // Ela aparece no canto, sem empurrar o resto do código
+              if (!(activity['is_read'] ?? false)) // Só aparece se não foi lido
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF00D159), // Verde dos teus botões
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  // Define se mostra a foto do utilizador ou o ícone de estado
-  Widget _buildLeadingIcon(ActivityItem activity) {
-    if (activity.type == ActivityType.comment) {
-      return CircleAvatar(
-        radius: 20,
-        backgroundImage: NetworkImage(activity.avatarUrl ?? ''),
-        backgroundColor: Colors.grey.shade300,
-      );
-    } else {
-      final isResolved = activity.isResolved ?? false;
-      return CircleAvatar(
-        radius: 20,
-        backgroundColor: isResolved
-            ? Colors.green.shade500
-            : Colors.blue.shade500,
-        child: Icon(
-          isResolved
-              ? Icons.check
-              : Icons.sync, // Ícones para resolvido / progresso
-          color: Colors.white,
-          size: 20,
-        ),
-      );
-    }
-  }
-
-  // Constrói o texto formatado (RichText) para ter partes em Negrito/Cores
-  Widget _buildContentText(ActivityItem activity) {
-    if (activity.type == ActivityType.comment) {
-      return RichText(
-        text: TextSpan(
-          style: const TextStyle(
-            color: Colors.black87,
-            fontSize: 14,
-            height: 1.4,
-          ),
-          children: [
-            TextSpan(
-              text: '${activity.user} ',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const TextSpan(text: 'comentou na sua denúncia '),
-            TextSpan(
-              text: '"${activity.reportTitle}"',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      );
-    } else {
-      final isResolved = activity.isResolved ?? false;
-      final statusColor = isResolved
-          ? Colors.green.shade700
-          : Colors.blue.shade700;
-
-      return RichText(
-        text: TextSpan(
-          style: const TextStyle(
-            color: Colors.black87,
-            fontSize: 14,
-            height: 1.4,
-          ),
-          children: [
-            const TextSpan(text: 'A '),
-            TextSpan(
-              text: '${activity.entity} ',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const TextSpan(text: 'mudou o estado da sua denúncia '),
-            TextSpan(
-              text: '"${activity.reportTitle}" ',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const TextSpan(text: 'de '),
-            TextSpan(
-              text: '${activity.oldStatus} ',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const TextSpan(text: 'para '),
-            TextSpan(
-              text: '${activity.newStatus}',
-              style: TextStyle(fontWeight: FontWeight.bold, color: statusColor),
-            ),
-          ],
-        ),
-      );
-    }
-  }
-
-  // ----------------------------------------------------------------------
-  // Componente: Estado Vazio (Nenhuma atividade)
-  // ----------------------------------------------------------------------
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -277,7 +264,7 @@ class _ActivityPageState extends State<ActivityPage> {
             'Sem atividades recentes.',
             style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
           ),
-          const SizedBox(height: 100), // Compensação visual
+          const SizedBox(height: 100),
         ],
       ),
     );
