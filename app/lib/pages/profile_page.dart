@@ -264,11 +264,12 @@ class _ProfilePageState extends State<ProfilePage> {
                             trailingText: 'Português',
                             onTap: () {},
                           ),
+                          /*
                           _ProfileMenuItem(
                             icon: Icons.star_border,
                             title: 'Avalia-nos',
                             onTap: () {},
-                          ),
+                          ),*/
                           _ProfileMenuItem(
                             icon: Icons.shield_outlined,
                             title: 'Termos e Privacidade',
@@ -276,11 +277,12 @@ class _ProfilePageState extends State<ProfilePage> {
                               Navigator.pushNamed(context, '/privacy-terms');
                             },
                           ),
+                          /*
                           _ProfileMenuItem(
                             icon: Icons.chat_bubble_outline,
                             title: 'Feedback',
                             onTap: () {},
-                          ),
+                          ),*/
                           const SizedBox(height: 24),
                           const _SectionTitle('CONTA'),
                           _ProfileMenuItem(
