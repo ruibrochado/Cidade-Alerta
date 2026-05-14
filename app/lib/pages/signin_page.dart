@@ -303,12 +303,17 @@ class _LoginPageState extends State<LoginPage> {
           "Ao clicar neste botão, concordas com os nossos ",
           style: TextStyle(fontSize: 11, color: Colors.grey),
         ),
-        Text(
-          "Termos e Condições",
-          style: TextStyle(
-            fontSize: 11,
-            color: buttonGreen,
-            fontWeight: FontWeight.w600,
+        GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(context, '/privacy-terms');
+          },
+          child: Text(
+            "Termos e Condições",
+            style: TextStyle(
+              fontSize: 11,
+              color: buttonGreen,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
