@@ -193,20 +193,27 @@ class _MapPageState extends State<MapPage> {
   }
 
   List<Marker> _buildIssueMarkers() {
-    return _issues.map((issue) {
+    final List<Marker> markers = [];
+    for (final issue in _issues) {
       final lat = (issue['latitude'] as num?)?.toDouble();
       final lng = (issue['longitude'] as num?)?.toDouble();
-      return Marker(
-        point: LatLng(lat!, lng!),
-        width: 44,
-        height: 52,
-        alignment: Alignment.topCenter,
-        child: GestureDetector(
-          onTap: () => _openReportDetails(issue),
-          child: const _IssuePin(),
+
+      if (lat == null || lng == null) continue;
+
+      markers.add(
+        Marker(
+          point: LatLng(lat, lng),
+          width: 44,
+          height: 52,
+          alignment: Alignment.topCenter,
+          child: GestureDetector(
+            onTap: () => _openReportDetails(issue),
+            child: const _IssuePin(),
+          ),
         ),
       );
-    }).toList();
+    }
+    return markers;
   }
 
   List<Marker> _buildEcocenterMarkers() {
