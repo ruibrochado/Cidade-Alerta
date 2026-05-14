@@ -102,6 +102,109 @@ class _RecyclingScannerPageState extends State<RecyclingScannerPage> {
     });
   }
 
+  void _showHowItWorksSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(
+        minWidth: double.infinity,
+        maxWidth: double.infinity,
+      ),
+      builder: (context) {
+        return SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: SlideCard(
+            isActive: false,
+            borderRadius: 24,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 48,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD0D5DD),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Como funciona?',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: const Icon(
+                          Icons.close,
+                          color: Color(0xFF98A2B3),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8F8F8),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Text(
+                      'Aponte a câmera para o objeto e capture uma imagem, ou carregue uma fotografia da galeria, para descobrir onde deve ser reciclado.',
+                      style: TextStyle(
+                        fontSize: 14,
+                        height: 1.5,
+                        color: Color(0xFF475467),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF00B84A),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: const Text(
+                        'Entendido',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     const Color green = Color(0xFF00B84A);
@@ -126,17 +229,22 @@ class _RecyclingScannerPageState extends State<RecyclingScannerPage> {
                     ),
                   ),
                 ),
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF3F4F6),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.question_mark,
-                    size: 20,
-                    color: Color(0xFF344054),
+                SlideCard(
+                  isActive: false,
+                  onTap: _showHowItWorksSheet,
+                  borderRadius: 20,
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF3F4F6),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.question_mark,
+                      size: 20,
+                      color: Color(0xFF344054),
+                    ),
                   ),
                 ),
               ],
@@ -258,20 +366,20 @@ class _RecyclingScannerPageState extends State<RecyclingScannerPage> {
 
     return SlideCard(
       isActive: false,
-      borderRadius: 24,
+      borderRadius: 20,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         width: double.infinity,
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFEAEAEA)),
           boxShadow: const [
             BoxShadow(
               color: Color(0x12000000),
-              blurRadius: 14,
-              offset: Offset(0, 6),
+              blurRadius: 10,
+              offset: Offset(0, 4),
             ),
           ],
         ),
@@ -281,21 +389,21 @@ class _RecyclingScannerPageState extends State<RecyclingScannerPage> {
             const Text(
               'Resultado da análise',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 17,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF0F172A),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             _buildResultItem('Objeto identificado', _identifiedObject!),
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             _buildResultItem(
               'Ecoponto recomendado',
               _recyclingBin ?? 'Desconhecido',
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             _buildResultItem('Confiança', confidenceText),
-            const SizedBox(height: 28),
+            const SizedBox(height: 18),
             Row(
               children: [
                 Expanded(
@@ -311,6 +419,7 @@ class _RecyclingScannerPageState extends State<RecyclingScannerPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF00D159),
                       foregroundColor: Colors.white,
+                      elevation: 0,
                     ),
                     child: const Text('Está correto'),
                   ),
@@ -336,15 +445,16 @@ class _RecyclingScannerPageState extends State<RecyclingScannerPage> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 14, color: Color(0xFF667085)),
+          style: const TextStyle(fontSize: 13, color: Color(0xFF667085)),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         Text(
           value,
           style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF0F172A),
+            fontSize: 14,
+            height: 1.45,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF475467),
           ),
         ),
       ],
