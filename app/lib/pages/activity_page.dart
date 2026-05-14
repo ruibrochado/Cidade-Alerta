@@ -29,6 +29,55 @@ class _ActivityPageState extends State<ActivityPage> {
     return '${date.day}/${date.month}/${date.year} às ${date.hour}h${date.minute.toString().padLeft(2, '0')}';
   }
 
+  void _openReportDetails(ReportData report, {String? highlightCommentId}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(
+        minWidth: double.infinity,
+        maxWidth: double.infinity,
+      ),
+      builder: (context) {
+        return SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.88,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                Center(
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 12, bottom: 8),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD0D5DD),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ReportDetailSheet(
+                      report: report,
+                      highlightCommentId: highlightCommentId,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -103,7 +152,6 @@ class _ActivityPageState extends State<ActivityPage> {
 
     // O ID da denúncia que precisamos para abrir os detalhes
     final issueId = issue['id'];
-    //final bool isRead = activity['is_read'] ?? false;
 
     final firstName = profile['first_name'] ?? 'Utilizador';
     final lastName = profile['last_name'] ?? '';
@@ -123,7 +171,6 @@ class _ActivityPageState extends State<ActivityPage> {
         border: Border.all(color: Colors.green.shade100, width: 1.5),
         borderRadius: BorderRadius.circular(16.0),
       ),
-      // Usamos o Material com cor transparente para que o InkWell funcione bem com o border radius
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -134,9 +181,7 @@ class _ActivityPageState extends State<ActivityPage> {
             });
             try {
               await Supabase.instance.client
-                  .from(
-                    'comments',
-                  ) // ou a tabela onde guardas as notificações/atividades
+                  .from('comments')
                   .update({'is_read': true})
                   .eq('id', activity['id']);
             } catch (e) {
@@ -144,32 +189,15 @@ class _ActivityPageState extends State<ActivityPage> {
             }
             if (!mounted) return;
             if (issueId != null) {
-              showModalBottomSheet(
-                context: this.context,
-                isScrollControlled: true,
-                backgroundColor: Colors.white, // Força o fundo branco aqui
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-                ),
-                builder: (context) => DraggableScrollableSheet(
-                  initialChildSize: 0.9,
-                  minChildSize: 0.5,
-                  maxChildSize: 0.95,
-                  expand: false,
-                  builder: (context, scrollController) => ReportDetailSheet(
-                    // Passamos o ID. A página vai carregar o resto sozinha.
-                    report: ReportData(id: issueId, title: '', category: ''),
-                    highlightCommentId: activity['id']?.toString(),
-                  ),
-                ),
+              _openReportDetails(
+                ReportData(id: issueId, title: '', category: ''),
+                highlightCommentId: activity['id']?.toString(),
               );
             }
           },
 
-          // SUBSTITUI O TEU BLOCO "child: Padding(...)" POR ESTE:
           child: Stack(
             children: [
-              // 1. O teu Padding original (NÃO MEXEMOS EM NADA AQUI DENTRO)
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
@@ -243,9 +271,7 @@ class _ActivityPageState extends State<ActivityPage> {
                 ),
               ),
 
-              // 2. A BOLINHA VERDE (ADICIONADA AQUI)
-              // Ela aparece no canto, sem empurrar o resto do código
-              if (!(activity['is_read'] ?? false)) // Só aparece se não foi lido
+              if (!(activity['is_read'] ?? false))
                 Positioned(
                   top: 12,
                   left: 12,
@@ -253,7 +279,7 @@ class _ActivityPageState extends State<ActivityPage> {
                     width: 10,
                     height: 10,
                     decoration: const BoxDecoration(
-                      color: Color(0xFF00D159), // Verde dos teus botões
+                      color: Color(0xFF00D159),
                       shape: BoxShape.circle,
                     ),
                   ),
