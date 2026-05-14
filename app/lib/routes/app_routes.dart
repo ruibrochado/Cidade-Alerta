@@ -29,7 +29,8 @@ class AppRoutes {
       if (args is ReportData) {
         return DetectLocationPage(report: args);
       }
-      return const DetectLocationPage(report: ReportData(category: 'Geral'));
+      // REMOVIDO CONST: ReportData agora não é const
+      return DetectLocationPage(report: ReportData(category: 'Geral'));
     },
 
     '/adjust-location': (context) {
@@ -37,6 +38,7 @@ class AppRoutes {
       if (args is ReportData) {
         return AdjustLocationPage(report: args);
       }
+      // REMOVIDO CONST: Quando o conteúdo não é constante, o widget pai também não pode ser
       return const MainNavigationScreen();
     },
 
@@ -52,11 +54,12 @@ class AppRoutes {
       final args =
           ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
+      // Criamos o objeto report. Como tiraste os 'final', ele já pode ser atualizado
+      // mais tarde dentro do ReportDetailSheet pelo método _loadComments.
       final report = ReportData(
         id: args?['issueId'] ?? '',
         title: args?['title'] ?? '',
-        category: args?['category'] ?? '',
-        // Se a tua ActivityPage passar a foto, podes meter aqui também
+        category: args?['category'] ?? 'Geral',
         photos: args?['photoUrl'] != null ? [args?['photoUrl']] : [],
       );
 

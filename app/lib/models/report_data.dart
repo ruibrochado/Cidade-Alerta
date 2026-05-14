@@ -1,5 +1,5 @@
 class ReportData {
-  const ReportData({
+  ReportData({
     this.id = '',
     required this.category,
     this.title = '',
@@ -13,17 +13,17 @@ class ReportData {
     this.score = 0, // <-- NOVO
   });
 
-  final String id;
-  final String category;
-  final String title;
-  final String description;
-  final List<String> photos;
-  final double? latitude;
-  final double? longitude;
-  final String? address;
-  final String? city;
-  final String? country;
-  final int score; // <-- NOVO
+  String id;
+  String category;
+  String title;
+  String description;
+  List<String> photos;
+  double? latitude;
+  double? longitude;
+  String? address;
+  String? city;
+  String? country;
+  int score; // <-- NOVO
 
   factory ReportData.fromMap(Map<String, dynamic> map) {
     return ReportData(

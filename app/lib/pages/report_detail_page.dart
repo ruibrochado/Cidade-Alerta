@@ -6,11 +6,13 @@ import '../services/issue_service.dart';
 class ReportDetailSheet extends StatefulWidget {
   final ReportData report;
   final String? highlightCommentId;
+
   const ReportDetailSheet({
     super.key,
     required this.report,
     this.highlightCommentId,
   });
+
   @override
   State<ReportDetailSheet> createState() => _ReportDetailSheetState();
 }
@@ -18,24 +20,12 @@ class ReportDetailSheet extends StatefulWidget {
 class _ReportDetailSheetState extends State<ReportDetailSheet> {
   final IssueService _issueService = IssueService();
   final TextEditingController _commentController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   String? _activeHighlightId;
 
   List<Map<String, dynamic>> _comments = [];
   bool _isLoading = true;
   bool _isSending = false;
-
-  String? _currentUserPhotoUrl;
-
-  void _openImageViewer(String imageUrl) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => _FullScreenImageViewer(
-          imageUrl: imageUrl,
-          heroTag: 'report_image_${widget.report.id}',
-        ),
-      ),
-    );
-  }
 
   @override
   void initState() {
@@ -43,15 +33,6 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
     _activeHighlightId = widget.highlightCommentId;
     _loadCurrentUserPhoto();
     _loadComments();
-    if (_activeHighlightId != null) {
-      Future.delayed(const Duration(seconds: 5), () {
-        if (mounted) {
-          setState(() {
-            _activeHighlightId = null; // O cinza desaparece aqui
-          });
-        }
-      });
-    }
   }
 
   @override
@@ -74,7 +55,7 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
       if (!mounted) return;
 
       setState(() {
-        _currentUserPhotoUrl = profile?['profile_photo']?.toString();
+        profile?['profile_photo']?.toString();
       });
     } catch (e) {
       debugPrint('Error loading current user photo: $e');
@@ -83,22 +64,63 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
 
   Future<void> _loadComments() async {
     try {
+      // 1. Vai buscar os comentários e os dados da denúncia
       final comments = await _issueService.fetchComments(widget.report.id);
 
+      final issueData = await Supabase.instance.client
+          .from('issues')
+          .select('photo_url, address, description, title, category')
+          .eq('id', widget.report.id)
+          .single();
+
       if (!mounted) return;
 
+      // 2. Atualiza a interface com os dados novos
       setState(() {
         _comments = comments;
+        widget.report.address =
+            issueData['address'] ?? 'Localização não disponível';
+        widget.report.description = issueData['description'] ?? '';
+        widget.report.title = issueData['title'] ?? widget.report.title;
+
+        if (issueData['photo_url'] != null) {
+          widget.report.photos = [issueData['photo_url']];
+        }
         _isLoading = false;
       });
+
+      // 3. Se viermos de uma notificação (tem ID para destacar)
+      if (_activeHighlightId != null) {
+        // A - Faz o Scroll automático após um pequeno delay para a lista carregar
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (_scrollController.hasClients) {
+            final index = _comments.indexWhere(
+              (c) => c['id'].toString() == _activeHighlightId,
+            );
+            if (index != -1) {
+              // 400.0 é a altura estimada do cabeçalho (foto + descrição)
+              double targetScroll = 400.0 + (index * 90.0);
+              _scrollController.animateTo(
+                targetScroll,
+                duration: const Duration(seconds: 1),
+                curve: Curves.easeInOutQuart,
+              );
+            }
+          }
+        });
+
+        // B - Faz o destaque desaparecer sozinho após 5 segundos
+        Future.delayed(const Duration(seconds: 5), () {
+          if (mounted) {
+            setState(() {
+              _activeHighlightId = null; // Remove a cor de destaque
+            });
+          }
+        });
+      } // <-- Aqui faltava fechar o IF
     } catch (e) {
-      debugPrint('Error loading comments: $e');
-
-      if (!mounted) return;
-
-      setState(() {
-        _isLoading = false;
-      });
+      debugPrint('Erro ao carregar detalhes: $e');
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -106,91 +128,76 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
     final String text = _commentController.text.trim();
     if (text.isEmpty || _isSending) return;
 
-    final currentUser = Supabase.instance.client.auth.currentUser;
-    final String? currentUserId = currentUser?.id;
+    //final currentUser = Supabase.instance.client.auth.currentUser;
+    //final String? currentUserId = currentUser?.id;
 
     setState(() {
       _isSending = true;
-      _comments.add({
-        'content': text,
-        'created_at': DateTime.now().toIso8601String(),
-        'user_id': currentUserId,
-        'profiles': {
-          'first_name': 'Tu',
-          'last_name': '',
-          'profile_photo': _currentUserPhotoUrl,
-        },
-      });
     });
-
-    _commentController.clear();
 
     try {
       await _issueService.addComment(widget.report.id, text);
-    } catch (e) {
-      debugPrint('Error posting comment: $e');
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erro ao enviar o comentário. Tenta novamente.'),
-        ),
+      _commentController.clear();
+      // Recarrega os comentários para mostrar o novo com o ID real da DB
+      final updatedComments = await _issueService.fetchComments(
+        widget.report.id,
       );
-    } finally {
       if (mounted) {
         setState(() {
+          _comments = updatedComments;
           _isSending = false;
         });
       }
+    } catch (e) {
+      debugPrint('Error posting comment: $e');
+      if (mounted) {
+        setState(() => _isSending = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erro ao enviar o comentário.')),
+        );
+      }
     }
+  }
+
+  // --- MÉTODOS DE UI ---
+
+  void _openImageViewer(String imageUrl) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _FullScreenImageViewer(
+          imageUrl: imageUrl,
+          heroTag: 'report_image_${widget.report.id}',
+        ),
+      ),
+    );
   }
 
   String _getUserName(Map<String, dynamic> comment) {
     final String? currentUserId = Supabase.instance.client.auth.currentUser?.id;
     final String? commentUserId = comment['user_id']?.toString();
 
-    if (currentUserId != null && currentUserId == commentUserId) {
-      return 'Tu';
-    }
+    if (currentUserId != null && currentUserId == commentUserId) return 'Tu';
 
     final profile = comment['profiles'];
     final String firstName = profile?['first_name']?.toString() ?? '';
     final String lastName = profile?['last_name']?.toString() ?? '';
-    final String fullName = '$firstName $lastName'.trim();
-
-    return fullName.isEmpty ? 'Utilizador' : fullName;
+    return '$firstName $lastName'.trim().isEmpty
+        ? 'Utilizador'
+        : '$firstName $lastName'.trim();
   }
 
   String _formatRelativeTime(String? createdAt) {
     if (createdAt == null || createdAt.isEmpty) return '';
-
     try {
       final DateTime created = DateTime.parse(createdAt).toLocal();
       final Duration diff = DateTime.now().difference(created);
-
       if (diff.inMinutes < 1) return 'Agora';
       if (diff.inMinutes < 60) return 'Há ${diff.inMinutes}m';
       if (diff.inHours < 24) return 'Há ${diff.inHours}h';
-      if (diff.inDays < 7) return 'Há ${diff.inDays}d';
-
-      return '${created.day.toString().padLeft(2, '0')}/${created.month.toString().padLeft(2, '0')}/${created.year}';
+      return '${created.day}/${created.month}/${created.year}';
     } catch (_) {
       return '';
     }
-  }
-
-  ImageProvider? _getCommentAvatar(Map<String, dynamic> comment) {
-    final profile = comment['profiles'];
-    final String? avatarUrl =
-        profile?['profile_photo']?.toString() ??
-        profile?['avatar_url']?.toString();
-
-    if (avatarUrl != null && avatarUrl.isNotEmpty) {
-      return NetworkImage(avatarUrl);
-    }
-
-    return null;
   }
 
   Widget _buildAvatar({ImageProvider? image}) {
@@ -206,64 +213,71 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      behavior: HitTestBehavior.translucent,
-      child: Column(
-        children: [
-          _buildTopBar(context),
-          const Divider(height: 1, color: Color(0xFFE5E7EB)),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-              children: [
-                _buildReportImage(),
-                const SizedBox(height: 18),
-                _buildTitleAndStatus(),
-                const SizedBox(height: 10),
-                _buildDescription(),
-                const SizedBox(height: 12),
-                _buildLocation(),
-                const SizedBox(height: 22),
-                const Text(
-                  'Comentários',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1F2937),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                const Divider(height: 1, color: Color(0xFFE5E7EB)),
-                const SizedBox(height: 16),
-                _buildCommentsSection(),
-              ],
-            ),
+    return Material(
+      // Adicionado Material para evitar o erro de TextField
+      color: Colors.white,
+      child: SafeArea(
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Column(
+            children: [
+              _buildTopBar(context),
+              const Divider(height: 1, color: Color(0xFFE5E7EB)),
+              Expanded(
+                child: _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF00D159),
+                        ),
+                      )
+                    : ListView(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(16),
+                        children: [
+                          _buildReportImage(),
+                          const SizedBox(height: 18),
+                          _buildTitleAndStatus(),
+                          const SizedBox(height: 10),
+                          _buildDescription(),
+                          const SizedBox(height: 12),
+                          _buildLocation(),
+                          const SizedBox(height: 22),
+                          const Text(
+                            'Comentários',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          const Divider(height: 1),
+                          const SizedBox(height: 16),
+                          _buildCommentsSection(),
+                        ],
+                      ),
+              ),
+              _buildCommentInputBar(),
+            ],
           ),
-          _buildCommentInputBar(),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildTopBar(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 10, 10),
+      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
       child: Row(
         children: [
           const Expanded(
             child: Text(
               'Detalhes da Denúncia',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1F2937),
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
           ),
           IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.close, color: Color(0xFF6B7280), size: 26),
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.close),
           ),
         ],
       ),
@@ -287,7 +301,6 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
         ),
       );
     }
-
     return GestureDetector(
       onTap: () => _openImageViewer(widget.report.photos.first),
       child: Hero(
@@ -296,22 +309,9 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
           borderRadius: BorderRadius.circular(20),
           child: Image.network(
             widget.report.photos.first,
-            width: double.infinity,
             height: 185,
+            width: double.infinity,
             fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                height: 185,
-                color: const Color(0xFFE5E7EB),
-                child: const Center(
-                  child: Icon(
-                    Icons.broken_image_outlined,
-                    size: 42,
-                    color: Color(0xFF9CA3AF),
-                  ),
-                ),
-              );
-            },
           ),
         ),
       ),
@@ -320,31 +320,24 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
 
   Widget _buildTitleAndStatus() {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Text(
             widget.report.title,
-            style: const TextStyle(
-              fontSize: 19,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1F2937),
-            ),
+            style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
           ),
         ),
-        const SizedBox(width: 12),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: const Color(0xFFFFEBD8),
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(20),
           ),
           child: const Text(
             'Pendente',
             style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
               color: Color(0xFFEC6A00),
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
@@ -352,34 +345,24 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
     );
   }
 
-  Widget _buildDescription() {
-    return Text(
-      widget.report.description,
-      style: const TextStyle(
-        fontSize: 16,
-        height: 1.45,
-        color: Color(0xFF475467),
-      ),
-    );
-  }
+  Widget _buildDescription() => Text(
+    widget.report.description,
+    style: const TextStyle(fontSize: 16, color: Color(0xFF475467)),
+  );
 
   Widget _buildLocation() {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(top: 2),
-          child: Icon(
-            Icons.location_on_outlined,
-            size: 18,
-            color: Color(0xFF667085),
-          ),
+        const Icon(
+          Icons.location_on_outlined,
+          size: 18,
+          color: Color(0xFF667085),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 4),
         Expanded(
           child: Text(
-            widget.report.address ?? 'Localização registada',
-            style: const TextStyle(fontSize: 15, color: Color(0xFF667085)),
+            widget.report.address ?? 'Localização não disponível',
+            style: const TextStyle(color: Color(0xFF667085)),
           ),
         ),
       ],
@@ -387,109 +370,65 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
   }
 
   Widget _buildCommentsSection() {
-    if (_isLoading) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
-        child: Center(
-          child: CircularProgressIndicator(color: Color(0xFF00D159)),
-        ),
-      );
-    }
-
-    if (_comments.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 8),
-        child: Text(
-          'Ainda sem comentários. Sê o primeiro!',
-          style: TextStyle(fontSize: 15, color: Color(0xFF98A2B3)),
-        ),
-      );
-    }
-
+    if (_comments.isEmpty) return const Text('Sem comentários ainda.');
     return Column(
-      children: _comments.asMap().entries.map((entry) {
-        final int index = entry.key;
-        final Map<String, dynamic> comment = entry.value;
-
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: index == _comments.length - 1 ? 0 : 18,
-          ),
-          child: _buildCommentItem(comment),
-        );
-      }).toList(),
+      children: _comments.map((c) => _buildCommentItem(c)).toList(),
     );
   }
 
   Widget _buildCommentItem(Map<String, dynamic> comment) {
-    final String userName = _getUserName(comment);
-    final String relativeTime = _formatRelativeTime(comment['created_at']);
-    final ImageProvider? avatar = _getCommentAvatar(comment);
-
-    // Usamos a variável _activeHighlightId que criámos no State
-    // para que o fundo cinza possa desaparecer após os 5 segundos.
     final bool isHighlighted = comment['id']?.toString() == _activeHighlightId;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 600),
-      curve: Curves.easeOut,
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
-      margin: const EdgeInsets.symmetric(vertical: 4.0),
+      margin: const EdgeInsets.symmetric(vertical: 4.0), // Margem consistente
       decoration: BoxDecoration(
-        // Se estiver destacado, fica cinza; caso contrário, transparente
-        color: isHighlighted ? Colors.grey.shade200 : Colors.transparent,
+        // Se estiver destacado, mostra o verde, senão fica transparente
+        color: isHighlighted ? const Color(0xFFF0FDF4) : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isHighlighted ? Colors.grey.shade300 : Colors.transparent,
+          // Mantemos uma borda sempre, mas transparente quando não destacado
+          // para o texto não "mexer" 1px quando a borda sumir
+          color: isHighlighted ? const Color(0xFFBBF7D0) : Colors.transparent,
           width: 1,
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildAvatar(image: avatar),
+          _buildAvatar(
+            image: comment['profiles']?['profile_photo'] != null
+                ? NetworkImage(comment['profiles']?['profile_photo'])
+                : null,
+          ),
           const SizedBox(width: 12),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 1),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          userName,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF1F2937),
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      _getUserName(comment),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1F2937),
                       ),
-                      if (relativeTime.isNotEmpty)
-                        Text(
-                          relativeTime,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF98A2B3),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    comment['content']?.toString() ?? '',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      height: 1.4,
-                      color: Color(0xFF344054),
                     ),
-                  ),
-                ],
-              ),
+                    Text(
+                      _formatRelativeTime(comment['created_at']),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  comment['content'] ?? '',
+                  style: const TextStyle(color: Color(0xFF4B5563), height: 1.4),
+                ),
+              ],
             ),
           ),
         ],
@@ -498,68 +437,30 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
   }
 
   Widget _buildCommentInputBar() {
-    final ImageProvider? currentUserAvatar =
-        _currentUserPhotoUrl != null && _currentUserPhotoUrl!.isNotEmpty
-        ? NetworkImage(_currentUserPhotoUrl!)
-        : null;
-
     return Container(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 14, bottom: 14),
+      padding: const EdgeInsets.all(12),
       decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
+        border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
       ),
       child: Row(
         children: [
-          _buildAvatar(image: currentUserAvatar),
-          const SizedBox(width: 10),
           Expanded(
-            child: Container(
-              height: 42,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF2F4F7),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: TextField(
-                controller: _commentController,
-                textInputAction: TextInputAction.send,
-                onSubmitted: (_) => _submitComment(),
-                decoration: const InputDecoration(
-                  hintText: 'Adicionar comentário...',
-                  hintStyle: TextStyle(color: Color(0xFF98A2B3), fontSize: 15),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
+            child: TextField(
+              controller: _commentController,
+              decoration: InputDecoration(
+                hintText: 'Adicionar comentário...',
+                filled: true,
+                fillColor: const Color(0xFFF2F4F7),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 10),
-          GestureDetector(
-            onTap: _submitComment,
-            child: Container(
-              width: 42,
-              height: 42,
-              decoration: const BoxDecoration(
-                color: Color(0xFF00D159),
-                shape: BoxShape.circle,
-              ),
-              child: _isSending
-                  ? const Padding(
-                      padding: EdgeInsets.all(11),
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Icon(
-                      Icons.send_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-            ),
+          IconButton(
+            onPressed: _submitComment,
+            icon: const Icon(Icons.send, color: Color(0xFF00D159)),
           ),
         ],
       ),
@@ -567,46 +468,25 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
   }
 }
 
+// Viewer de Imagem Full Screen
 class _FullScreenImageViewer extends StatelessWidget {
   final String imageUrl;
   final String heroTag;
-
   const _FullScreenImageViewer({required this.imageUrl, required this.heroTag});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          Center(
-            child: Hero(
-              tag: heroTag,
-              child: InteractiveViewer(
-                minScale: 0.5,
-                maxScale: 4.0,
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.broken_image,
-                    color: Colors.white,
-                    size: 64,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.close, color: Colors.white, size: 28),
-              ),
-            ),
-          ),
-        ],
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: Center(
+        child: Hero(
+          tag: heroTag,
+          child: InteractiveViewer(child: Image.network(imageUrl)),
+        ),
       ),
     );
   }

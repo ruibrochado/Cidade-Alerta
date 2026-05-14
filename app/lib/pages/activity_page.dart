@@ -1,5 +1,6 @@
 import 'package:app/pages/report_detail_page.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 // Ajusta este import para o caminho correto do teu IssueService
 import '../models/report_data.dart';
 import '../services/issue_service.dart';
@@ -127,13 +128,24 @@ class _ActivityPageState extends State<ActivityPage> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16.0),
-          onTap: () {
+          onTap: () async {
             setState(() {
               activity['is_read'] = true;
             });
+            try {
+              await Supabase.instance.client
+                  .from(
+                    'comments',
+                  ) // ou a tabela onde guardas as notificações/atividades
+                  .update({'is_read': true})
+                  .eq('id', activity['id']);
+            } catch (e) {
+              debugPrint('Erro ao marcar como lido: $e');
+            }
+            if (!mounted) return;
             if (issueId != null) {
               showModalBottomSheet(
-                context: context,
+                context: this.context,
                 isScrollControlled: true,
                 backgroundColor: Colors.white, // Força o fundo branco aqui
                 shape: const RoundedRectangleBorder(
