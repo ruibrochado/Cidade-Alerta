@@ -204,66 +204,81 @@ class _MapPageState extends State<MapPage> {
                 ),
               ),
             )
-          : FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                initialCenter: _currentLocation!,
-                initialZoom: 15,
-                onPositionChanged: _onMapPositionChanged,
-              ),
+          : Stack(
               children: [
-                TileLayer(
-                  urlTemplate:
-                      'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=$stadiaApiKey',
-                  userAgentPackageName: 'com.example.app',
-                  retinaMode: MediaQuery.of(context).devicePixelRatio > 1.0,
-                ),
-                // User location — always visible, never clustered
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: _currentLocation!,
-                      width: 40,
-                      height: 40,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
+                FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    initialCenter: _currentLocation!,
+                    initialZoom: 15,
+                    onPositionChanged: _onMapPositionChanged,
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=$stadiaApiKey',
+                      userAgentPackageName: 'com.example.app',
+                      retinaMode: MediaQuery.of(context).devicePixelRatio > 1.0,
+                    ),
+                    // User location — always visible, never clustered
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: _currentLocation!,
+                          width: 40,
+                          height: 40,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withValues(alpha: 0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.my_location,
+                              color: Colors.blue,
+                              size: 24,
+                            ),
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.my_location,
-                          color: Colors.blue,
-                          size: 24,
-                        ),
+                      ],
+                    ),
+                    // Issue markers — clustered when zoomed out
+                    MarkerClusterLayerWidget(
+                      options: MarkerClusterLayerOptions(
+                        maxClusterRadius: 60,
+                        size: const Size(44, 44),
+                        alignment: Alignment.bottomCenter,
+                        markers: _buildIssueMarkers(),
+                        builder: (context, markers) {
+                          return Container(
+                            width: 44,
+                            height: 44,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFEF4444),
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              markers.length.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],
                 ),
-                // Issue markers — clustered when zoomed out
-                MarkerClusterLayerWidget(
-                  options: MarkerClusterLayerOptions(
-                    maxClusterRadius: 60,
-                    size: const Size(44, 44),
-                    alignment: Alignment.bottomCenter,
-                    markers: _buildIssueMarkers(),
-                    builder: (context, markers) {
-                      return Container(
-                        width: 44,
-                        height: 44,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFEF4444),
-                          shape: BoxShape.circle,
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          markers.length.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      );
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: _RecenterButton(
+                    onTap: () {
+                      if (_currentLocation != null) {
+                        _mapController.move(_currentLocation!, 15);
+                      }
                     },
                   ),
                 ),
@@ -334,4 +349,37 @@ class _IssuePinPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _RecenterButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _RecenterButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x29000000),
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.my_location,
+          color: Color(0xFF16A34A), // green to match your app theme
+          size: 24,
+        ),
+      ),
+    );
+  }
 }
