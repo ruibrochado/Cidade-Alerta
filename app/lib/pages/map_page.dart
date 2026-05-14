@@ -5,11 +5,15 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' hide Path;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 
 import '../models/report_data.dart';
-import '../pages/report_detail_page.dart';
 import '../services/issue_service.dart';
-import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
+import '../pages/report_detail_page.dart';
+
+import '../models/ecocenter_data.dart';
+import '../services/ecocenter_service.dart';
+import '../pages/ecocenter_detail_page.dart'; // Mantém o teu nome limpo!
 
 class MapPage extends StatefulWidget {
   final IssueService? issueService;
@@ -22,10 +26,13 @@ class MapPage extends StatefulWidget {
 
 class _MapPageState extends State<MapPage> {
   late final IssueService _issueService;
+  late final EcocenterService _ecocenterService;
+
   final MapController _mapController = MapController();
 
   LatLng? _currentLocation;
   List<Map<String, dynamic>> _issues = [];
+  List<EcocenterData> _ecocenters = [];
   bool _isLoading = true;
 
   Timer? _debounceTimer;
@@ -34,6 +41,7 @@ class _MapPageState extends State<MapPage> {
   void initState() {
     super.initState();
     _issueService = widget.issueService ?? IssueService();
+    _ecocenterService = EcocenterService();
     _loadMapData();
   }
 
@@ -50,7 +58,7 @@ class _MapPageState extends State<MapPage> {
       setState(() => _isLoading = false);
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchIssuesByCurrentBounds();
+      _fetchMapData();
     });
   }
 
@@ -92,23 +100,37 @@ class _MapPageState extends State<MapPage> {
     if (!hasGesture) return;
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 400), () {
-      _fetchIssuesByCurrentBounds();
+      _fetchMapData();
     });
   }
 
-  Future<void> _fetchIssuesByCurrentBounds() async {
+  Future<void> _fetchMapData() async {
     try {
       final bounds = _mapController.camera.visibleBounds;
-      final issues = await _issueService.fetchIssuesByBounds(
+
+      final issuesFuture = _issueService.fetchIssuesByBounds(
         minLat: bounds.south,
         maxLat: bounds.north,
         minLng: bounds.west,
         maxLng: bounds.east,
       );
+
+      final ecocentersFuture = _ecocenterService.fetchEcocentersByBounds(
+        minLat: bounds.south,
+        maxLat: bounds.north,
+        minLng: bounds.west,
+        maxLng: bounds.east,
+      );
+
+      final results = await Future.wait([issuesFuture, ecocentersFuture]);
+
       if (!mounted) return;
-      setState(() => _issues = issues);
-    } catch (_) {
-      // Falha silenciosa
+      setState(() {
+        _issues = results[0] as List<Map<String, dynamic>>;
+        _ecocenters = results[1] as List<EcocenterData>;
+      });
+    } catch (e) {
+      debugPrint("Erro a carregar dados do mapa: $e");
     }
   }
 
@@ -118,70 +140,88 @@ class _MapPageState extends State<MapPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      constraints: const BoxConstraints(
-        minWidth: double.infinity,
-        maxWidth: double.infinity,
-      ),
       builder: (context) {
-        return SizedBox(
-          width: MediaQuery.of(context).size.width,
-          child: Container(
-            height: MediaQuery.of(context).size.height * 0.88,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              children: [
-                Center(
-                  child: Container(
-                    margin: const EdgeInsets.only(top: 12, bottom: 8),
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD0D5DD),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: ReportDetailSheet(report: report),
-                  ),
-                ),
-              ],
-            ),
-          ),
+        return _buildBottomSheetContainer(ReportDetailSheet(report: report));
+      },
+    );
+  }
+
+  void _openEcocenterDetails(EcocenterData ecocenter) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        // Usa o MESMO contentor que a denúncia, mas passa-lhe a EcocenterDetailPage
+        return _buildBottomSheetContainer(
+          EcocenterDetailPage(ecocenter: ecocenter),
+          heightRatio:
+              0.75, // Ajustei um bocadinho a altura porque não tem comentários
         );
       },
     );
   }
 
-  List<Marker> _buildIssueMarkers() {
-    final List<Marker> markers = [];
+  Widget _buildBottomSheetContainer(Widget child, {double heightRatio = 0.88}) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width,
+      child: Container(
+        height: MediaQuery.of(context).size.height * heightRatio,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          children: [
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD0D5DD),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Expanded(child: child),
+          ],
+        ),
+      ),
+    );
+  }
 
-    for (final issue in _issues) {
+  List<Marker> _buildIssueMarkers() {
+    return _issues.map((issue) {
       final lat = (issue['latitude'] as num?)?.toDouble();
       final lng = (issue['longitude'] as num?)?.toDouble();
-      if (lat == null || lng == null) continue;
-
-      markers.add(
-        Marker(
-          point: LatLng(lat, lng),
-          width: 44,
-          height: 52,
-          alignment: Alignment.topCenter,
-          child: GestureDetector(
-            onTap: () => _openReportDetails(issue),
-            child: const _IssuePin(),
-          ),
+      return Marker(
+        point: LatLng(lat!, lng!),
+        width: 44,
+        height: 52,
+        alignment: Alignment.topCenter,
+        child: GestureDetector(
+          onTap: () => _openReportDetails(issue),
+          child: const _IssuePin(),
         ),
       );
-    }
+    }).toList();
+  }
 
-    return markers;
+  List<Marker> _buildEcocenterMarkers() {
+    return _ecocenters.map((eco) {
+      return Marker(
+        point: LatLng(eco.latitude, eco.longitude),
+        width: 44,
+        height: 52,
+        alignment: Alignment.topCenter,
+        child: GestureDetector(
+          onTap: () => _openEcocenterDetails(eco),
+          child: const _EcocenterPin(),
+        ),
+      );
+    }).toList();
   }
 
   @override
@@ -189,7 +229,6 @@ class _MapPageState extends State<MapPage> {
     final String stadiaApiKey = dotenv.env['STADIA_MAPS_API_KEY'] ?? '';
 
     return Scaffold(
-      // AppBar removido para o mapa ocupar tudo
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFF16A34A)),
@@ -246,34 +285,24 @@ class _MapPageState extends State<MapPage> {
                         size: const Size(44, 44),
                         alignment: Alignment.bottomCenter,
                         markers: _buildIssueMarkers(),
-                        builder: (context, markers) {
-                          return Container(
-                            width: 44,
-                            height: 44,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFEF4444),
-                              shape: BoxShape.circle,
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              markers.length.toString(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          );
-                        },
+                        builder: (context, markers) =>
+                            _buildCluster(markers, const Color(0xFFEF4444)),
+                      ),
+                    ),
+                    MarkerClusterLayerWidget(
+                      options: MarkerClusterLayerOptions(
+                        maxClusterRadius: 60,
+                        size: const Size(44, 44),
+                        alignment: Alignment.bottomCenter,
+                        markers: _buildEcocenterMarkers(),
+                        builder: (context, markers) =>
+                            _buildCluster(markers, const Color(0xFF16A34A)),
                       ),
                     ),
                   ],
                 ),
-                // Botão de recentrar posicionado no topo direito
                 Positioned(
-                  top:
-                      MediaQuery.of(context).padding.top +
-                      16, // Respeita a área da "notch"
+                  top: MediaQuery.of(context).padding.top + 16,
                   right: 16,
                   child: _RecenterButton(
                     onTap: () {
@@ -287,57 +316,93 @@ class _MapPageState extends State<MapPage> {
             ),
     );
   }
-}
 
-class _IssuePin extends StatelessWidget {
-  const _IssuePin();
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(size: const Size(44, 52), painter: _IssuePinPainter());
+  Widget _buildCluster(List<Marker> markers, Color color) {
+    return Container(
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      alignment: Alignment.center,
+      child: Text(
+        markers.length.toString(),
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
   }
 }
 
-class _IssuePinPainter extends CustomPainter {
+// PIN VERMELHO (Issues)
+class _IssuePin extends StatelessWidget {
+  const _IssuePin();
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: const Size(44, 52),
+      painter: _PinPainter(const Color(0xFFEF4444), isIssue: true),
+    );
+  }
+}
+
+// PIN VERDE (Ecocentros) - BEM CENTRADO
+class _EcocenterPin extends StatelessWidget {
+  const _EcocenterPin();
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        CustomPaint(
+          size: const Size(44, 52),
+          painter: _PinPainter(const Color(0xFF16A34A)),
+        ),
+        const Positioned(
+          top: 11, // Centrado perfeitamente na bola!
+          child: Icon(Icons.recycling, color: Colors.white, size: 22),
+        ),
+      ],
+    );
+  }
+}
+
+class _PinPainter extends CustomPainter {
+  final Color color;
+  final bool isIssue;
+  _PinPainter(this.color, {this.isIssue = false});
+
   @override
   void paint(Canvas canvas, Size size) {
     final double w = size.width;
     final double h = size.height;
     final double cx = w / 2;
     final double r = w / 2;
+    final paint = Paint()..color = color;
 
-    final pinPaint = Paint()..color = const Color(0xFFEF4444);
-
-    canvas.drawOval(
-      Rect.fromCircle(center: Offset(cx, r), radius: r),
-      pinPaint,
-    );
-
+    canvas.drawOval(Rect.fromCircle(center: Offset(cx, r), radius: r), paint);
     final tipPath = Path()
       ..moveTo(cx - r * 0.52, r + r * 0.45)
       ..lineTo(cx, h)
       ..lineTo(cx + r * 0.52, r + r * 0.45)
       ..close();
-    canvas.drawPath(tipPath, pinPaint);
+    canvas.drawPath(tipPath, paint);
 
-    final double cy = r;
-
-    final triPath = Path()
-      ..moveTo(cx, cy - r * 0.40)
-      ..lineTo(cx - r * 0.36, cy + r * 0.26)
-      ..lineTo(cx + r * 0.36, cy + r * 0.26)
-      ..close();
-    canvas.drawPath(triPath, Paint()..color = Colors.white);
-
-    final exclPaint = Paint()..color = const Color(0xFFEF4444);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(cx - r * 0.065, cy - r * 0.26, r * 0.13, r * 0.32),
-        const Radius.circular(2),
-      ),
-      exclPaint,
-    );
-    canvas.drawCircle(Offset(cx, cy + r * 0.14), r * 0.075, exclPaint);
+    if (isIssue) {
+      final triPath = Path()
+        ..moveTo(cx, r - r * 0.40)
+        ..lineTo(cx - r * 0.36, r + r * 0.26)
+        ..lineTo(cx + r * 0.36, r + r * 0.26)
+        ..close();
+      canvas.drawPath(triPath, Paint()..color = Colors.white);
+      final excl = Paint()..color = color;
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(cx - r * 0.065, r - r * 0.26, r * 0.13, r * 0.32),
+          const Radius.circular(2),
+        ),
+        excl,
+      );
+      canvas.drawCircle(Offset(cx, r + r * 0.14), r * 0.075, excl);
+    }
   }
 
   @override
@@ -346,9 +411,7 @@ class _IssuePinPainter extends CustomPainter {
 
 class _RecenterButton extends StatelessWidget {
   final VoidCallback onTap;
-
   const _RecenterButton({required this.onTap});
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
