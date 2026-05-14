@@ -1,14 +1,8 @@
 name: Acceptance Tests (UAT)
 
 on:
-  push:
-    branches: [ "main" ]
-    paths-ignore:
-      - '**/*.md'
-      - '.idea/**'
-      - 'images/**'
   pull_request:
-    branches: [ "main" ]
+    branches: [ "devs" ]
     paths-ignore:
       - '**/*.md'
       - '.idea/**'
@@ -50,9 +44,12 @@ jobs:
         working-directory: ./app
         run: flutter pub get
 
-      - name: Create dummy .env
+      - name: Create real .env file
         working-directory: ./app
-        run: echo "STADIA_MAPS_API_KEY=test_key_123" > .env
+        run: |
+          echo "STADIA_MAPS_API_KEY=test_key_123" > .env
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
+          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
 
       - name: Install Patrol CLI
         run: dart pub global activate patrol_cli
@@ -71,8 +68,9 @@ jobs:
           profile: Nexus 6
           script: |
             cd app
+            # 3. Alterado: Apontar para o ficheiro de testes novo que criámos!
             patrol test \
-              --target patrol_test/uat_test.dart \
+              --target patrol_test/uat/map_test.dart \
               --reporter json > ../uat-results.json || true
 
       - name: Generate UAT HTML Report
