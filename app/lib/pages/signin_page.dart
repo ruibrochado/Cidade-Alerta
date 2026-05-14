@@ -4,7 +4,6 @@ import '../widgets/custom_alert_card.dart';
 import '../widgets/success_banner.dart';
 import 'home_page.dart';
 import 'signup_page.dart';
-import 'terms_privacy_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -306,10 +305,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
         GestureDetector(
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const TermsPrivacyPage()),
-            );
+            Navigator.pushNamed(context, '/privacy-terms');
           },
           child: Text(
             "Termos e Condições",
