@@ -140,6 +140,10 @@ class _MapPageState extends State<MapPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(
+        minWidth: double.infinity,
+        maxWidth: double.infinity,
+      ),
       builder: (context) {
         return _buildBottomSheetContainer(ReportDetailSheet(report: report));
       },
@@ -151,6 +155,10 @@ class _MapPageState extends State<MapPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(
+        minWidth: double.infinity,
+        maxWidth: double.infinity,
+      ),
       builder: (context) {
         // Usa o MESMO contentor que a denúncia, mas passa-lhe a EcocenterDetailPage
         return _buildBottomSheetContainer(

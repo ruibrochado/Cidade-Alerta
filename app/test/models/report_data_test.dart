@@ -4,7 +4,8 @@ import 'package:app/models/report_data.dart';
 void main() {
   group('ReportData Model Tests', () {
     test('Should create a ReportData instance with default empty values', () {
-      const report = ReportData(category: 'Infraestrutura');
+      // REMOVIDO O 'const' DAQUI
+      final report = ReportData(category: 'Infraestrutura');
 
       expect(report.category, 'Infraestrutura');
       expect(report.title, '');
@@ -15,7 +16,8 @@ void main() {
     });
 
     test('Should correctly update fields using copyWith', () {
-      const initialReport = ReportData(category: 'Infraestrutura');
+      // REMOVIDO O 'const' DAQUI
+      final initialReport = ReportData(category: 'Infraestrutura');
 
       final updatedReport = initialReport.copyWith(
         title: 'Buraco',
@@ -34,7 +36,8 @@ void main() {
     test(
       'Should clear latitude and longitude when clear flags are set to true in copyWith',
       () {
-        const initialReport = ReportData(
+        // REMOVIDO O 'const' DAQUI
+        final initialReport = ReportData(
           category: 'Infraestrutura',
           latitude: 41.15,
           longitude: -8.61,

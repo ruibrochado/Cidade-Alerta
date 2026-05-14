@@ -1,0 +1,62 @@
+name: Quality & Tests
+
+on:
+  workflow_call:
+  pull_request:
+    branches: [ "main", "develop" ]
+    paths-ignore:
+      - '**/*.md'
+      - '.idea/**'
+      - 'images/**'
+
+jobs:
+  quality_checks:
+    name: Quality & Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-
+
+      - name: Install dependencies
+        working-directory: ./app
+        run: flutter pub get
+
+      - name: Create dummy .env
+        working-directory: ./app
+        run: echo "STADIA_MAPS_API_KEY=test_key_123" > .env
+
+      - name: Check formatting
+        working-directory: ./app
+        run: dart format --set-exit-if-changed .
+
+      - name: Analyze
+        working-directory: ./app
+        run: flutter analyze
+
+      - name: Run unit tests with coverage
+        working-directory: ./app
+        run: flutter test test/ --coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: app/coverage/lcov.info
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}

@@ -366,22 +366,6 @@ class _FeedPageState extends State<FeedPage> {
                               color: Color(0xFF0F172A),
                             ),
                           ),
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF3F4F6),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                size: 20,
-                                color: Color(0xFF667085),
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),
