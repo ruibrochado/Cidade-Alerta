@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/ecocenter_data.dart';
+import '../widgets/slide_card.dart';
 
 class EcocenterDetailPage extends StatelessWidget {
   final EcocenterData ecocenter;
@@ -18,44 +19,9 @@ class EcocenterDetailPage extends StatelessWidget {
             children: [
               _buildEcocenterImage(),
               const SizedBox(height: 18),
-              _buildTitleAndEntity(),
-              const SizedBox(height: 12),
-              if (ecocenter.address != null || ecocenter.city != null)
-                _buildLocation(),
-
-              const SizedBox(height: 22),
-              const Text(
-                'Informações de Contacto',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1F2937),
-                ),
-              ),
-              const SizedBox(height: 14),
-              const Divider(height: 1, color: Color(0xFFE5E7EB)),
-              const SizedBox(height: 16),
-
-              if (ecocenter.schedule != null)
-                _buildInfoRow(
-                  Icons.access_time_outlined,
-                  'Horário',
-                  ecocenter.schedule!,
-                ),
-              if (ecocenter.phone != null)
-                _buildInfoRow(
-                  Icons.phone_outlined,
-                  'Telefone',
-                  ecocenter.phone!,
-                ),
-              if (ecocenter.email != null)
-                _buildInfoRow(Icons.email_outlined, 'E-mail', ecocenter.email!),
-              if (ecocenter.website != null)
-                _buildInfoRow(
-                  Icons.language_outlined,
-                  'Website',
-                  ecocenter.website!,
-                ),
+              _buildMainInfoCard(),
+              const SizedBox(height: 18),
+              _buildContactInfoCard(),
             ],
           ),
         ),
@@ -78,27 +44,123 @@ class EcocenterDetailPage extends StatelessWidget {
               ),
             ),
           ),
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.close, color: Color(0xFF6B7280), size: 26),
-          ),
         ],
       ),
     );
   }
 
   Widget _buildEcocenterImage() {
-    return Container(
-      height: 185,
-      decoration: BoxDecoration(
-        color: const Color(0xFF16A34A).withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
+    return SlideCard(
+      isActive: false,
+      borderRadius: 20,
+      child: Container(
+        height: 185,
+        decoration: BoxDecoration(
+          color: const Color(0xFF16A34A).withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFEAEAEA)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x12000000),
+              blurRadius: 10,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: const Center(
+          child: Icon(
+            Icons.recycling_rounded,
+            size: 64,
+            color: Color(0xFF16A34A),
+          ),
+        ),
       ),
-      child: const Center(
-        child: Icon(
-          Icons.recycling_rounded,
-          size: 64,
-          color: Color(0xFF16A34A),
+    );
+  }
+
+  Widget _buildMainInfoCard() {
+    return SlideCard(
+      isActive: false,
+      borderRadius: 20,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFEAEAEA)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x12000000),
+              blurRadius: 10,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildTitleAndEntity(),
+            if (ecocenter.address != null || ecocenter.city != null) ...[
+              const SizedBox(height: 12),
+              _buildLocation(),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContactInfoCard() {
+    return SlideCard(
+      isActive: false,
+      borderRadius: 20,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFEAEAEA)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x12000000),
+              blurRadius: 10,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Informações de Contacto',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1F2937),
+              ),
+            ),
+            const SizedBox(height: 14),
+            const Divider(height: 1, color: Color(0xFFE5E7EB)),
+            const SizedBox(height: 16),
+            if (ecocenter.schedule != null)
+              _buildInfoRow(
+                Icons.access_time_outlined,
+                'Horário',
+                ecocenter.schedule!,
+              ),
+            if (ecocenter.phone != null)
+              _buildInfoRow(Icons.phone_outlined, 'Telefone', ecocenter.phone!),
+            if (ecocenter.email != null)
+              _buildInfoRow(Icons.email_outlined, 'E-mail', ecocenter.email!),
+            if (ecocenter.website != null)
+              _buildInfoRow(
+                Icons.language_outlined,
+                'Website',
+                ecocenter.website!,
+              ),
+          ],
         ),
       ),
     );
@@ -111,7 +173,7 @@ class EcocenterDetailPage extends StatelessWidget {
         Text(
           ecocenter.name,
           style: const TextStyle(
-            fontSize: 19,
+            fontSize: 17,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1F2937),
           ),
@@ -121,7 +183,7 @@ class EcocenterDetailPage extends StatelessWidget {
           Text(
             ecocenter.entity!,
             style: const TextStyle(
-              fontSize: 15,
+              fontSize: 14,
               fontWeight: FontWeight.w600,
               color: Color(0xFF16A34A),
             ),
@@ -145,7 +207,7 @@ class EcocenterDetailPage extends StatelessWidget {
           child: Text(
             '${ecocenter.address ?? ''}${ecocenter.address != null && ecocenter.city != null ? ', ' : ''}${ecocenter.city ?? ''}',
             style: const TextStyle(
-              fontSize: 15,
+              fontSize: 14,
               color: Color(0xFF4B5563),
               height: 1.4,
             ),
@@ -182,7 +244,7 @@ class EcocenterDetailPage extends StatelessWidget {
                 Text(
                   content,
                   style: const TextStyle(
-                    fontSize: 15,
+                    fontSize: 14,
                     color: Color(0xFF1F2937),
                     height: 1.4,
                   ),
