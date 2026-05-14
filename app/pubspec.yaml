@@ -26,6 +26,7 @@ dependencies:
   path_provider: ^2.1.5
   cached_network_image: ^3.4.1
   sqflite: ^2.3.0
+  syncfusion_flutter_pdfviewer: ^33.2.6
 
 dev_dependencies:
   flutter_test:
@@ -67,3 +68,5 @@ flutter:
   assets:
     - .env
     - images/logo_login_page.png
+    - assets/documents/terms-privacy.pdf
+
