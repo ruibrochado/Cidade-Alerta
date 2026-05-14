@@ -9,6 +9,7 @@ import '../pages/issue_category_page.dart';
 import '../pages/signin_page.dart';
 import '../pages/main_navigation_screen.dart';
 import '../pages/edit_profile_page.dart';
+//import '../pages/activity_page.dart';
 
 class AppRoutes {
   static Map<String, WidgetBuilder> routes = {
@@ -26,6 +27,7 @@ class AppRoutes {
     '/edit-profile': (context) => const EditProfilePage(),
     '/scanner': (context) => const MainNavigationScreen(initialIndex: 1),
     '/map': (context) => const MainNavigationScreen(initialIndex: 2),
+    '/activity': (context) => const MainNavigationScreen(initialIndex: 3),
 
     '/detect-location': (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
