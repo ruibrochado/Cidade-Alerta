@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_alert_card.dart';
 import 'signin_page.dart';
+import 'terms_privacy_page.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -338,12 +339,20 @@ class _SignUpPageState extends State<SignUpPage> {
           "Ao clicar neste botão, concordas com os nossos ",
           style: TextStyle(fontSize: 11, color: Colors.grey),
         ),
-        Text(
-          "Termos e Condições",
-          style: TextStyle(
-            fontSize: 11,
-            color: buttonGreen,
-            fontWeight: FontWeight.w600,
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const TermsPrivacyPage()),
+            );
+          },
+          child: Text(
+            "Termos e Condições",
+            style: TextStyle(
+              fontSize: 11,
+              color: buttonGreen,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
