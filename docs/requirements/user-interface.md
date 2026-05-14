@@ -30,10 +30,23 @@ The authentication interfaces were designed to provide a familiar and intuitive 
 The authentication flow includes:
 
 - Citizen Sign In;
+
+
+<img width="200" height="320" alt="iniciarsessao" src="https://github.com/user-attachments/assets/d984177d-783e-47aa-8608-35e0beeba3a2" />
+
+
 - Citizen Sign Up;
-- Secure session management;
+
+
+<img width="200" height="320" alt="criarconta" src="https://github.com/user-attachments/assets/9956c9f8-7a0a-4ade-bb6d-664164534bb7" />
+
 - Logout functionality;
 - Form validation and authentication feedback dialogs.
+
+
+<img width="200" height="320" alt="erropassword" src="https://github.com/user-attachments/assets/3bc53d6c-94c5-4a10-a62b-b9d8bcbd0e58" />
+
+
 
 The design prioritizes accessibility, simplicity, and quick account access.
 
@@ -47,16 +60,36 @@ The home screen acts as the main page of the application, providing users with a
 
 The interface includes:
 
-- Main public issue feed;
 - Quick access to report submission;
-- Activity feed with recent community reports;
+- Main public issue feed;
 - Voting on reported issues;
-- Commenting on reports;
 - Prioritization of reports based on vote score;
+
+<img width="200" height="320" alt="mainfeed" src="https://github.com/user-attachments/assets/c70f901a-9419-4512-91b5-fe36a839071d" />
+
+- Activity feed with recent community reports;
+
+<img width="200" height="320" alt="mainfeedrecents" src="https://github.com/user-attachments/assets/2d0aee86-e2bf-43dd-ae99-b37f92f566ff" />
+
+
+- Commenting on reports;
+
+<img width="200" height="320" alt="comentar" src="https://github.com/user-attachments/assets/7e1cfe4d-ed27-49fe-8bb1-58c2da1508b7" />
+
+
 - Sorting reports by different criteria;
+
+<img width="200" height="320" alt="ordering" src="https://github.com/user-attachments/assets/cdcc1559-23b5-476b-9a36-4860f2b98569" />
+
 - Filtering reports by city;
 - Filtering reports by issue type;
-- Notifications and report updates.
+
+<img width="200" height="320" alt="cityfilter" src="https://github.com/user-attachments/assets/79b50568-30dd-43bf-8b31-a7d931565b0c" />
+
+- Searching issues by title.
+
+<img width="200" height="320" alt="buracosearch" src="https://github.com/user-attachments/assets/95f6f1fd-3fd8-4477-bb3f-b03d78d8b85e" />
+
 
 The design prioritizes clarity, readability, community participation, and fast navigation between features.
 
@@ -71,16 +104,41 @@ The incident reporting interface was designed to minimize the number of steps re
 The reporting flow includes:
 
 - Issue categorization;
+
+<img width="200" height="320" alt="criarreport" src="https://github.com/user-attachments/assets/983a68f8-53f8-4354-bc2a-c3378efe0dd3" />
+
+
 - Title and description input;
+
+<img width="200" height="320" alt="titledescription" src="https://github.com/user-attachments/assets/6e7dc7c9-8120-4870-8044-0173d2a92247" />
+
+
 - Photo upload;
+
+<img width="200" height="320" alt="addphoto" src="https://github.com/user-attachments/assets/ed279725-5d40-4591-b1e8-3cb3ba7c9818" />
+
+
 - Automatic location detection;
+
+<img width="200" height="320" alt="loc" src="https://github.com/user-attachments/assets/3247e1ce-a3fc-4c76-ae7b-31e3bf949381" />
+
 - Interactive map location confirmation;
+
+<img width="200" height="320" alt="gondomar" src="https://github.com/user-attachments/assets/d8134e47-2f98-42d9-b45c-2907b316ba51" />
+
 - Report review before submission;
+
+<img width="200" height="320" alt="finnish" src="https://github.com/user-attachments/assets/1ca88c5b-6c56-4847-b35f-4cfa4c06f87b" />
+
+
 - Success and error feedback dialogs.
+
+<img width="200" height="320" alt="successmessage" src="https://github.com/user-attachments/assets/02fd8d70-7d00-4a9a-ad0e-12136cfd725a" /> <img width="200" height="320" alt="erropassword" src="https://github.com/user-attachments/assets/2cab09ab-060d-4458-a82a-0ab7929c7aab" />
+
+
 
 The overall flow was designed to be intuitive, fast, and mobile-friendly.
 
-<!-- Add screenshots/mockups here -->
 
 ---
 
@@ -91,13 +149,16 @@ The platform includes interactive map-based interfaces that allow users to explo
 These interfaces support:
 
 - Visualization of reported issues on a map;
-- Location confirmation during report creation;
-- Geographic exploration of incidents;
+
+<img width="200" height="320" alt="map" src="https://github.com/user-attachments/assets/69eb735d-5ac5-456e-a71c-f1b800a390f2" />
+
 - Ecocenter location and details visualization.
+
+<img width="200" height="320" alt="ecocenter" src="https://github.com/user-attachments/assets/05cc553f-8934-4e45-8929-c71ac21c3912" />
+
 
 The map interfaces were designed to provide intuitive spatial awareness and improve user interaction with location-based information.
 
-<!-- Add screenshots/mockups here -->
 
 ---
 
@@ -109,7 +170,9 @@ This feature supports users in making better waste disposal decisions and contri
 
 The interface was designed to provide clear, simple, and actionable results to the user.
 
-<!-- Add screenshots/mockups here -->
+<img width="200" height="320" alt="scan" src="https://github.com/user-attachments/assets/d7453157-8ff4-4ca1-aced-ab061cc6b3a8" /> <img width="200" height="320" alt="helpscan" src="https://github.com/user-attachments/assets/b3b8e8e0-64fd-4a32-be43-f0110668f1f3" />
+
+
 
 ---
 
@@ -120,10 +183,19 @@ The user profile interfaces allow citizens to manage their personal information 
 The profile section includes:
 
 - Citizen profile page;
+
+<img width="200" height="320" alt="perfilpage" src="https://github.com/user-attachments/assets/bf9cd414-3d68-4084-be69-0dcd51d2e8f3" />
+
+
 - Edit profile functionality;
+
+<img width="200" height="320" alt="editarperfil" src="https://github.com/user-attachments/assets/3dbb4b8a-d090-4de5-88e5-360600c3cff3" />
+
+
 - User activity history;
-- Submitted reports overview;
-- Account-related settings.
+
+<img width="200" height="320" alt="atividade" src="https://github.com/user-attachments/assets/eda3e28a-1caf-4ebf-b8cb-5883acb878de" />
+
 
 The design focuses on organization, accessibility, and clear presentation of personal data.
 
