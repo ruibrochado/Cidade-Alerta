@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'pages/login_page.dart';
+import 'pages/signin_page.dart';
 import 'pages/main_navigation_screen.dart';
 import 'routes/app_routes.dart';
 

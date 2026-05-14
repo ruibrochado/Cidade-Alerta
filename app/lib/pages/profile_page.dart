@@ -271,7 +271,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           _ProfileMenuItem(
                             icon: Icons.shield_outlined,
-                            title: 'Privacidade e Termos',
+                            title: 'Termos e Privacidade',
                             onTap: () {
                               Navigator.pushNamed(context, '/privacy-terms');
                             },

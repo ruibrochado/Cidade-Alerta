@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../widgets/custom_alert_card.dart';
+import '../widgets/success_banner.dart';
 import 'home_page.dart';
 import 'signup_page.dart';
 
@@ -20,6 +22,8 @@ class _LoginPageState extends State<LoginPage> {
 
   // Variável para controlar se os campos estão preenchidos
   bool isFormValid = false;
+  bool showErrorCard = false;
+  bool showSuccessBanner = false;
 
   final Color topGreen = const Color(0xFFCDE5CB);
   final Color buttonGreen = const Color(0xFF16A34A);
@@ -54,12 +58,27 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  void showSuccessLogin() {
+    setState(() => showSuccessBanner = true);
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() => showSuccessBanner = false);
+      }
+    });
+  }
+
+  void _closeErrorCard() {
+    setState(() => showErrorCard = false);
+  }
+
   Future<void> signIn() async {
     if (!isFormValid) return; // Segurança extra
 
     setState(() {
       isLoading = true;
       errorMessage = '';
+      showErrorCard = false;
     });
 
     try {
@@ -69,30 +88,39 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
-    } catch (_) {
+
+      showSuccessLogin();
+
+      Future.delayed(const Duration(milliseconds: 1200), () {
+        if (!mounted) return;
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomePage()),
+        );
+      });
+    } catch (e) {
+      final err = e.toString().toLowerCase();
+
       setState(() {
-        errorMessage = "Erro ao entrar.";
+        if (err.contains("user-not-found")) {
+          errorMessage = "Email inexistente";
+        } else if (err.contains("wrong-password")) {
+          errorMessage = "Palavra-passe errada";
+        } else {
+          errorMessage = "Erro ao entrar. Tenta novamente.";
+        }
+        showErrorCard = true;
       });
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
   }
 
-  // Métodos do Google e Apple permanecem iguais...
-  Future<void> signInWithGoogle() async {
-    /* ... teu código ... */
-  }
-  Future<void> signInWithApple() async {
-    /* ... teu código ... */
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           Column(
@@ -103,6 +131,9 @@ class _LoginPageState extends State<LoginPage> {
           ),
 
           SingleChildScrollView(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
             child: Column(
               children: [
                 const SizedBox(height: 50),
@@ -128,7 +159,7 @@ class _LoginPageState extends State<LoginPage> {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.55),
+                          color: Colors.black.withValues(alpha: 0.04),
                           blurRadius: 25,
                           offset: const Offset(0, 10),
                         ),
@@ -149,15 +180,6 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 20),
                         _label("Palavra-passe"),
                         _input(passwordController, true),
-
-                        if (errorMessage.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 10),
-                            child: Text(
-                              errorMessage,
-                              style: const TextStyle(color: Colors.red),
-                            ),
-                          ),
 
                         const SizedBox(height: 30),
 
@@ -197,15 +219,6 @@ class _LoginPageState extends State<LoginPage> {
 
                         const SizedBox(height: 15),
                         _terms(),
-                        const SizedBox(height: 25),
-
-                        Row(
-                          children: [
-                            Expanded(child: _social("Google")),
-                            const SizedBox(width: 12),
-                            Expanded(child: _social("Apple")),
-                          ],
-                        ),
                         const SizedBox(height: 30),
                         _footer("Não tens conta? ", "Criar Conta", () {
                           Navigator.push(
@@ -229,6 +242,21 @@ class _LoginPageState extends State<LoginPage> {
               ],
             ),
           ),
+
+          // CARD DE ERRO (MESMO DESIGN DO SIGNUP_PAGE)
+          if (showErrorCard)
+            CustomAlertCard(
+              icon: Icons.error_outline,
+              iconColor: Colors.red,
+              title: "Erro a iniciar sessão",
+              message: "Conta inexistente ou palavra-passe errada.",
+              primaryButtonText: "OK",
+              onPrimaryPressed: _closeErrorCard,
+            ),
+
+          // BANNER DE SUCESSO (NOTIFICAÇÃO SUPERIOR)
+          if (showSuccessBanner)
+            const SuccessBanner(message: "Sessão iniciada com sucesso!"),
         ],
       ),
     );
@@ -256,48 +284,12 @@ class _LoginPageState extends State<LoginPage> {
         filled: true,
         fillColor: inputColor,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14), // Mantido como referência
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 18,
           vertical: 14,
-        ),
-      ),
-    );
-  }
-
-  Widget _social(String type) {
-    return GestureDetector(
-      onTap: isLoading
-          ? null
-          : () {
-              /* login google/apple */
-            },
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          // Borda mudada para 14 para condizer com os campos
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Center(
-          child: FittedBox(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (type == "Google")
-                  Image.network(
-                    'https://developers.google.com/identity/images/g-logo.png',
-                    height: 18,
-                  )
-                else
-                  const Icon(Icons.apple, size: 20),
-                const SizedBox(width: 8),
-                Text(type, style: const TextStyle(fontWeight: FontWeight.w500)),
-              ],
-            ),
-          ),
         ),
       ),
     );
@@ -311,12 +303,17 @@ class _LoginPageState extends State<LoginPage> {
           "Ao clicar neste botão, concordas com os nossos ",
           style: TextStyle(fontSize: 11, color: Colors.grey),
         ),
-        Text(
-          "Termos e Condições",
-          style: TextStyle(
-            fontSize: 11,
-            color: buttonGreen,
-            fontWeight: FontWeight.w600,
+        GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(context, '/privacy-terms');
+          },
+          child: Text(
+            "Termos e Condições",
+            style: TextStyle(
+              fontSize: 11,
+              color: buttonGreen,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],

@@ -6,9 +6,10 @@ import '../pages/confirm_report_page.dart';
 import '../pages/detect_location_page.dart';
 import '../pages/email_test_page.dart';
 import '../pages/issue_category_page.dart';
-import '../pages/login_page.dart';
+import '../pages/signin_page.dart';
 import '../pages/main_navigation_screen.dart';
 import '../pages/edit_profile_page.dart';
+import '../pages/terms_privacy_page.dart';
 
 class AppRoutes {
   static Map<String, WidgetBuilder> routes = {
@@ -24,6 +25,7 @@ class AppRoutes {
     '/feed': (context) => const MainNavigationScreen(initialIndex: 0),
     '/profile': (context) => const ProfilePage(),
     '/edit-profile': (context) => const EditProfilePage(),
+    '/privacy-terms': (context) => const TermsPrivacyPage(),
     '/scanner': (context) => const MainNavigationScreen(initialIndex: 1),
     '/map': (context) => const MainNavigationScreen(initialIndex: 2),
 

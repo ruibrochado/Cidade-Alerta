@@ -207,7 +207,6 @@ class _MapPageState extends State<MapPage> {
           height: 52,
           alignment: Alignment.topCenter,
           child: GestureDetector(
-            key: const Key('issue_marker'),
             onTap: () => _openReportDetails(issue),
             child: const _IssuePin(),
           ),
