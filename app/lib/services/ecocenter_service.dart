@@ -7,7 +7,6 @@ class EcocenterService {
   EcocenterService({SupabaseClient? client})
     : _client = client ?? Supabase.instance.client;
 
-  /// Fetches all ecocenters whose coordinates fall within the given bounding box.
   Future<List<EcocenterData>> fetchEcocentersByBounds({
     required double minLat,
     required double maxLat,

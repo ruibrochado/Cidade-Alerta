@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/profile_service.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  final ProfileService? profileService;
+
+  const ProfilePage({super.key, this.profileService});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final _supabase = Supabase.instance.client;
+  late final ProfileService _profileService;
 
   bool _isLoading = true;
   bool _isDeleting = false;
@@ -24,47 +27,23 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
+    _profileService = widget.profileService ?? ProfileService();
     _loadProfile();
   }
 
   Future<void> _loadProfile() async {
     try {
-      final user = _supabase.auth.currentUser;
-
-      if (user == null) {
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      final reportedIssues = await _supabase
-          .from('issues')
-          .select('id')
-          .eq('user_id', user.id);
-
-      final votedIssues = await _supabase
-          .from('issue_votes')
-          .select('id')
-          .eq('user_id', user.id);
-
-      final profile = await _supabase
-          .from('profiles')
-          .select('first_name, last_name, profile_photo')
-          .eq('id', user.id)
-          .maybeSingle();
-
-      final firstName = profile?['first_name']?.toString() ?? '';
-      final lastName = profile?['last_name']?.toString() ?? '';
-      final fullName = '$firstName $lastName'.trim();
+      final data = await _profileService.loadProfile();
 
       if (!mounted) return;
 
       setState(() {
-        _name = fullName.isEmpty ? 'Utilizador' : fullName;
-        _email = user.email ?? 'sem email';
-        _profilePhotoUrl = profile?['profile_photo']?.toString();
+        _name = data['name'] as String;
+        _email = data['email'] as String;
+        _profilePhotoUrl = data['profilePhotoUrl'] as String?;
+        _reportedIssuesCount = data['reportedIssuesCount'] as int;
+        _votedIssuesCount = data['votedIssuesCount'] as int;
         _isLoading = false;
-        _reportedIssuesCount = reportedIssues.length;
-        _votedIssuesCount = votedIssues.length;
       });
     } catch (error) {
       debugPrint('LOAD PROFILE ERROR: $error');
@@ -72,14 +51,15 @@ class _ProfilePageState extends State<ProfilePage> {
       if (!mounted) return;
 
       setState(() {
-        _email = _supabase.auth.currentUser?.email ?? 'sem email';
+        _email =
+            Supabase.instance.client.auth.currentUser?.email ?? 'sem email';
         _isLoading = false;
       });
     }
   }
 
   Future<void> _logout() async {
-    await _supabase.auth.signOut();
+    await _profileService.logout();
 
     if (!mounted) return;
 
@@ -128,9 +108,7 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() => _isDeleting = true);
 
     try {
-      await _supabase.functions.invoke('delete-user');
-
-      await _supabase.auth.signOut();
+      await _profileService.deleteAccount();
 
       if (!mounted) return;
 
@@ -264,12 +242,6 @@ class _ProfilePageState extends State<ProfilePage> {
                             trailingText: 'Português',
                             onTap: () {},
                           ),
-                          /*
-                          _ProfileMenuItem(
-                            icon: Icons.star_border,
-                            title: 'Avalia-nos',
-                            onTap: () {},
-                          ),*/
                           _ProfileMenuItem(
                             icon: Icons.shield_outlined,
                             title: 'Termos e Privacidade',
@@ -277,12 +249,6 @@ class _ProfilePageState extends State<ProfilePage> {
                               Navigator.pushNamed(context, '/privacy-terms');
                             },
                           ),
-                          /*
-                          _ProfileMenuItem(
-                            icon: Icons.chat_bubble_outline,
-                            title: 'Feedback',
-                            onTap: () {},
-                          ),*/
                           const SizedBox(height: 24),
                           const _SectionTitle('CONTA'),
                           _ProfileMenuItem(
