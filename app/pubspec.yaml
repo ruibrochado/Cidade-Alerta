@@ -32,7 +32,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  patrol: 4.2.0
+  patrol: 4.5.0
   flutter_lints: ^6.0.0
   mocktail: ^1.0.3
   flutter_launcher_icons: ^0.13.1
