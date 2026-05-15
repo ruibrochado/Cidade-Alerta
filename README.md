@@ -51,7 +51,6 @@ Thank you!
 * Ricardo Alves (<u>up202404099@up.pt</u>)
 * Rui Brochado (<u>up202405335@up.pt</u>)
 
-<div align="center">
- https://github.com/user-attachments/assets/9b883ae7-4082-42aa-80c5-fa793d252c86
-</div>
+https://github.com/user-attachments/assets/49302986-c0e0-4b5b-ba56-f743cb0f498a
+
 ---
