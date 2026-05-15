@@ -1,6 +1,6 @@
 ### Domain model
 
-![UML Domain model](app/images/DomainUML.png)
+![UML Domain model](../../app/images/DomainUML.png)
 
 Our application is a civic and environmental platform that connects citizens to municipal services to improve waste management and public spaces. The system allows a **User** to register **Materials** to learn how to handle them correctly (categorized into specific **Recycled Material** types) and direct them to the appropriate **Recycling Bin**.
 

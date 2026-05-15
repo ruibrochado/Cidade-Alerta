@@ -22,12 +22,14 @@ It is organised by the following activities:
   * [Domain model](/docs/requirements/domain-model.md)
   * [User interfaces](/docs/requirements/user-interface.md)
   * [Validate Requirements](/docs/requirements/validate-requirements.md)
-* [Architecture and Design](/docs/architecture-design/)
-  * [Logical architecture](/docs/architecture-design/logical-architecture.md)
-  * [Physical architecture](/docs/architecture-design/physical-architecture.md)
-  * [Functional prototype](/docs/architecture-design/functional-prototype.md)
+* [Architecture and Design](/docs/architecture/)
+  * [Logical architecture](/docs/architecture/logical-architecture.md)
+  * [Physical architecture](/docs/architecture/physical-architecture.md)
+  * [Functional prototype](/docs/architecture/functional-prototype.md)
 * [Acceptance tests](/docs/acceptance-tests/)
-* [AI Usage](/docs/ai-usage/generative-ai-usage.md)
+* [AI Usage](/docs/ai-usage/)
+  * [Generative AI Usage](/docs/ai-usage/generative-ai-usage.md)
+  * [User Prompts](/docs/ai-usage/user-prompts.md)
 * [Project management](/docs/project-management/)
   * [Happiness Meters](/docs/project-management/happiness-meters.md)
   * [Sprint 0](/docs/project-management/sprint0.md)
@@ -49,6 +51,6 @@ Thank you!
 * Ricardo Alves (<u>up202404099@up.pt</u>)
 * Rui Brochado (<u>up202405335@up.pt</u>)
 
-<!-- video da app >
+https://github.com/user-attachments/assets/49302986-c0e0-4b5b-ba56-f743cb0f498a
 
 ---
