@@ -1,5 +1,5 @@
 ### Logical architecture
-![UML Logical architeture](app/images/PackageUML.png)
+![UML Logical architeture](../../app/images/PackageUML.png)
 
 The logical architecture diagram illustrates the high-level organization of the application, emphasizing the separation of concerns across four main packages and their respective dependencies.
 
