@@ -170,7 +170,8 @@ This feature supports users in making better waste disposal decisions and contri
 
 The interface was designed to provide clear, simple, and actionable results to the user.
 
-<img width="200" height="320" alt="scan" src="https://github.com/user-attachments/assets/d7453157-8ff4-4ca1-aced-ab061cc6b3a8" /> <img width="200" height="320" alt="helpscan" src="https://github.com/user-attachments/assets/b3b8e8e0-64fd-4a32-be43-f0110668f1f3" />
+<img width="200" height="320" alt="scan" src="https://github.com/user-attachments/assets/d7453157-8ff4-4ca1-aced-ab061cc6b3a8" /> <img width="200" height="320" alt="notconfirm" src="https://github.com/user-attachments/assets/452cb9c2-7967-482e-8f5c-0e9350e0534e" />
+
 
 
 
@@ -199,10 +200,9 @@ The profile section includes:
 
 The design focuses on organization, accessibility, and clear presentation of personal data.
 
-<!-- Add screenshots/mockups here -->
 
 ---
-
+<!--
 ## Report Tracking Screens
 
 The report tracking interfaces allow users to monitor the progress and current status of submitted reports.
@@ -217,7 +217,6 @@ These interfaces provide:
 
 The design emphasizes transparency, accountability, and easy access to relevant updates.
 
-<!-- Add screenshots/mockups here -->
 
 ---
 
@@ -235,10 +234,8 @@ These interfaces include:
 
 The feedback system was designed to provide immediate and clear communication during user interactions.
 
-<!-- Add screenshots/mockups here -->
 
----
-
+--->
 ## Legal and Informational Screens
 
 The platform also includes informational and legal interfaces to ensure transparency and compliance.
@@ -247,7 +244,9 @@ These sections include:
 
 - Terms of Service;
 - Privacy Policy;
-- Ecocenter details and information pages.
+
+<img width="200" height="320" alt="termoseprivacidade" src="https://github.com/user-attachments/assets/c2ac6ef9-3d45-4920-babc-cf5659646748" />
+
 
 The interfaces were designed with readability and accessibility in mind.
 
