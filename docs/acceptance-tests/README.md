@@ -6,9 +6,9 @@ The included videos demonstrate the validation of the system's main functionalit
 
 ## Contents
 
-- Authentication Flow
-- User Registration
-- Incident Reporting
+- [Authentication Flow](./authentication-flow.md)
+- [User Registration](./user-registration.md)
+- [Incident Reporting](./incident-reporting.md)
 
 ## Purpose
 
