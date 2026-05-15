@@ -174,6 +174,7 @@ class _ActivityPageState extends State<ActivityPage> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
+          key: const Key('activity_comment_card'),
           borderRadius: BorderRadius.circular(16.0),
           onTap: () async {
             setState(() {

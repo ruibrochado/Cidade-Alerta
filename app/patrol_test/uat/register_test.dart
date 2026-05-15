@@ -1,43 +1,61 @@
+// ignore_for_file: deprecated_member_use
 import 'package:patrol/patrol.dart';
 import 'package:app/main.dart' as app;
 import '../robots/register_robot.dart';
 import '../robots/login_robot.dart';
 import '../robots/home_robot.dart';
+import '../robots/profile_robot.dart';
 
 void main() {
-  patrolTest('UAT: Registration and Initial Login Flow', (
-    PatrolIntegrationTester $,
-  ) async {
-    final registerRobot = RegisterRobot($);
-    final loginRobot = LoginRobot($);
-    final homeRobot = HomeRobot($);
+  patrolTest(
+    'UAT: Registration, Edit Profile, Terms and Account Deletion Flow',
+    (PatrolIntegrationTester $) async {
+      final registerRobot = RegisterRobot($);
+      final loginRobot = LoginRobot($);
+      final homeRobot = HomeRobot($);
+      final profileRobot = ProfileRobot($);
 
-    await app.main();
-    await $.pumpAndSettle();
+      await app.main();
+      await $.pumpAndSettle();
 
-    // 1. Navigate to Register Page
-    await $('Sign up').tap();
-    await $.pumpAndSettle();
+      await $('Criar Conta').tap();
+      await $.pumpAndSettle();
 
-    // 🧠 O TRUQUE PARA NÃO SER BURRO: Gerar email único
-    final uniqueId = DateTime.now().millisecondsSinceEpoch;
-    final dynamicEmail = 'novo.user+$uniqueId@gmail.com';
+      final uniqueId = DateTime.now().millisecondsSinceEpoch;
+      final dynamicEmail = 'novo.user+$uniqueId@gmail.com';
 
-    // 2. Fill the registration form com o email dinâmico
-    await registerRobot.fillRegistrationForm(
-      firstName: 'Novo',
-      lastName: 'Utilizador',
-      email: dynamicEmail,
-      password: 'password123',
-    );
+      await registerRobot.fillRegistrationForm(
+        firstName: 'Novo',
+        lastName: 'Utilizador',
+        email: dynamicEmail,
+        password: 'password123',
+      );
 
-    // 3. Submit registration
-    await registerRobot.tapSubmit();
+      await registerRobot.tapSubmit();
 
-    // 4. Perform Login com o MESMO email que acabámos de gerar
-    await loginRobot.fullLogin(dynamicEmail, 'password123');
+      await $('OK').tap();
+      await $.pumpAndSettle();
 
-    // 5. Verify we successfully entered the app
-    await homeRobot.validateHomeLoaded();
-  });
+      await loginRobot.fullLogin(dynamicEmail, 'password123');
+
+      try {
+        await $.native.grantPermissionWhenInUse();
+      } catch (_) {}
+
+      await homeRobot.validateHomeLoaded();
+
+      await profileRobot.tapProfileIcon();
+
+      await profileRobot.openAndCloseTerms();
+
+      final dataAtual = DateTime.now();
+      final horaMinuto = '${dataAtual.hour}h${dataAtual.minute}';
+      final novoNome = 'User$horaMinuto';
+      final novoApelido = 'Teste${dataAtual.second}';
+
+      await profileRobot.editProfileAndSave(novoNome, novoApelido);
+
+      await profileRobot.deleteAccount();
+    },
+  );
 }
