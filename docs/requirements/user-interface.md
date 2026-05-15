@@ -133,7 +133,7 @@ The reporting flow includes:
 
 - Success and error feedback dialogs.
 
-<img width="200" height="320" alt="successmessage" src="https://github.com/user-attachments/assets/02fd8d70-7d00-4a9a-ad0e-12136cfd725a" /> <img width="200" height="320" alt="erropassword" src="https://github.com/user-attachments/assets/2cab09ab-060d-4458-a82a-0ab7929c7aab" />
+<img width="200" height="320" alt="successmessage" src="https://github.com/user-attachments/assets/02fd8d70-7d00-4a9a-ad0e-12136cfd725a" />
 
 
 
