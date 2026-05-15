@@ -126,14 +126,13 @@ class IssueService {
   }
 
   Future<List<Map<String, dynamic>>> fetchUserActivity() async {
-    final user = supabase.auth.currentUser;
-
-    if (user == null) {
-      throw Exception('Utilizador não autenticado');
-    }
-
     try {
-      // Vamos buscar comentários feitos nas tuas denúncias, ignorando os teus próprios comentários
+      final user = supabase.auth.currentUser;
+
+      if (user == null) {
+        return [];
+      }
+
       final response = await supabase
           .from('comments')
           .select('''
@@ -152,12 +151,10 @@ class IssueService {
               profile_photo
             )
           ''')
-          // Só queremos comentários em denúncias onde o dono é o utilizador atual
           .eq('issues.user_id', user.id)
-          // Não queremos ser notificados dos nossos próprios comentários
           .neq('user_id', user.id)
-          .order('created_at', ascending: false) // Mais recentes primeiro
-          .limit(20); // Limita às últimas 20 atividades para não pesar
+          .order('created_at', ascending: false)
+          .limit(20);
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
@@ -187,7 +184,6 @@ class IssueService {
       query = query.or(orParts);
     }
 
-    // 'hot' only counts issues from the last 7 days
     if (sortMode == 'hot') {
       final cutoff = DateTime.now()
           .subtract(const Duration(days: 7))
@@ -258,9 +254,6 @@ class IssueService {
     }
   }
 
-  /// Fetches all issues whose coordinates fall within the given map bounds.
-  /// No pagination — returns every issue visible in the viewport so the map
-  /// always shows the full picture as the user pans and zooms.
   Future<List<Map<String, dynamic>>> fetchIssuesByBounds({
     required double minLat,
     required double maxLat,
@@ -352,7 +345,6 @@ class IssueService {
       return {'score': score, 'userVote': userVote};
     } catch (e) {
       debugPrint('Erro a buscar votos: $e');
-
       return {'score': 0, 'userVote': 0};
     }
   }
