@@ -1,5 +1,5 @@
 ### Physical architecture
-![UML Physical architeture](app/images/DeploymentUML.png)
+![UML Physical architeture](../../app/images/DeploymentUML.png)
 
 The physical architecture (deployment) diagram presents five main device nodes communicating securely via HTTPS:
 
