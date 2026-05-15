@@ -35,7 +35,7 @@ dev_dependencies:
   patrol: 4.5.0
   flutter_lints: ^6.0.0
   mocktail: ^1.0.5
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.0
 
 patrol:
