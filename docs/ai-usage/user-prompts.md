@@ -1,6 +1,7 @@
 # User Prompts Export
 
 > DISCLAIMER: this is only a example from our prompts to AI
+>
 > Exported from the provided ChatGPT shared conversation copy.
 
 ---
