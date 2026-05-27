@@ -10,7 +10,8 @@ class ReportData {
     this.address,
     this.city,
     this.country,
-    this.score = 0, // <-- NOVO
+    this.status = 'Pendente',
+    this.score = 0,
   });
 
   String id;
@@ -23,19 +24,23 @@ class ReportData {
   String? address;
   String? city;
   String? country;
-  int score; // <-- NOVO
+  String status;
+  int score;
 
   factory ReportData.fromMap(Map<String, dynamic> map) {
     return ReportData(
       id: map['id']?.toString() ?? '',
-      category: map['category'] ?? 'Geral',
-      title: map['title'] ?? '',
-      description: map['description'] ?? '',
-      photos: map['photo_url'] != null ? [map['photo_url']] : [],
+      category: map['category']?.toString() ?? 'Geral',
+      title: map['title']?.toString() ?? '',
+      description: map['description']?.toString() ?? '',
+      photos: map['photo_url'] != null ? [map['photo_url'].toString()] : [],
       latitude: (map['latitude'] as num?)?.toDouble(),
       longitude: (map['longitude'] as num?)?.toDouble(),
-      address: map['address'] as String?,
-      score: map['score'] as int? ?? 0, // <-- NOVO LÊ DIRETAMENTE DO SUPABASE
+      address: map['address']?.toString(),
+      city: map['city']?.toString(),
+      country: map['country']?.toString(),
+      status: map['status']?.toString() ?? 'Pendente',
+      score: map['score'] as int? ?? 0,
     );
   }
 
@@ -50,7 +55,8 @@ class ReportData {
     String? address,
     String? city,
     String? country,
-    int? score, // <-- NOVO
+    String? status,
+    int? score,
     bool clearLatitude = false,
     bool clearLongitude = false,
   }) {
@@ -63,9 +69,10 @@ class ReportData {
       latitude: clearLatitude ? null : (latitude ?? this.latitude),
       longitude: clearLongitude ? null : (longitude ?? this.longitude),
       address: address ?? this.address,
-      city: city ?? city,
-      country: country ?? country,
-      score: score ?? this.score, // <-- NOVO
+      city: city ?? this.city,
+      country: country ?? this.country,
+      status: status ?? this.status,
+      score: score ?? this.score,
     );
   }
 }

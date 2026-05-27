@@ -254,6 +254,16 @@ class IssueService {
     }
   }
 
+  Future<int> fetchMunicipalityReportsCount() async {
+    return fetchIssuesCount(sortMode: 'new');
+  }
+
+  Future<List<Map<String, dynamic>>> fetchMunicipalityReports({
+    int page = 0,
+  }) async {
+    return fetchIssues(page: page, sortMode: 'new');
+  }
+
   Future<List<Map<String, dynamic>>> fetchIssuesByBounds({
     required double minLat,
     required double maxLat,
