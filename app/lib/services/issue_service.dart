@@ -173,7 +173,7 @@ class IssueService {
         .from('issues')
         .select('id')
         .neq('title', 'Test issue')
-        .or('status.is.null,status.neq.archived');
+        .neq('status', 'archived');
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
       query = query.ilike('title', '%$searchQuery%');
@@ -215,7 +215,7 @@ class IssueService {
           .from('issues')
           .select()
           .neq('title', 'Test issue')
-          .or('status.is.null,status.neq.archived');
+          .neq('status', 'archived');
 
       if (searchQuery != null && searchQuery.isNotEmpty) {
         query = query.ilike('title', '%$searchQuery%');
@@ -273,7 +273,7 @@ class IssueService {
           .from('issues')
           .select()
           .neq('title', 'Test issue')
-          .or('status.is.null,status.neq.archived')
+          .neq('status', 'archived')
           .gte('latitude', minLat)
           .lte('latitude', maxLat)
           .gte('longitude', minLng)
@@ -397,12 +397,15 @@ class IssueService {
     }
   }
 
-  Future<int> fetchMunicipalityReportsCount() async {
+  Future<int> fetchMunicipalityReportsCount({
+    required String municipalityCity,
+  }) async {
     final response = await supabase
         .from('issues')
         .select('id')
         .neq('title', 'Test issue')
         .neq('status', 'archived')
+        .ilike('city', municipalityCity)
         .count(CountOption.exact);
 
     return response.count;
@@ -410,6 +413,7 @@ class IssueService {
 
   Future<List<Map<String, dynamic>>> fetchMunicipalityReports({
     int page = 0,
+    required String municipalityCity,
   }) async {
     final from = page * pageSize;
     final to = from + pageSize - 1;
@@ -419,6 +423,7 @@ class IssueService {
         .select()
         .neq('title', 'Test issue')
         .neq('status', 'archived')
+        .ilike('city', municipalityCity)
         .order('created_at', ascending: false)
         .range(from, to);
 

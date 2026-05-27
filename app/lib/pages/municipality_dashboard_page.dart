@@ -124,9 +124,13 @@ class _MunicipalityDashboardPageState extends State<MunicipalityDashboardPage> {
         profile?.municipalityCity ??
         'Assigned Municipality';
 
+    final municipalityCity =
+        profile?.municipalityCity ?? profile?.municipalityName ?? '';
+
     return MunicipalityIssueFeedPage(
       workerName: profile?.fullName ?? 'Municipality Worker',
       municipalityLabel: municipalityLabel,
+      municipalityCity: municipalityCity,
       onLogout: logout,
     );
   }
