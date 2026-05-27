@@ -8,12 +8,14 @@ import '../widgets/navbar.dart';
 class MunicipalityIssueFeedPage extends StatefulWidget {
   final String workerName;
   final String municipalityLabel;
+  final String municipalityCity;
   final VoidCallback onLogout;
 
   const MunicipalityIssueFeedPage({
     super.key,
     required this.workerName,
     required this.municipalityLabel,
+    required this.municipalityCity,
     required this.onLogout,
   });
 
@@ -59,7 +61,9 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
 
   Future<void> _fetchTotalCount() async {
     try {
-      final count = await issueService.fetchMunicipalityReportsCount();
+      final count = await issueService.fetchMunicipalityReportsCount(
+        municipalityCity: widget.municipalityCity,
+      );
 
       if (!mounted) return;
 
@@ -84,6 +88,7 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
     try {
       final data = await issueService.fetchMunicipalityReports(
         page: _currentPage,
+        municipalityCity: widget.municipalityCity,
       );
 
       final newReports = data.map((item) => ReportData.fromMap(item)).toList();
