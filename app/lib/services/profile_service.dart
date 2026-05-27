@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/user_profile.dart';
 
 class ProfileService {
   final SupabaseClient supabase;
@@ -55,5 +56,25 @@ class ProfileService {
 
   Future<void> logout() async {
     await supabase.auth.signOut();
+  }
+
+  Future<UserProfile?> getCurrentUserProfile() async {
+    final user = supabase.auth.currentUser;
+
+    if (user == null) {
+      return null;
+    }
+
+    final profile = await supabase
+        .from('profiles')
+        .select('id, role, municipality_id, municipalities(name, city)')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    if (profile == null) {
+      return null;
+    }
+
+    return UserProfile.fromMap(profile);
   }
 }
