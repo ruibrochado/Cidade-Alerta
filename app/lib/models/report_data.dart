@@ -10,7 +10,7 @@ class ReportData {
     this.address,
     this.city,
     this.country,
-    this.status = 'Pendente',
+    this.status = 'submitted',
     this.score = 0,
   });
 
@@ -39,7 +39,7 @@ class ReportData {
       address: map['address']?.toString(),
       city: map['city']?.toString(),
       country: map['country']?.toString(),
-      status: map['status']?.toString() ?? 'Pendente',
+      status: map['status']?.toString() ?? 'submitted',
       score: map['score'] as int? ?? 0,
     );
   }

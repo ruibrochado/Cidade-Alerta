@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../models/user_profile.dart';
 import '../services/auth_service.dart';
 import '../services/profile_service.dart';
-import 'signin_page.dart';
 import 'municipality_feed_page.dart';
+import 'signin_page.dart';
 
 class MunicipalityDashboardPage extends StatefulWidget {
   final bool showLoginConfirmation;
@@ -124,6 +125,7 @@ class _MunicipalityDashboardPageState extends State<MunicipalityDashboardPage> {
         'Assigned Municipality';
 
     return MunicipalityIssueFeedPage(
+      workerName: profile?.fullName ?? 'Municipality Worker',
       municipalityLabel: municipalityLabel,
       onLogout: logout,
     );

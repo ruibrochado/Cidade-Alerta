@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
-
 import '../models/report_data.dart';
 import '../services/issue_service.dart';
 import '../widgets/slide_card.dart';
 import 'report_detail_page.dart';
+import '../widgets/navbar.dart';
 
 class MunicipalityIssueFeedPage extends StatefulWidget {
+  final String workerName;
   final String municipalityLabel;
   final VoidCallback onLogout;
 
   const MunicipalityIssueFeedPage({
     super.key,
+    required this.workerName,
     required this.municipalityLabel,
     required this.onLogout,
   });
@@ -124,12 +126,15 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
     final normalizedStatus = status.trim().toLowerCase();
 
     switch (normalizedStatus) {
+      case 'submitted':
       case 'pending':
       case 'pendente':
         return 'Pendente';
       case 'in_progress':
       case 'em progresso':
-        return 'Em Progresso';
+      case 'em resolução':
+      case 'em resolucao':
+        return 'Em resolução';
       case 'resolved':
       case 'resolvido':
         return 'Resolvido';
@@ -150,10 +155,13 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
         return const Color(0xFFEFF8F1);
       case 'in_progress':
       case 'em progresso':
+      case 'em resolução':
+      case 'em resolucao':
         return const Color(0xFFEAF2FF);
       case 'archived':
       case 'arquivado':
         return const Color(0xFFF2F4F7);
+      case 'submitted':
       case 'pending':
       case 'pendente':
       default:
@@ -170,10 +178,13 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
         return const Color(0xFF1A6B3A);
       case 'in_progress':
       case 'em progresso':
+      case 'em resolução':
+      case 'em resolucao':
         return const Color(0xFF2563EB);
       case 'archived':
       case 'arquivado':
         return const Color(0xFF667085);
+      case 'submitted':
       case 'pending':
       case 'pendente':
       default:
@@ -225,6 +236,107 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
         );
       },
     );
+  }
+
+  Future<void> _showEditStatusDialog(ReportData report) async {
+    final selectedStatus = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title: const Text('Editar estado'),
+          children: [
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, 'submitted'),
+              child: const Text('Pendente'),
+            ),
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, 'in_progress'),
+              child: const Text('Em resolução'),
+            ),
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, 'resolved'),
+              child: const Text('Resolvido'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (selectedStatus == null) return;
+
+    try {
+      final updatedStatus = await issueService.updateIssueStatus(
+        issueId: report.id,
+        status: selectedStatus,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        final index = _reports.indexWhere((item) => item.id == report.id);
+
+        if (index != -1) {
+          _reports[index] = _reports[index].copyWith(status: updatedStatus);
+        }
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Estado atualizado com sucesso.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao atualizar o estado.')),
+      );
+    }
+  }
+
+  Future<void> _confirmArchiveIssue(ReportData report) async {
+    final shouldArchive = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Arquivar denúncia'),
+          content: const Text(
+            'Tens a certeza que queres arquivar esta denúncia? Ela deixará de aparecer no feed municipal, mas continuará guardada na base de dados.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Arquivar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldArchive != true) return;
+
+    try {
+      await issueService.archiveIssue(report.id);
+
+      if (!mounted) return;
+
+      setState(() {
+        _reports.removeWhere((item) => item.id == report.id);
+        _totalCount = _totalCount > 0 ? _totalCount - 1 : 0;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Denúncia arquivada com sucesso.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao arquivar denúncia.')),
+      );
+    }
   }
 
   Widget _buildReportCard(ReportData report) {
@@ -303,11 +415,11 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
                   Row(
                     children: [
                       const Icon(
-                        Icons.arrow_upward,
+                        Icons.trending_up,
                         size: 18,
                         color: Color(0xFF344054),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 6),
                       Text(
                         report.score.toString(),
                         style: const TextStyle(
@@ -316,11 +428,13 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
                           color: Color(0xFF344054),
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      const Icon(
-                        Icons.arrow_downward,
-                        size: 18,
-                        color: Color(0xFF344054),
+                      const SizedBox(width: 6),
+                      const Text(
+                        'score',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF667085),
+                        ),
                       ),
                       const Spacer(),
                       const Icon(
@@ -345,6 +459,32 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
                             ),
                           );
                         },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _showEditStatusDialog(report),
+                          icon: const Icon(Icons.edit_outlined, size: 18),
+                          label: const Text('Editar estado'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF1A6B3A),
+                            side: const BorderSide(color: Color(0xFF98D6AC)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      IconButton(
+                        onPressed: () => _confirmArchiveIssue(report),
+                        icon: const Icon(Icons.archive_outlined),
+                        color: const Color(0xFF667085),
+                        tooltip: 'Arquivar denúncia',
                       ),
                     ],
                   ),
@@ -534,53 +674,36 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
   }
 
   void _handleBottomNavigation(int index) {
-    setState(() {
-      _selectedTabIndex = index;
-    });
-
     if (index == 1) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Statistics will be added in a future issue.'),
         ),
       );
-
-      setState(() {
-        _selectedTabIndex = 0;
-      });
+      return;
     }
+
+    setState(() {
+      _selectedTabIndex = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFCDE5CB),
-      bottomNavigationBar: BottomNavigationBar(
+      backgroundColor: const Color(0xFFF6F6F6),
+      bottomNavigationBar: MunicipalityBottomNavBar(
         currentIndex: _selectedTabIndex,
-        onTap: _handleBottomNavigation,
-        selectedItemColor: const Color(0xFF16A34A),
-        unselectedItemColor: const Color(0xFF667085),
-        backgroundColor: Colors.white,
-        elevation: 12,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Feed',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart_outlined),
-            activeIcon: Icon(Icons.bar_chart),
-            label: 'Estatísticas',
-          ),
-        ],
+        onTabSelected: _handleBottomNavigation,
       ),
       body: SafeArea(
         bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
+            Container(
+              width: double.infinity,
+              color: const Color(0xFFCDE5CB),
               padding: const EdgeInsets.fromLTRB(24, 22, 18, 24),
               child: Row(
                 children: [
@@ -606,7 +729,7 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          widget.municipalityLabel,
+                          '${widget.workerName} · ${widget.municipalityLabel}',
                           style: const TextStyle(
                             fontSize: 13,
                             color: Color(0xFF667085),
@@ -619,7 +742,7 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
                   IconButton(
                     onPressed: widget.onLogout,
                     icon: const Icon(Icons.logout),
-                    color: const Color(0xFF0F172A),
+                    color: Color(0xFF0F172A),
                     tooltip: 'Logout',
                   ),
                 ],
