@@ -1,6 +1,8 @@
 class UserProfile {
   final String id;
   final String role;
+  final String? firstName;
+  final String? lastName;
   final String? municipalityId;
   final String? municipalityName;
   final String? municipalityCity;
@@ -8,6 +10,8 @@ class UserProfile {
   const UserProfile({
     required this.id,
     required this.role,
+    this.firstName,
+    this.lastName,
     this.municipalityId,
     this.municipalityName,
     this.municipalityCity,
@@ -18,15 +22,20 @@ class UserProfile {
   bool get hasAssignedMunicipality =>
       municipalityId != null && municipalityId!.isNotEmpty;
 
-  factory UserProfile.fromMap(Map<String, dynamic> map) {
-    final municipality = map['municipalities'] as Map<String, dynamic>?;
+  String get fullName {
+    final name = '${firstName ?? ''} ${lastName ?? ''}'.trim();
+    return name.isEmpty ? 'Municipality Worker' : name;
+  }
 
+  factory UserProfile.fromMap(Map<String, dynamic> map) {
     return UserProfile(
       id: map['id'].toString(),
       role: map['role']?.toString() ?? 'citizen',
+      firstName: map['first_name']?.toString(),
+      lastName: map['last_name']?.toString(),
       municipalityId: map['municipality_id']?.toString(),
-      municipalityName: municipality?['name']?.toString(),
-      municipalityCity: municipality?['city']?.toString(),
+      municipalityName: map['municipality_name']?.toString(),
+      municipalityCity: map['municipality_city']?.toString(),
     );
   }
 }

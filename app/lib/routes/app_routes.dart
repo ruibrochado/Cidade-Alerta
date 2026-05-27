@@ -7,15 +7,20 @@ import '../pages/email_test_page.dart';
 import '../pages/issue_category_page.dart';
 import '../pages/report_detail_page.dart';
 import '../pages/signin_page.dart';
+import '../pages/auth_gate.dart';
 import '../pages/main_navigation_screen.dart';
 import '../pages/edit_profile_page.dart';
 import '../pages/profile_page.dart';
 import '../pages/terms_privacy_page.dart';
+import '../pages/municipality_dashboard_page.dart';
 
 class AppRoutes {
   static Map<String, WidgetBuilder> routes = {
+    '/auth': (context) => const AuthGate(),
+    '/': (context) => const AuthGate(),
     '/login': (context) => const LoginPage(),
     '/home': (context) => const MainNavigationScreen(),
+    '/municipality-dashboard': (context) => const MunicipalityDashboardPage(),
     '/email-test': (context) => const EmailTestPage(),
     '/categories': (context) => const SelectCategory(),
     '/feed': (context) => const MainNavigationScreen(initialIndex: 0),
@@ -40,7 +45,6 @@ class AppRoutes {
       if (args is ReportData) {
         return AdjustLocationPage(report: args);
       }
-      // REMOVIDO CONST: Quando o conteúdo não é constante, o widget pai também não pode ser
       return const MainNavigationScreen();
     },
 

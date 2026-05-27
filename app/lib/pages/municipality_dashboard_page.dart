@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../models/user_profile.dart';
 import '../services/auth_service.dart';
 import '../services/profile_service.dart';
+import 'municipality_feed_page.dart';
 import 'signin_page.dart';
 
 class MunicipalityDashboardPage extends StatefulWidget {
@@ -122,37 +124,10 @@ class _MunicipalityDashboardPageState extends State<MunicipalityDashboardPage> {
         profile?.municipalityCity ??
         'Assigned Municipality';
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Municipality Dashboard'),
-        actions: [
-          IconButton(onPressed: logout, icon: const Icon(Icons.logout)),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFCDE5CB),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Text(
-                'Managing reports for $municipalityLabel',
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Municipality reports feed will be added in the next issue.',
-              style: TextStyle(fontSize: 16),
-            ),
-          ],
-        ),
-      ),
+    return MunicipalityIssueFeedPage(
+      workerName: profile?.fullName ?? 'Municipality Worker',
+      municipalityLabel: municipalityLabel,
+      onLogout: logout,
     );
   }
 }

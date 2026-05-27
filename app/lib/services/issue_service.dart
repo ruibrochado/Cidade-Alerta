@@ -387,4 +387,69 @@ class IssueService {
       throw Exception('Erro ao registar voto: $e');
     }
   }
+
+  Future<int> fetchMunicipalityReportsCount() async {
+    final response = await supabase
+        .from('issues')
+        .select('id')
+        .neq('title', 'Test issue')
+        .neq('status', 'archived')
+        .count(CountOption.exact);
+
+    return response.count;
+  }
+
+  Future<List<Map<String, dynamic>>> fetchMunicipalityReports({
+    int page = 0,
+  }) async {
+    final from = page * pageSize;
+    final to = from + pageSize - 1;
+
+    final List<dynamic> data = await supabase
+        .from('issues')
+        .select()
+        .neq('title', 'Test issue')
+        .neq('status', 'archived')
+        .order('created_at', ascending: false)
+        .range(from, to);
+
+    return List<Map<String, dynamic>>.from(data);
+  }
+
+  Future<String> updateIssueStatus({
+    required String issueId,
+    required String status,
+  }) async {
+    final updatedIssue = await supabase
+        .from('issues')
+        .update({'status': status})
+        .eq('id', issueId)
+        .select('id, status')
+        .maybeSingle();
+
+    if (updatedIssue == null) {
+      throw Exception('Issue status was not updated.');
+    }
+
+    return updatedIssue['status'].toString();
+  }
+
+  Future<String> archiveIssue(String issueId) async {
+    if (issueId.isEmpty) {
+      throw Exception('Invalid issue id.');
+    }
+
+    final updatedIssue = await supabase
+        .from('issues')
+        .update({'status': 'archived'})
+        .eq('id', issueId)
+        .select('id, status')
+        .maybeSingle();
+
+    if (updatedIssue == null) {
+      throw Exception('Issue was not archived.');
+    }
+
+    return updatedIssue['status'].toString();
+  }
 }

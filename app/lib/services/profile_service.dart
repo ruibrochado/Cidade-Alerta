@@ -67,7 +67,7 @@ class ProfileService {
 
     final profile = await supabase
         .from('profiles')
-        .select('id, role, municipality_id, municipalities(name, city)')
+        .select('id, first_name, last_name, role, municipality_id')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -75,6 +75,26 @@ class ProfileService {
       return null;
     }
 
-    return UserProfile.fromMap(profile);
+    String? municipalityName;
+    String? municipalityCity;
+
+    final municipalityId = profile['municipality_id']?.toString();
+
+    if (municipalityId != null && municipalityId.isNotEmpty) {
+      final municipality = await supabase
+          .from('municipalities')
+          .select('name, city')
+          .eq('id', municipalityId)
+          .maybeSingle();
+
+      municipalityName = municipality?['name']?.toString();
+      municipalityCity = municipality?['city']?.toString();
+    }
+
+    return UserProfile.fromMap({
+      ...profile,
+      'municipality_name': municipalityName,
+      'municipality_city': municipalityCity,
+    });
   }
 }
