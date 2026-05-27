@@ -448,6 +448,23 @@ class IssueService {
       throw Exception('Invalid issue id.');
     }
 
+    final currentIssue = await supabase
+        .from('issues')
+        .select('status')
+        .eq('id', issueId)
+        .maybeSingle();
+
+    if (currentIssue == null) {
+      throw Exception('Issue not found.');
+    }
+
+    final currentStatus = (currentIssue['status'] as String? ?? '')
+        .trim()
+        .toLowerCase();
+    if (currentStatus != 'resolved' && currentStatus != 'resolvido') {
+      throw Exception('Only resolved issues can be archived.');
+    }
+
     final updatedIssue = await supabase
         .from('issues')
         .update({'status': 'archived'})
