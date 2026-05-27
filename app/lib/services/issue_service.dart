@@ -169,7 +169,13 @@ class IssueService {
     String? searchQuery,
     String sortMode = 'hot',
   }) async {
-    var query = supabase.from('issues').select('id').neq('title', 'Test issue');
+    var query = supabase
+        .from('issues')
+        .select('id')
+        .neq('title', 'Test issue')
+        .neq('title', '')
+        .neq('description', '')
+        .neq('status', 'archived');
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
       query = query.ilike('title', '%$searchQuery%');
@@ -207,7 +213,15 @@ class IssueService {
       final from = page * pageSize;
       final to = from + pageSize - 1;
 
-      var query = supabase.from('issues').select().neq('title', 'Test issue');
+      var query = supabase
+          .from('issues')
+          .select(
+            'id, category, title, description, photo_url, latitude, longitude, address, city, status, score, created_at',
+          )
+          .neq('title', 'Test issue')
+          .neq('title', '')
+          .neq('description', '')
+          .neq('status', 'archived');
 
       if (searchQuery != null && searchQuery.isNotEmpty) {
         query = query.ilike('title', '%$searchQuery%');
@@ -263,8 +277,13 @@ class IssueService {
     try {
       final List<dynamic> data = await supabase
           .from('issues')
-          .select()
+          .select(
+            'id, category, title, description, photo_url, latitude, longitude, address, city, status, score, created_at',
+          )
           .neq('title', 'Test issue')
+          .neq('title', '')
+          .neq('description', '')
+          .neq('status', 'archived')
           .gte('latitude', minLat)
           .lte('latitude', maxLat)
           .gte('longitude', minLng)
