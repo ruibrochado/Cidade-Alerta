@@ -106,11 +106,12 @@ void main() {
 
         when(() => mockChain.ilike(any(), any())).thenAnswer((_) => mockChain);
 
+        when(() => mockChain.or(any())).thenAnswer((_) => mockChain);
+
         when(
           () => mockChain.inFilter(any(), any()),
         ).thenAnswer((_) => mockChain);
 
-        // MISSING STUB ADDED HERE:
         when(() => mockChain.gte(any(), any())).thenAnswer((_) => mockChain);
 
         when(

@@ -162,7 +162,7 @@ class MunicipalityBottomNavBar extends StatelessWidget {
           Expanded(
             child: _NavItem(
               icon: Icons.home_outlined,
-              label: 'Feed',
+              label: 'Início',
               isActive: currentIndex == 0,
               onTap: () => onTabSelected(0),
             ),

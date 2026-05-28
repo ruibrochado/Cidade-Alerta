@@ -4,6 +4,10 @@ import '../services/issue_service.dart';
 import '../widgets/slide_card.dart';
 import 'report_detail_page.dart';
 import '../widgets/navbar.dart';
+import '../widgets/choice.dart';
+import '../widgets/options_dialog.dart';
+import '../widgets/success_banner.dart';
+import 'municipality_statistics_page.dart';
 
 class MunicipalityIssueFeedPage extends StatefulWidget {
   final String workerName;
@@ -25,6 +29,23 @@ class MunicipalityIssueFeedPage extends StatefulWidget {
 }
 
 class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
+  String? _bannerMessage;
+  bool _bannerIsError = false;
+
+  void _showCustomBanner(String message, {bool isError = false}) {
+    setState(() {
+      _bannerMessage = message;
+      _bannerIsError = isError;
+    });
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (!mounted) return;
+      setState(() {
+        _bannerMessage = null;
+      });
+    });
+  }
+
   final IssueService issueService = IssueService();
   final ScrollController _scrollController = ScrollController();
   final List<ReportData> _reports = [];
@@ -244,25 +265,45 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
   }
 
   Future<void> _showEditStatusDialog(ReportData report) async {
+    String currentStatus = report.status.trim().toLowerCase();
+    if (currentStatus == 'pending' || currentStatus == 'pendente') {
+      currentStatus = 'submitted';
+    } else if (currentStatus == 'em progresso' ||
+        currentStatus == 'em resolução' ||
+        currentStatus == 'em resolucao') {
+      currentStatus = 'in_progress';
+    } else if (currentStatus == 'resolvido') {
+      currentStatus = 'resolved';
+    }
+
     final selectedStatus = await showDialog<String>(
       context: context,
       builder: (context) {
-        return SimpleDialog(
-          title: const Text('Editar estado'),
-          children: [
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, 'submitted'),
-              child: const Text('Pendente'),
+        return OptionsDialogWidget(
+          title: 'Editar estado',
+          subtitle: 'Escolhe o novo estado para esta denúncia:',
+          initialSelectedId: currentStatus,
+          primaryButtonText: 'Confirmar',
+          secondaryButtonText: 'Cancelar',
+          options: const [
+            OptionItem(
+              id: 'submitted',
+              label: 'Pendente',
+              icon: Icons.schedule_outlined,
             ),
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, 'in_progress'),
-              child: const Text('Em resolução'),
+            OptionItem(
+              id: 'in_progress',
+              label: 'Em resolução',
+              icon: Icons.engineering_outlined,
             ),
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, 'resolved'),
-              child: const Text('Resolvido'),
+            OptionItem(
+              id: 'resolved',
+              label: 'Resolvido',
+              icon: Icons.check_circle_outline,
             ),
           ],
+          onCancel: () => Navigator.pop(context),
+          onConfirm: (status) => Navigator.pop(context, status),
         );
       },
     );
@@ -285,37 +326,40 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
         }
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Estado atualizado com sucesso.')),
-      );
+      _showCustomBanner('Estado atualizado com sucesso.');
     } catch (error) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erro ao atualizar o estado.')),
-      );
+      _showCustomBanner('Erro ao atualizar o estado.', isError: true);
     }
   }
 
+  bool _isResolved(String status) {
+    final s = status.trim().toLowerCase();
+    return s == 'resolved' || s == 'resolvido';
+  }
+
   Future<void> _confirmArchiveIssue(ReportData report) async {
+    if (!_isResolved(report.status)) {
+      _showCustomBanner(
+        'Apenas denúncias resolvidas podem ser arquivadas.',
+        isError: true,
+      );
+      return;
+    }
+
     final shouldArchive = await showDialog<bool>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Arquivar denúncia'),
-          content: const Text(
-            'Tens a certeza que queres arquivar esta denúncia? Ela deixará de aparecer no feed municipal, mas continuará guardada na base de dados.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Arquivar'),
-            ),
-          ],
+        return ChoiceWidget(
+          title: 'Arquivar denúncia',
+          emoji: '🗂️',
+          message:
+              'Tens a certeza que queres arquivar esta denúncia? Ela deixará de aparecer no feed municipal, mas continuará guardada na base de dados.',
+          secondaryButtonText: 'Cancelar',
+          primaryButtonText: 'Arquivar',
+          onSecondaryPressed: () => Navigator.pop(context, false),
+          onPrimaryPressed: () => Navigator.pop(context, true),
         );
       },
     );
@@ -332,15 +376,11 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
         _totalCount = _totalCount > 0 ? _totalCount - 1 : 0;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Denúncia arquivada com sucesso.')),
-      );
+      _showCustomBanner('Denúncia arquivada com sucesso.');
     } catch (error) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erro ao arquivar denúncia.')),
-      );
+      _showCustomBanner('Erro ao arquivar denúncia.', isError: true);
     }
   }
 
@@ -685,15 +725,6 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
   }
 
   void _handleBottomNavigation(int index) {
-    if (index == 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Statistics will be added in a future issue.'),
-        ),
-      );
-      return;
-    }
-
     setState(() {
       _selectedTabIndex = index;
     });
@@ -707,86 +738,110 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
         currentIndex: _selectedTabIndex,
         onTabSelected: _handleBottomNavigation,
       ),
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              color: const Color(0xFFCDE5CB),
-              padding: const EdgeInsets.fromLTRB(24, 22, 18, 24),
-              child: Row(
-                children: [
-                  Expanded(
+      body: Stack(
+        children: [
+          SafeArea(
+            bottom: false,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: double.infinity,
+                  color: const Color(0xFFCDE5CB),
+                  padding: const EdgeInsets.fromLTRB(24, 22, 18, 24),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Câmara Municipal',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _selectedTabIndex == 1
+                                  ? 'Estatísticas das denúncias'
+                                  : 'Denúncias da comunidade',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Color(0xFF475467),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '${widget.workerName} · ${widget.municipalityLabel}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF667085),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: widget.onLogout,
+                        icon: const Icon(Icons.logout),
+                        color: const Color(0xFF0F172A),
+                        tooltip: 'Logout',
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF6F6F6),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(28),
+                      ),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Câmara Municipal',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF0F172A),
+                        if (_selectedTabIndex == 0)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
+                            child: Text(
+                              '$_totalCount denúncias disponíveis',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF667085),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Denúncias da comunidade',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Color(0xFF475467),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          '${widget.workerName} · ${widget.municipalityLabel}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF667085),
-                            fontWeight: FontWeight.w500,
-                          ),
+                        Expanded(
+                          child: _selectedTabIndex == 1
+                              ? MunicipalityStatisticsPage(
+                                  municipalityCity: widget.municipalityCity,
+                                  municipalityLabel: widget.municipalityLabel,
+                                )
+                              : _buildFeedContent(),
                         ),
                       ],
                     ),
                   ),
-                  IconButton(
-                    onPressed: widget.onLogout,
-                    icon: const Icon(Icons.logout),
-                    color: Color(0xFF0F172A),
-                    tooltip: 'Logout',
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF6F6F6),
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
-                      child: Text(
-                        '$_totalCount denúncias disponíveis',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF667085),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    Expanded(child: _buildFeedContent()),
-                  ],
-                ),
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+          if (_bannerMessage != null)
+            SuccessBanner(
+              message: _bannerMessage!,
+              icon: _bannerIsError ? Icons.error_outline : Icons.check_circle,
+              backgroundColor: _bannerIsError
+                  ? const Color(0xFFDC2626)
+                  : const Color(0xFF16A34A),
+            ),
+        ],
       ),
     );
   }
