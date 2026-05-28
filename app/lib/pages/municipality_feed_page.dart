@@ -6,6 +6,7 @@ import 'report_detail_page.dart';
 import '../widgets/navbar.dart';
 import '../widgets/choice.dart';
 import '../widgets/options_dialog.dart';
+import '../widgets/success_banner.dart';
 
 class MunicipalityIssueFeedPage extends StatefulWidget {
   final String workerName;
@@ -27,6 +28,23 @@ class MunicipalityIssueFeedPage extends StatefulWidget {
 }
 
 class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
+  String? _bannerMessage;
+  bool _bannerIsError = false;
+
+  void _showCustomBanner(String message, {bool isError = false}) {
+    setState(() {
+      _bannerMessage = message;
+      _bannerIsError = isError;
+    });
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (!mounted) return;
+      setState(() {
+        _bannerMessage = null;
+      });
+    });
+  }
+
   final IssueService issueService = IssueService();
   final ScrollController _scrollController = ScrollController();
   final List<ReportData> _reports = [];
@@ -246,7 +264,6 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
   }
 
   Future<void> _showEditStatusDialog(ReportData report) async {
-    // Normalizar o estado atual para coincidir com os IDs das opções
     String currentStatus = report.status.trim().toLowerCase();
     if (currentStatus == 'pending' || currentStatus == 'pendente') {
       currentStatus = 'submitted';
@@ -308,15 +325,11 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
         }
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Estado atualizado com sucesso.')),
-      );
+      _showCustomBanner('Estado atualizado com sucesso.');
     } catch (error) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erro ao atualizar o estado.')),
-      );
+      _showCustomBanner('Erro ao atualizar o estado.', isError: true);
     }
   }
 
@@ -343,21 +356,16 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
       await issueService.archiveIssue(report.id);
 
       if (!mounted) return;
-
       setState(() {
         _reports.removeWhere((item) => item.id == report.id);
         _totalCount = _totalCount > 0 ? _totalCount - 1 : 0;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Denúncia arquivada com sucesso.')),
-      );
+      _showCustomBanner('Denúncia arquivada com sucesso.');
     } catch (error) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erro ao arquivar denúncia.')),
-      );
+      _showCustomBanner('Erro ao arquivar denúncia.', isError: true);
     }
   }
 
@@ -697,10 +705,9 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
 
   void _handleBottomNavigation(int index) {
     if (index == 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Statistics will be added in a future issue.'),
-        ),
+      _showCustomBanner(
+        'Statistics will be added in a future issue.',
+        isError: true,
       );
       return;
     }
@@ -718,86 +725,100 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
         currentIndex: _selectedTabIndex,
         onTabSelected: _handleBottomNavigation,
       ),
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              color: const Color(0xFFCDE5CB),
-              padding: const EdgeInsets.fromLTRB(24, 22, 18, 24),
-              child: Row(
-                children: [
-                  Expanded(
+      body: Stack(
+        children: [
+          SafeArea(
+            bottom: false,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: double.infinity,
+                  color: const Color(0xFFCDE5CB),
+                  padding: const EdgeInsets.fromLTRB(24, 22, 18, 24),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Câmara Municipal',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Denúncias da comunidade',
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Color(0xFF475467),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '${widget.workerName} · ${widget.municipalityLabel}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF667085),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: widget.onLogout,
+                        icon: const Icon(Icons.logout),
+                        color: Color(0xFF0F172A),
+                        tooltip: 'Logout',
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF6F6F6),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(28),
+                      ),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Câmara Municipal',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF0F172A),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
+                          child: Text(
+                            '$_totalCount denúncias disponíveis',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF667085),
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Denúncias da comunidade',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Color(0xFF475467),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          '${widget.workerName} · ${widget.municipalityLabel}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF667085),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                        Expanded(child: _buildFeedContent()),
                       ],
                     ),
                   ),
-                  IconButton(
-                    onPressed: widget.onLogout,
-                    icon: const Icon(Icons.logout),
-                    color: Color(0xFF0F172A),
-                    tooltip: 'Logout',
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF6F6F6),
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
-                      child: Text(
-                        '$_totalCount denúncias disponíveis',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF667085),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    Expanded(child: _buildFeedContent()),
-                  ],
-                ),
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+          if (_bannerMessage != null)
+            SuccessBanner(
+              message: _bannerMessage!,
+              icon: _bannerIsError ? Icons.error_outline : Icons.check_circle,
+              backgroundColor: _bannerIsError
+                  ? const Color(0xFFDC2626)
+                  : const Color(0xFF16A34A),
+            ),
+        ],
       ),
     );
   }
