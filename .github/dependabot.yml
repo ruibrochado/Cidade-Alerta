@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # Dependências Flutter/Dart
+  # Flutter/Dart dependencies
   - package-ecosystem: "pub"
     directory: "/app"
     schedule:
@@ -10,6 +10,10 @@ updates:
     labels:
       - "dependencies"
       - "flutter"
+    groups:
+      flutter-dependencies:
+        patterns:
+          - "*"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
@@ -21,3 +25,7 @@ updates:
     labels:
       - "dependencies"
       - "ci"
+    groups:
+      github-actions:
+        patterns:
+          - "*"

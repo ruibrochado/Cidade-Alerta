@@ -7,6 +7,7 @@ import '../widgets/navbar.dart';
 import '../widgets/choice.dart';
 import '../widgets/options_dialog.dart';
 import '../widgets/success_banner.dart';
+import 'municipality_statistics_page.dart';
 
 class MunicipalityIssueFeedPage extends StatefulWidget {
   final String workerName;
@@ -333,7 +334,20 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
     }
   }
 
+  bool _isResolved(String status) {
+    final s = status.trim().toLowerCase();
+    return s == 'resolved' || s == 'resolvido';
+  }
+
   Future<void> _confirmArchiveIssue(ReportData report) async {
+    if (!_isResolved(report.status)) {
+      _showCustomBanner(
+        'Apenas denúncias resolvidas podem ser arquivadas.',
+        isError: true,
+      );
+      return;
+    }
+
     final shouldArchive = await showDialog<bool>(
       context: context,
       builder: (context) {
@@ -356,6 +370,7 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
       await issueService.archiveIssue(report.id);
 
       if (!mounted) return;
+
       setState(() {
         _reports.removeWhere((item) => item.id == report.id);
         _totalCount = _totalCount > 0 ? _totalCount - 1 : 0;
@@ -704,14 +719,6 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
   }
 
   void _handleBottomNavigation(int index) {
-    if (index == 1) {
-      _showCustomBanner(
-        'Statistics will be added in a future issue.',
-        isError: true,
-      );
-      return;
-    }
-
     setState(() {
       _selectedTabIndex = index;
     });
@@ -751,9 +758,11 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            const Text(
-                              'Denúncias da comunidade',
-                              style: TextStyle(
+                            Text(
+                              _selectedTabIndex == 1
+                                  ? 'Estatísticas das denúncias'
+                                  : 'Denúncias da comunidade',
+                              style: const TextStyle(
                                 fontSize: 15,
                                 color: Color(0xFF475467),
                               ),
@@ -773,7 +782,7 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
                       IconButton(
                         onPressed: widget.onLogout,
                         icon: const Icon(Icons.logout),
-                        color: Color(0xFF0F172A),
+                        color: const Color(0xFF0F172A),
                         tooltip: 'Logout',
                       ),
                     ],
@@ -791,18 +800,26 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
-                          child: Text(
-                            '$_totalCount denúncias disponíveis',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF667085),
-                              fontWeight: FontWeight.w500,
+                        if (_selectedTabIndex == 0)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
+                            child: Text(
+                              '$_totalCount denúncias disponíveis',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF667085),
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
+                        Expanded(
+                          child: _selectedTabIndex == 1
+                              ? MunicipalityStatisticsPage(
+                                  municipalityCity: widget.municipalityCity,
+                                  municipalityLabel: widget.municipalityLabel,
+                                )
+                              : _buildFeedContent(),
                         ),
-                        Expanded(child: _buildFeedContent()),
                       ],
                     ),
                   ),

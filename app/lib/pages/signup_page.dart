@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_alert_card.dart';
 import 'signin_page.dart';
+import 'main_navigation_screen.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -131,7 +132,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const LoginPage()),
+      MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
     );
   }
 
