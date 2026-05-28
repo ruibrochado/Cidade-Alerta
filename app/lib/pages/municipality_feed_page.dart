@@ -4,6 +4,8 @@ import '../services/issue_service.dart';
 import '../widgets/slide_card.dart';
 import 'report_detail_page.dart';
 import '../widgets/navbar.dart';
+import '../widgets/choice.dart';
+import '../widgets/options_dialog.dart';
 
 class MunicipalityIssueFeedPage extends StatefulWidget {
   final String workerName;
@@ -244,25 +246,46 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
   }
 
   Future<void> _showEditStatusDialog(ReportData report) async {
+    // Normalizar o estado atual para coincidir com os IDs das opções
+    String currentStatus = report.status.trim().toLowerCase();
+    if (currentStatus == 'pending' || currentStatus == 'pendente') {
+      currentStatus = 'submitted';
+    } else if (currentStatus == 'em progresso' ||
+        currentStatus == 'em resolução' ||
+        currentStatus == 'em resolucao') {
+      currentStatus = 'in_progress';
+    } else if (currentStatus == 'resolvido') {
+      currentStatus = 'resolved';
+    }
+
     final selectedStatus = await showDialog<String>(
       context: context,
       builder: (context) {
-        return SimpleDialog(
-          title: const Text('Editar estado'),
-          children: [
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, 'submitted'),
-              child: const Text('Pendente'),
+        return OptionsDialogWidget(
+          title: 'Editar estado',
+          subtitle: 'Escolhe o novo estado para esta denúncia:',
+          initialSelectedId: currentStatus,
+          primaryButtonText: 'Confirmar',
+          secondaryButtonText: 'Cancelar',
+          options: const [
+            OptionItem(
+              id: 'submitted',
+              label: 'Pendente',
+              icon: Icons.schedule_outlined,
             ),
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, 'in_progress'),
-              child: const Text('Em resolução'),
+            OptionItem(
+              id: 'in_progress',
+              label: 'Em resolução',
+              icon: Icons.engineering_outlined,
             ),
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, 'resolved'),
-              child: const Text('Resolvido'),
+            OptionItem(
+              id: 'resolved',
+              label: 'Resolvido',
+              icon: Icons.check_circle_outline,
             ),
           ],
+          onCancel: () => Navigator.pop(context),
+          onConfirm: (status) => Navigator.pop(context, status),
         );
       },
     );
@@ -301,21 +324,15 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
     final shouldArchive = await showDialog<bool>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Arquivar denúncia'),
-          content: const Text(
-            'Tens a certeza que queres arquivar esta denúncia? Ela deixará de aparecer no feed municipal, mas continuará guardada na base de dados.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Arquivar'),
-            ),
-          ],
+        return ChoiceWidget(
+          title: 'Arquivar denúncia',
+          emoji: '🗂️',
+          message:
+              'Tens a certeza que queres arquivar esta denúncia? Ela deixará de aparecer no feed municipal, mas continuará guardada na base de dados.',
+          secondaryButtonText: 'Cancelar',
+          primaryButtonText: 'Arquivar',
+          onSecondaryPressed: () => Navigator.pop(context, false),
+          onPrimaryPressed: () => Navigator.pop(context, true),
         );
       },
     );
