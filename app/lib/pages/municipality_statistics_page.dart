@@ -98,7 +98,7 @@ class _MunicipalityStatisticsPageState
                     physics: const NeverScrollableScrollPhysics(),
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
-                    childAspectRatio: 1.35,
+                    childAspectRatio: 1.15,
                     children: [
                       _buildStatCard(
                         title: 'Total',

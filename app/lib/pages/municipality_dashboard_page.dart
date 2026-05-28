@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-
 import '../models/user_profile.dart';
 import '../services/auth_service.dart';
 import '../services/profile_service.dart';
+import '../widgets/success_banner.dart';
 import 'municipality_feed_page.dart';
 import 'signin_page.dart';
 
@@ -28,10 +28,29 @@ class _MunicipalityDashboardPageState extends State<MunicipalityDashboardPage> {
   String? errorMessage;
   bool hasShownConfirmation = false;
 
+  String? _bannerMessage;
+  bool _bannerIsError = false;
+
   @override
   void initState() {
     super.initState();
     loadAndValidateProfile();
+  }
+
+  void _showNotification(String message, {bool isError = false}) {
+    if (!mounted) return;
+    setState(() {
+      _bannerMessage = message;
+      _bannerIsError = isError;
+    });
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          _bannerMessage = null;
+        });
+      }
+    });
   }
 
   Future<void> loadAndValidateProfile() async {
@@ -72,9 +91,7 @@ class _MunicipalityDashboardPageState extends State<MunicipalityDashboardPage> {
       if (widget.showLoginConfirmation && !hasShownConfirmation) {
         hasShownConfirmation = true;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Municipality dashboard loaded')),
-        );
+        _showNotification('Municipality dashboard loaded');
       }
     } catch (e) {
       if (!mounted) return;
@@ -127,11 +144,26 @@ class _MunicipalityDashboardPageState extends State<MunicipalityDashboardPage> {
     final municipalityCity =
         profile?.municipalityCity ?? profile?.municipalityName ?? '';
 
-    return MunicipalityIssueFeedPage(
-      workerName: profile?.fullName ?? 'Municipality Worker',
-      municipalityLabel: municipalityLabel,
-      municipalityCity: municipalityCity,
-      onLogout: logout,
+    return Scaffold(
+      body: Stack(
+        children: [
+          MunicipalityIssueFeedPage(
+            workerName: profile?.fullName ?? 'Municipality Worker',
+            municipalityLabel: municipalityLabel,
+            municipalityCity: municipalityCity,
+            onLogout: logout,
+          ),
+
+          if (_bannerMessage != null)
+            SuccessBanner(
+              message: _bannerMessage!,
+              icon: _bannerIsError ? Icons.error_outline : Icons.check_circle,
+              backgroundColor: _bannerIsError
+                  ? const Color(0xFFEF4444)
+                  : const Color(0xFF16A34A),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -927,7 +927,9 @@ class _FeedPageState extends State<FeedPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    report.title,
+                    report.title.trim().isEmpty
+                        ? 'Denúncia sem título'
+                        : report.title,
                     style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
@@ -936,7 +938,9 @@ class _FeedPageState extends State<FeedPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    report.description,
+                    report.description.trim().isEmpty
+                        ? 'Sem descrição disponível.'
+                        : report.description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -956,7 +960,13 @@ class _FeedPageState extends State<FeedPage> {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          report.address ?? 'Localização registada',
+                          (report.address != null &&
+                                  report.address!.trim().isNotEmpty)
+                              ? report.address!
+                              : ((report.city != null &&
+                                        report.city!.trim().isNotEmpty)
+                                    ? report.city!
+                                    : 'Localização registada'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -1089,26 +1099,97 @@ class _FeedPageState extends State<FeedPage> {
             Positioned(
               top: 12,
               right: 12,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF3E8),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Text(
-                  'Pendente',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFEC6A00),
-                  ),
-                ),
-              ),
+              child: _buildStatusBadge(report.status),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  String _formatStatus(String status) {
+    final normalizedStatus = status.trim().toLowerCase();
+
+    switch (normalizedStatus) {
+      case 'submitted':
+      case 'pending':
+      case 'pendente':
+        return 'Pendente';
+      case 'in_progress':
+      case 'em progresso':
+      case 'em resolução':
+      case 'em resolucao':
+        return 'Em resolução';
+      case 'resolved':
+      case 'resolvido':
+        return 'Resolvido';
+      case 'archived':
+      case 'arquivado':
+        return 'Arquivado';
+      default:
+        return status.trim().isEmpty ? 'Pendente' : status;
+    }
+  }
+
+  Color _getStatusBackgroundColor(String status) {
+    final normalizedStatus = status.trim().toLowerCase();
+
+    switch (normalizedStatus) {
+      case 'resolved':
+      case 'resolvido':
+        return const Color(0xFFEFF8F1);
+      case 'in_progress':
+      case 'em progresso':
+      case 'em resolução':
+      case 'em resolucao':
+        return const Color(0xFFEAF2FF);
+      case 'archived':
+      case 'arquivado':
+        return const Color(0xFFF2F4F7);
+      case 'submitted':
+      case 'pending':
+      case 'pendente':
+      default:
+        return const Color(0xFFFFF3E8);
+    }
+  }
+
+  Color _getStatusTextColor(String status) {
+    final normalizedStatus = status.trim().toLowerCase();
+
+    switch (normalizedStatus) {
+      case 'resolved':
+      case 'resolvido':
+        return const Color(0xFF1A6B3A);
+      case 'in_progress':
+      case 'em progresso':
+      case 'em resolução':
+      case 'em resolucao':
+        return const Color(0xFF2563EB);
+      case 'archived':
+      case 'arquivado':
+        return const Color(0xFF667085);
+      case 'submitted':
+      case 'pending':
+      case 'pendente':
+      default:
+        return const Color(0xFFEC6A00);
+    }
+  }
+
+  Widget _buildStatusBadge(String status) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: _getStatusBackgroundColor(status),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        _formatStatus(status),
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: _getStatusTextColor(status),
         ),
       ),
     );
