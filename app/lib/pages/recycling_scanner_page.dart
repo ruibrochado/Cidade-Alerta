@@ -221,7 +221,7 @@ class _RecyclingScannerPageState extends State<RecyclingScannerPage> {
               children: [
                 const Expanded(
                   child: Text(
-                    'Escanear Objeto',
+                    'Digitalizar Objeto',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,

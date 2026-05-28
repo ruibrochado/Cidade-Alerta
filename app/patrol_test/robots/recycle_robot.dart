@@ -6,7 +6,7 @@ class RecycleRobot {
   RecycleRobot(this.$);
 
   Future<void> startScan() async {
-    await $('Scan object').tap();
+    await $('Capturar').tap();
 
     if (await $.platform.mobile.isPermissionDialogVisible(
       timeout: const Duration(seconds: 5),
@@ -35,6 +35,6 @@ class RecycleRobot {
   }
 
   Future<void> verifyScanResult() async {
-    await $('Recycling Scanner').waitUntilVisible();
+    await $('Resultado da análise').waitUntilVisible();
   }
 }
