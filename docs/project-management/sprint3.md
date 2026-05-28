@@ -19,22 +19,30 @@
 
 * Did well:
 
-    * Focuused on improving user experience and correcting bugs
-
-    * Well defined product vision with clear user stories.
-
-    * Effective use of AI tools to enhance productivity and support development tasks
+   * Focused on improving the user experience and fixing bugs
+     
+   * Defined a clear product vision supported by well-structured user stories
+     
+   * Used AI tools effectively to support development, debugging, and documentation
+  
+   * Maintained a good division of work within the team
+     
+   * Fixed several issues identified during testing and improved the overall stability of the app
  
-    * Good work division between the team
- 
-    * Fixed
+   * Implemented important municipality worker features for the final version of the application
+
+   * Improved the connection between frontend features and backend logic
+
+   * Made good progress in preparing the app for the final sprint review
 
 * Do differently:
 
     * Manage the time better, starting the iteration as soon as possible to avoid delays due to unexpected problems
+ 
+    * Review pull requests earlier to avoid delays in merging work.
 
 * Puzzles:
 
-    * Implementing the full backend access flow for municipality workers, including roles, municipality association, redirection, and secure permissions.
+    * Implementing the full backend access flow for municipality workers, including roles, municipality association, redirection, and secure permissions
  
-    * 
+    * Ensuring that municipality workers only access and manage reports from their own municipality.
