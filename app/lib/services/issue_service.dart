@@ -173,6 +173,8 @@ class IssueService {
         .from('issues')
         .select('id')
         .neq('title', 'Test issue')
+        .neq('title', '')
+        .neq('description', '')
         .neq('status', 'archived');
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
@@ -213,8 +215,12 @@ class IssueService {
 
       var query = supabase
           .from('issues')
-          .select()
+          .select(
+            'id, category, title, description, photo_url, latitude, longitude, address, city, status, score, created_at',
+          )
           .neq('title', 'Test issue')
+          .neq('title', '')
+          .neq('description', '')
           .neq('status', 'archived');
 
       if (searchQuery != null && searchQuery.isNotEmpty) {
@@ -271,8 +277,12 @@ class IssueService {
     try {
       final List<dynamic> data = await supabase
           .from('issues')
-          .select()
+          .select(
+            'id, category, title, description, photo_url, latitude, longitude, address, city, status, score, created_at',
+          )
           .neq('title', 'Test issue')
+          .neq('title', '')
+          .neq('description', '')
           .neq('status', 'archived')
           .gte('latitude', minLat)
           .lte('latitude', maxLat)
