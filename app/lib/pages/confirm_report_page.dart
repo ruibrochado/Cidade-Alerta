@@ -9,6 +9,7 @@ import 'package:geocoding/geocoding.dart';
 import '../models/report_data.dart';
 import '../services/issue_service.dart';
 import '../widgets/primary_button.dart';
+import '../widgets/choice.dart';
 import '../utils/location_formatter.dart';
 
 class ConfirmPage extends StatefulWidget {
@@ -92,24 +93,6 @@ class _ConfirmPageState extends State<ConfirmPage> {
     }
   }
 
-  /*
-  String _generateTicketNumber() {
-    final DateTime now = DateTime.now();
-    final Random random = Random();
-
-    final String year = now.year.toString();
-    final String month = now.month.toString().padLeft(2, '0');
-    final String day = now.day.toString().padLeft(2, '0');
-    final String hour = now.hour.toString().padLeft(2, '0');
-    final String minute = now.minute.toString().padLeft(2, '0');
-    final String randomPart =
-        random.nextInt(9000 + 1).toString().padLeft(4, '0');
-
-    return 'TKT-$year$month$day-$hour$minute-$randomPart';
-  }
-
-   */
-
   Future<void> _handleSend() async {
     if (_sending) return;
 
@@ -120,13 +103,11 @@ class _ConfirmPageState extends State<ConfirmPage> {
     try {
       final issueService = IssueService();
 
-      // Criamos a morada para a DB
       String? moradaFinal = _address;
       if (_city != null && _address != null) {
         moradaFinal = '$_address, $_city';
       }
 
-      // Tenta criar a issue
       final String ticketNumber = await issueService.createIssue(
         title: widget.report.title,
         description: widget.report.description,
@@ -147,21 +128,17 @@ class _ConfirmPageState extends State<ConfirmPage> {
         _ticketNumber = ticketNumber;
       });
 
-      // SÓ SAI DAQUI SE TUDO DER CERTO
       await Future.delayed(const Duration(seconds: 3));
       if (!mounted) return;
 
       Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
     } catch (e) {
-      // FIX CRÍTICO: Se der erro, apenas paramos o loading.
-      // NÃO há comandos de Navigator aqui, logo a página NÃO VOLTA À HOME.
       if (!mounted) return;
 
       setState(() {
         _sending = false;
       });
 
-      // Mostra o erro num popup para tu leres o que o Supabase rejeitou
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -195,42 +172,29 @@ class _ConfirmPageState extends State<ConfirmPage> {
     const Color headerGreen = Color(0xFFCDE5CB);
 
     return PopScope(
-      canPop: false, // Bloqueia o comportamento automático de voltar atrás
+      canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
-        // Se a página já fechou, não fazemos nada
         if (didPop) return;
-
-        // Se já enviou com sucesso, NÃO deixa voltar
         if (_sent) return;
-
-        // Se está a enviar, também não deixa voltar
         if (_sending) return;
-
-        // Se ainda não enviou, pergunta se quer cancelar
+        final bool isMounted = mounted;
+        final BuildContext currentContext = context;
         final bool? confirm = await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Cancelar Denúncia'),
-            content: const Text(
-              'Tem certeza que quer cancelar? Os dados serão perdidos.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Não'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Sim, cancelar'),
-              ),
-            ],
+          context: currentContext,
+          builder: (ctx) => ChoiceWidget(
+            title: 'Cancelar Denúncia',
+            message: 'Tem certeza que quer cancelar? Os dados serão perdidos.',
+            primaryButtonText: 'Sim, cancelar',
+            secondaryButtonText: 'Não',
+            onPrimaryPressed: () => Navigator.pop(ctx, true),
+            onSecondaryPressed: () => Navigator.pop(ctx, false),
+            primaryButtonColor: Colors.red,
+            //emoji: '⚠️',
           ),
         );
 
-        // Se o utilizador disser que "Sim, cancelar", forçamos a saída da página
-        if (confirm == true && context.mounted) {
-          Navigator.of(context).pop();
+        if (confirm == true && isMounted) {
+          Navigator.of(currentContext.mounted as BuildContext).pop();
         }
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -256,18 +220,6 @@ class _ConfirmPageState extends State<ConfirmPage> {
               SafeArea(
                 child: Stack(
                   children: <Widget>[
-                    // SETINHA REMOVIDA - Completamente removida da tela
-                    // Positioned(
-                    //   top: 16,
-                    //   left: 16,
-                    //   child: IconButton(
-                    //     onPressed: () => Navigator.of(context).maybePop(),
-                    //     icon: const Icon(Icons.arrow_back),
-                    //     style: IconButton.styleFrom(
-                    //       backgroundColor: Colors.white.withValues(alpha: 0.85),
-                    //     ),
-                    //   ),
-                    // ),
                     Positioned(
                       top: 74,
                       left: 24,

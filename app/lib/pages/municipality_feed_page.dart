@@ -353,7 +353,7 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
       builder: (context) {
         return ChoiceWidget(
           title: 'Arquivar denúncia',
-          emoji: '🗂️',
+          //emoji: '🗂️',
           message:
               'Tens a certeza que queres arquivar esta denúncia? Ela deixará de aparecer no feed municipal, mas continuará guardada na base de dados.',
           secondaryButtonText: 'Cancelar',
