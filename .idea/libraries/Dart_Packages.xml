@@ -845,21 +845,21 @@
         <entry key="patrol">
           <value>
             <list>
-              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/patrol-4.5.0/lib" />
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/patrol-4.2.0/lib" />
             </list>
           </value>
         </entry>
         <entry key="patrol_finders">
           <value>
             <list>
-              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/patrol_finders-3.2.0/lib" />
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/patrol_finders-3.1.0/lib" />
             </list>
           </value>
         </entry>
         <entry key="patrol_log">
           <value>
             <list>
-              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/patrol_log-0.8.0/lib" />
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/patrol_log-0.7.1/lib" />
             </list>
           </value>
         </entry>
@@ -1466,9 +1466,9 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/path_provider_linux-2.2.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/path_provider_platform_interface-2.1.2/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/path_provider_windows-2.3.0/lib" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/patrol-4.5.0/lib" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/patrol_finders-3.2.0/lib" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/patrol_log-0.8.0/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/patrol-4.2.0/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/patrol_finders-3.1.0/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/patrol_log-0.7.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/petitparser-7.0.2/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/platform-3.1.6/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/plugin_platform_interface-2.1.8/lib" />
