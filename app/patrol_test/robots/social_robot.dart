@@ -30,16 +30,16 @@ class SocialRobot {
     await Future.delayed(const Duration(seconds: 1));
     await $.pump();
 
-    await $(Icons.send_rounded).tap();
+    await $(Icons.send).tap();
 
     await Future.delayed(const Duration(seconds: 2));
     await $.pump();
   }
 
   Future<void> closeComments() async {
-    await $(Icons.close).tap();
+    await $.tester.drag($('Detalhes da Denúncia'), const Offset(0, 600));
     await Future.delayed(const Duration(seconds: 1));
-    await $.pump();
+    await $.pumpAndSettle();
   }
 
   Future<void> verifyReportDetailsVisible() async {

@@ -4,7 +4,6 @@ import 'package:app/main.dart' as app;
 import '../robots/login_robot.dart';
 import '../robots/home_robot.dart';
 import '../robots/activity_robot.dart';
-import '../robots/social_robot.dart';
 
 void main() {
   patrolTest(
@@ -13,7 +12,6 @@ void main() {
       final loginRobot = LoginRobot($);
       final homeRobot = HomeRobot($);
       final activityRobot = ActivityRobot($);
-      final socialRobot = SocialRobot($);
 
       await app.main();
       await $.pumpAndSettle();
@@ -26,8 +24,6 @@ void main() {
       await activityRobot.tapFirstActivity();
 
       await activityRobot.verifyCommentSheetOpenedAndClose();
-
-      await socialRobot.closeComments();
     },
   );
 }

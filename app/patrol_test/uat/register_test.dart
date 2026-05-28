@@ -2,7 +2,6 @@
 import 'package:patrol/patrol.dart';
 import 'package:app/main.dart' as app;
 import '../robots/register_robot.dart';
-import '../robots/login_robot.dart';
 import '../robots/home_robot.dart';
 import '../robots/profile_robot.dart';
 
@@ -11,7 +10,6 @@ void main() {
     'UAT: Registration, Edit Profile, Terms and Account Deletion Flow',
     (PatrolIntegrationTester $) async {
       final registerRobot = RegisterRobot($);
-      final loginRobot = LoginRobot($);
       final homeRobot = HomeRobot($);
       final profileRobot = ProfileRobot($);
 
@@ -33,14 +31,14 @@ void main() {
 
       await registerRobot.tapSubmit();
 
-      await $('OK').tap();
       await $.pumpAndSettle();
+      await $('OK').tap();
 
-      await loginRobot.fullLogin(dynamicEmail, 'password123');
-
-      try {
-        await $.native.grantPermissionWhenInUse();
-      } catch (_) {}
+      if (await $.platform.mobile.isPermissionDialogVisible(
+        timeout: const Duration(seconds: 5),
+      )) {
+        await $.platform.mobile.grantPermissionWhenInUse();
+      }
 
       await homeRobot.validateHomeLoaded();
 
