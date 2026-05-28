@@ -10,6 +10,8 @@ updates:
     labels:
       - "dependencies"
       - "flutter"
+    ignore:
+      - dependency-name: "patrol"
     groups:
       flutter-dependencies:
         patterns:
