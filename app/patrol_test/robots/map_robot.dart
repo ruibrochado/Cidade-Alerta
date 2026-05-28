@@ -7,46 +7,54 @@ class MapRobot {
   MapRobot(this.$);
 
   Future<void> verifyMapIsVisible() async {
-    // IMPORTANT: Teleport to Lisbon (Portugal) so the markers load
-    // This prevents the bot from being stuck in the USA (default emulator location)
-    //await $.native.setMockLocation(38.7223, -9.1393);
-
     await $('Mapa').waitUntilVisible();
     await $.pumpAndSettle();
   }
 
-  Future<void> tapFirstIssuePin() async {
-    await $(const Key('issue_marker')).first.waitUntilVisible();
-    await $(const Key('issue_marker')).first.tap();
+  Future<void> _zoomOut() async {
+    final center = $.tester.getCenter(find.byType(Stack).first);
+
+    final gesture1 = await $.tester.startGesture(
+      center + const Offset(-150, 0),
+    );
+    final gesture2 = await $.tester.startGesture(center + const Offset(150, 0));
+
+    await gesture1.moveTo(center + const Offset(-20, 0));
+    await gesture2.moveTo(center + const Offset(20, 0));
+
+    await $.tester.pump(const Duration(milliseconds: 300));
+    await gesture1.up();
+    await gesture2.up();
     await $.pumpAndSettle();
   }
 
-  Future<void> findAndTapEcocenterPin() async {
-    bool pinFound = false;
-    int maxAttempts = 10;
+  Future<void> tapFirstIssuePin() async {
+    for (int i = 0; i < 15; i++) {
+      if ($(const Key('issue_marker')).exists) {
+        await $(const Key('issue_marker')).first.tap();
+        await $.pumpAndSettle();
+        return;
+      }
 
-    for (int i = 0; i < maxAttempts; i++) {
+      await _zoomOut();
+    }
+  }
+
+  Future<void> findAndTapEcocenterPin() async {
+    for (int i = 0; i < 15; i++) {
       if ($(const Key('ecocenter_marker')).exists) {
-        pinFound = true;
-        break;
+        await $(const Key('ecocenter_marker')).first.tap();
+        await $.pumpAndSettle();
+        return;
       }
 
       if ($(const Key('ecocenter_cluster')).exists) {
         await $(const Key('ecocenter_cluster')).first.tap();
         await $.pumpAndSettle();
-        continue;
+        return;
       }
 
-      // If nothing found, drag to explore
-      await $.tester.drag(find.byType(Stack).first, const Offset(0, -300));
-      await $.pumpAndSettle();
-    }
-
-    if (pinFound) {
-      await $(const Key('ecocenter_marker')).first.tap();
-      await $.pumpAndSettle();
-    } else {
-      throw Exception('Ecocenter pin not found after exploring the map');
+      await _zoomOut();
     }
   }
 
