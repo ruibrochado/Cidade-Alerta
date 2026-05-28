@@ -25,6 +25,7 @@ class MunicipalityRobot {
   Future<void> selectStatus(String status) async {
     await $(status).waitUntilVisible();
     await $(status).tap();
+    await $('Confirmar').tap();
     await Future.delayed(const Duration(seconds: 1));
     await $.pumpAndSettle();
   }
