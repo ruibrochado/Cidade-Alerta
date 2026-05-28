@@ -344,7 +344,7 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
     }
   }
 
-  Widget _buildReportCard(ReportData report) {
+  Widget _buildReportCard(ReportData report, int index) {
     return SlideCard(
       isActive: false,
       onTap: () => _openReportDetails(report),
@@ -373,6 +373,9 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
                 children: [
                   Text(
                     report.title.isEmpty ? 'Denúncia sem título' : report.title,
+                    key: index == 0
+                        ? const Key('first_report_title')
+                        : Key('report_title_${report.id}'),
                     style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
@@ -672,7 +675,10 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
             );
           }
 
-          return _buildReportCard(_reports[index]);
+          return KeyedSubtree(
+            key: Key('report_card_$index'),
+            child: _buildReportCard(_reports[index], index),
+          );
         },
       ),
     );
