@@ -4,6 +4,7 @@ import '../services/issue_service.dart';
 import '../widgets/slide_card.dart';
 import 'report_detail_page.dart';
 import '../widgets/navbar.dart';
+import 'municipality_statistics_page.dart';
 
 class MunicipalityIssueFeedPage extends StatefulWidget {
   final String workerName;
@@ -679,15 +680,6 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
   }
 
   void _handleBottomNavigation(int index) {
-    if (index == 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Statistics will be added in a future issue.'),
-        ),
-      );
-      return;
-    }
-
     setState(() {
       _selectedTabIndex = index;
     });
@@ -725,9 +717,11 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          'Denúncias da comunidade',
-                          style: TextStyle(
+                        Text(
+                          _selectedTabIndex == 1
+                              ? 'Estatísticas das denúncias'
+                              : 'Denúncias da comunidade',
+                          style: const TextStyle(
                             fontSize: 15,
                             color: Color(0xFF475467),
                           ),
@@ -763,18 +757,26 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
-                      child: Text(
-                        '$_totalCount denúncias disponíveis',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF667085),
-                          fontWeight: FontWeight.w500,
+                    if (_selectedTabIndex == 0)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
+                        child: Text(
+                          '$_totalCount denúncias disponíveis',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF667085),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
+                    Expanded(
+                      child: _selectedTabIndex == 1
+                          ? MunicipalityStatisticsPage(
+                              municipalityCity: widget.municipalityCity,
+                              municipalityLabel: widget.municipalityLabel,
+                            )
+                          : _buildFeedContent(),
                     ),
-                    Expanded(child: _buildFeedContent()),
                   ],
                 ),
               ),
