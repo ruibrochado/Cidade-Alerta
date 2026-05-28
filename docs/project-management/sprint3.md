@@ -14,3 +14,27 @@
 <img width="1917" height="1079" alt="sprint3_start55" src="https://github.com/user-attachments/assets/28667a16-4d2a-41c3-b61d-c8e77d1bb519" />
 
 <p align="center">End of Sprint 3</p>
+
+**Sprint Retrospective**
+
+* Did well:
+
+    * Focuused on improving user experience and correcting bugs
+
+    * Well defined product vision with clear user stories.
+
+    * Effective use of AI tools to enhance productivity and support development tasks
+ 
+    * Good work division between the team
+ 
+    * Fixed
+
+* Do differently:
+
+    * Manage the time better, starting the iteration as soon as possible to avoid delays due to unexpected problems
+
+* Puzzles:
+
+    * Implementing the full backend access flow for municipality workers, including roles, municipality association, redirection, and secure permissions.
+ 
+    * 
