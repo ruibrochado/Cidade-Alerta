@@ -169,6 +169,17 @@ class _FeedPageState extends State<FeedPage> {
     _loadMore();
   }
 
+  Future<void> _refreshReports() async {
+    setState(() {
+      _reports.clear();
+      _currentPage = 0;
+      _hasMore = true;
+      _isFetching = false;
+    });
+    await _fetchTotalCount();
+    await _loadMore();
+  }
+
   void _showSortSheet() {
     showModalBottomSheet(
       context: context,
@@ -644,26 +655,32 @@ class _FeedPageState extends State<FeedPage> {
                           )
                         else
                           Expanded(
-                            child: ListView.separated(
-                              controller: _scrollController,
-                              padding: const EdgeInsets.only(bottom: 120),
-                              itemCount: _reports.length + (_hasMore ? 1 : 0),
-                              separatorBuilder: (context, index) =>
-                                  const SizedBox(height: 20),
-                              itemBuilder: (context, index) {
-                                if (index == _reports.length) {
-                                  return const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 16),
-                                    child: Center(
-                                      child: CircularProgressIndicator(
-                                        color: Color(0xFF16A34A),
+                            child: RefreshIndicator(
+                              onRefresh: _refreshReports,
+                              color: const Color(0xFF16A34A),
+                              child: ListView.separated(
+                                controller: _scrollController,
+                                padding: const EdgeInsets.only(bottom: 120),
+                                itemCount: _reports.length + (_hasMore ? 1 : 0),
+                                separatorBuilder: (context, index) =>
+                                    const SizedBox(height: 20),
+                                itemBuilder: (context, index) {
+                                  if (index == _reports.length) {
+                                    return const Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 16,
                                       ),
-                                    ),
-                                  );
-                                }
+                                      child: Center(
+                                        child: CircularProgressIndicator(
+                                          color: Color(0xFF16A34A),
+                                        ),
+                                      ),
+                                    );
+                                  }
 
-                                return _buildReportCard(_reports[index]);
-                              },
+                                  return _buildReportCard(_reports[index]);
+                                },
+                              ),
                             ),
                           ),
                       ],
