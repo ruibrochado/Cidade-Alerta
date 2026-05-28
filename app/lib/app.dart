@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'pages/signin_page.dart';
-import 'pages/main_navigation_screen.dart';
 import 'routes/app_routes.dart';
 
 class MyApp extends StatelessWidget {
@@ -9,12 +6,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final supabase = Supabase.instance.client;
-    final user = supabase.auth.currentUser;
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: user != null ? const MainNavigationScreen() : const LoginPage(),
+      initialRoute: '/',
       routes: AppRoutes.routes,
     );
   }

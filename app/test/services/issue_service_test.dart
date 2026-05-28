@@ -27,21 +27,58 @@ class MockPostgrestFilterBuilder extends Mock
   }
 }
 
+class MockPostgrestSingleBuilder extends Mock
+    implements PostgrestTransformBuilder<Map<String, dynamic>?> {
+  final Map<String, dynamic>? _data;
+  MockPostgrestSingleBuilder(this._data);
+
+  @override
+  Future<R> then<R>(
+    FutureOr<R> Function(Map<String, dynamic>?) onValue, {
+    Function? onError,
+  }) {
+    return Future.value(_data).then(onValue, onError: onError);
+  }
+}
+
+class MockPostgrestCountBuilder extends Mock
+    implements
+        ResponsePostgrestBuilder<
+          PostgrestResponse<List<Map<String, dynamic>>>,
+          List<Map<String, dynamic>>,
+          List<Map<String, dynamic>>
+        > {
+  @override
+  Future<R> then<R>(
+    FutureOr<R> Function(PostgrestResponse<List<Map<String, dynamic>>>)
+    onValue, {
+    Function? onError,
+  }) {
+    return Future.value(
+      const PostgrestResponse(data: <Map<String, dynamic>>[], count: 0),
+    ).then(onValue, onError: onError);
+  }
+}
+
 void main() {
+  late IssueService issueService;
+  late MockSupabaseClient mockSupabaseClient;
+  late MockGoTrueClient mockAuth;
+
+  setUpAll(() {
+    registerFallbackValue(CountOption.exact);
+  });
+
+  setUp(() {
+    mockSupabaseClient = MockSupabaseClient();
+    mockAuth = MockGoTrueClient();
+    registerFallbackValue(const <String, dynamic>{});
+
+    when(() => mockSupabaseClient.auth).thenReturn(mockAuth);
+    issueService = IssueService(client: mockSupabaseClient);
+  });
+
   group('IssueService Tests', () {
-    late IssueService issueService;
-    late MockSupabaseClient mockSupabaseClient;
-    late MockGoTrueClient mockAuth;
-
-    setUp(() {
-      mockSupabaseClient = MockSupabaseClient();
-      mockAuth = MockGoTrueClient();
-      registerFallbackValue(const <String, dynamic>{});
-
-      when(() => mockSupabaseClient.auth).thenReturn(mockAuth);
-      issueService = IssueService(client: mockSupabaseClient);
-    });
-
     test('The report should be stopped if the user isnt logged in', () async {
       when(() => mockAuth.currentUser).thenReturn(null);
       expect(
@@ -99,30 +136,135 @@ void main() {
         ).thenAnswer((_) => mockQueryBuilder);
 
         when(() => mockQueryBuilder.select(any())).thenAnswer((_) => mockChain);
-
         when(() => mockChain.eq(any(), any())).thenAnswer((_) => mockChain);
-
         when(() => mockChain.neq(any(), any())).thenAnswer((_) => mockChain);
-
         when(() => mockChain.ilike(any(), any())).thenAnswer((_) => mockChain);
-
+        when(() => mockChain.or(any())).thenAnswer((_) => mockChain);
         when(
           () => mockChain.inFilter(any(), any()),
         ).thenAnswer((_) => mockChain);
-
-        // MISSING STUB ADDED HERE:
         when(() => mockChain.gte(any(), any())).thenAnswer((_) => mockChain);
-
         when(
           () => mockChain.order(any(), ascending: any(named: 'ascending')),
         ).thenAnswer((_) => mockChain);
-
         when(() => mockChain.range(any(), any())).thenAnswer((_) => mockChain);
 
         final results = await issueService.fetchIssues();
 
         expect(results, isEmpty);
         expect(results, isA<List<Map<String, dynamic>>>());
+      },
+    );
+  });
+
+  group('IssueService Municipality Tests', () {
+    late MockSupabaseQueryBuilder mockQueryBuilder;
+    late MockPostgrestFilterBuilder mockChain;
+
+    setUp(() {
+      mockQueryBuilder = MockSupabaseQueryBuilder();
+      mockChain = MockPostgrestFilterBuilder();
+
+      when(
+        () => mockSupabaseClient.from(any()),
+      ).thenAnswer((_) => mockQueryBuilder);
+      when(() => mockQueryBuilder.select(any())).thenAnswer((_) => mockChain);
+      when(() => mockQueryBuilder.update(any())).thenAnswer((_) => mockChain);
+      when(() => mockQueryBuilder.delete()).thenAnswer((_) => mockChain);
+      when(() => mockChain.select(any())).thenAnswer((_) => mockChain);
+      when(() => mockChain.eq(any(), any())).thenAnswer((_) => mockChain);
+      when(() => mockChain.neq(any(), any())).thenAnswer((_) => mockChain);
+      when(() => mockChain.ilike(any(), any())).thenAnswer((_) => mockChain);
+      when(
+        () => mockChain.order(any(), ascending: any(named: 'ascending')),
+      ).thenAnswer((_) => mockChain);
+      when(() => mockChain.range(any(), any())).thenAnswer((_) => mockChain);
+    });
+
+    test('archiveIssue throws exception when issueId is empty', () async {
+      expect(
+        () => issueService.archiveIssue(''),
+        throwsA(
+          isA<Exception>().having(
+            (e) => e.toString(),
+            'message',
+            contains('Invalid issue id'),
+          ),
+        ),
+      );
+    });
+
+    test(
+      'archiveIssue throws exception when issue is not found in DB',
+      () async {
+        when(
+          () => mockChain.maybeSingle(),
+        ).thenAnswer((_) => MockPostgrestSingleBuilder(null));
+
+        expect(
+          () => issueService.archiveIssue('nonexistent-id'),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Issue not found'),
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      'updateIssueStatus throws exception when issue is not found in DB',
+      () async {
+        when(
+          () => mockChain.maybeSingle(),
+        ).thenAnswer((_) => MockPostgrestSingleBuilder(null));
+
+        expect(
+          () => issueService.updateIssueStatus(
+            issueId: 'nonexistent-id',
+            status: 'in_progress',
+          ),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Issue status was not updated'),
+            ),
+          ),
+        );
+      },
+    );
+
+    test('updateIssueStatus returns updated status on success', () async {
+      when(() => mockChain.maybeSingle()).thenAnswer(
+        (_) => MockPostgrestSingleBuilder({
+          'id': 'issue-123',
+          'status': 'in_progress',
+        }),
+      );
+
+      final result = await issueService.updateIssueStatus(
+        issueId: 'issue-123',
+        status: 'in_progress',
+      );
+
+      expect(result, 'in_progress');
+    });
+
+    test(
+      'fetchMunicipalityReportsCount returns 0 when no issues exist',
+      () async {
+        when(
+          () => mockChain.count(any()),
+        ).thenAnswer((_) => MockPostgrestCountBuilder());
+
+        final count = await issueService.fetchMunicipalityReportsCount(
+          municipalityCity: 'Porto',
+        );
+
+        expect(count, 0);
       },
     );
   });

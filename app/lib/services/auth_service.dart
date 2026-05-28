@@ -26,6 +26,7 @@ class AuthService {
           'id': user.id,
           'first_name': firstName.trim(),
           'last_name': lastName.trim(),
+          'role': 'citizen',
           'updated_at': DateTime.now().toIso8601String(),
         });
       }

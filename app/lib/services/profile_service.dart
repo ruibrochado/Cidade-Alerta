@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/user_profile.dart';
 
 class ProfileService {
   final SupabaseClient supabase;
@@ -55,5 +56,45 @@ class ProfileService {
 
   Future<void> logout() async {
     await supabase.auth.signOut();
+  }
+
+  Future<UserProfile?> getCurrentUserProfile() async {
+    final user = supabase.auth.currentUser;
+
+    if (user == null) {
+      return null;
+    }
+
+    final profile = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, role, municipality_id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    if (profile == null) {
+      return null;
+    }
+
+    String? municipalityName;
+    String? municipalityCity;
+
+    final municipalityId = profile['municipality_id']?.toString();
+
+    if (municipalityId != null && municipalityId.isNotEmpty) {
+      final municipality = await supabase
+          .from('municipalities')
+          .select('name, city')
+          .eq('id', municipalityId)
+          .maybeSingle();
+
+      municipalityName = municipality?['name']?.toString();
+      municipalityCity = municipality?['city']?.toString();
+    }
+
+    return UserProfile.fromMap({
+      ...profile,
+      'municipality_name': municipalityName,
+      'municipality_city': municipalityCity,
+    });
   }
 }

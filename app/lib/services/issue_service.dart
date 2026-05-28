@@ -169,7 +169,13 @@ class IssueService {
     String? searchQuery,
     String sortMode = 'hot',
   }) async {
-    var query = supabase.from('issues').select('id').neq('title', 'Test issue');
+    var query = supabase
+        .from('issues')
+        .select('id')
+        .neq('title', 'Test issue')
+        .neq('title', '')
+        .neq('description', '')
+        .neq('status', 'archived');
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
       query = query.ilike('title', '%$searchQuery%');
@@ -207,7 +213,15 @@ class IssueService {
       final from = page * pageSize;
       final to = from + pageSize - 1;
 
-      var query = supabase.from('issues').select().neq('title', 'Test issue');
+      var query = supabase
+          .from('issues')
+          .select(
+            'id, category, title, description, photo_url, latitude, longitude, address, city, status, score, created_at',
+          )
+          .neq('title', 'Test issue')
+          .neq('title', '')
+          .neq('description', '')
+          .neq('status', 'archived');
 
       if (searchQuery != null && searchQuery.isNotEmpty) {
         query = query.ilike('title', '%$searchQuery%');
@@ -263,8 +277,13 @@ class IssueService {
     try {
       final List<dynamic> data = await supabase
           .from('issues')
-          .select()
+          .select(
+            'id, category, title, description, photo_url, latitude, longitude, address, city, status, score, created_at',
+          )
           .neq('title', 'Test issue')
+          .neq('title', '')
+          .neq('description', '')
+          .neq('status', 'archived')
           .gte('latitude', minLat)
           .lte('latitude', maxLat)
           .gte('longitude', minLng)
@@ -386,5 +405,232 @@ class IssueService {
     } catch (e) {
       throw Exception('Erro ao registar voto: $e');
     }
+  }
+
+  Future<int> fetchMunicipalityReportsCount({
+    required String municipalityCity,
+  }) async {
+    final response = await supabase
+        .from('issues')
+        .select('id')
+        .neq('title', 'Test issue')
+        .neq('status', 'archived')
+        .ilike('city', municipalityCity)
+        .count(CountOption.exact);
+
+    return response.count;
+  }
+
+  Future<List<Map<String, dynamic>>> fetchMunicipalityReports({
+    int page = 0,
+    required String municipalityCity,
+  }) async {
+    final from = page * pageSize;
+    final to = from + pageSize - 1;
+
+    final List<dynamic> data = await supabase
+        .from('issues')
+        .select()
+        .neq('title', 'Test issue')
+        .neq('status', 'archived')
+        .ilike('city', municipalityCity)
+        .order('created_at', ascending: false)
+        .range(from, to);
+
+    return List<Map<String, dynamic>>.from(data);
+  }
+
+  Future<String> updateIssueStatus({
+    required String issueId,
+    required String status,
+  }) async {
+    final updatedIssue = await supabase
+        .from('issues')
+        .update({'status': status})
+        .eq('id', issueId)
+        .select('id, status')
+        .maybeSingle();
+
+    if (updatedIssue == null) {
+      throw Exception('Issue status was not updated.');
+    }
+
+    return updatedIssue['status'].toString();
+  }
+
+  Future<String> archiveIssue(String issueId) async {
+    if (issueId.isEmpty) {
+      throw Exception('Invalid issue id.');
+    }
+
+    final currentIssue = await supabase
+        .from('issues')
+        .select('status')
+        .eq('id', issueId)
+        .maybeSingle();
+
+    if (currentIssue == null) {
+      throw Exception('Issue not found.');
+    }
+
+    final currentStatus = (currentIssue['status'] as String? ?? '')
+        .trim()
+        .toLowerCase();
+    if (currentStatus != 'resolved' && currentStatus != 'resolvido') {
+      throw Exception('Only resolved issues can be archived.');
+    }
+
+    final updatedIssue = await supabase
+        .from('issues')
+        .update({'status': 'archived'})
+        .eq('id', issueId)
+        .select('id, status')
+        .maybeSingle();
+
+    if (updatedIssue == null) {
+      throw Exception('Issue was not archived.');
+    }
+
+    return updatedIssue['status'].toString();
+  }
+
+  Future<MunicipalityStatisticsData> fetchMunicipalityStatistics({
+    required String municipalityCity,
+  }) async {
+    final DateTime now = DateTime.now().toUtc();
+    final DateTime startOfMonth = DateTime.utc(now.year, now.month);
+
+    final List<dynamic> data = await supabase
+        .from('issues')
+        .select('id, category, status, created_at')
+        .neq('title', 'Test issue')
+        .ilike('city', municipalityCity);
+
+    int openReports = 0;
+    int inProgressReports = 0;
+    int resolvedReports = 0;
+    int archivedReports = 0;
+    int reportsThisMonth = 0;
+
+    final Map<String, int> categoryCounts = {};
+
+    for (final item in data) {
+      final Map<String, dynamic> report = Map<String, dynamic>.from(item);
+      final String normalizedStatus = _normalizeStatisticsStatus(
+        report['status']?.toString(),
+      );
+
+      switch (normalizedStatus) {
+        case 'in_progress':
+          inProgressReports++;
+          break;
+        case 'resolved':
+          resolvedReports++;
+          break;
+        case 'archived':
+          archivedReports++;
+          break;
+        case 'submitted':
+        default:
+          openReports++;
+          break;
+      }
+
+      final String category = _formatStatisticsCategory(
+        report['category']?.toString(),
+      );
+      categoryCounts[category] = (categoryCounts[category] ?? 0) + 1;
+
+      final DateTime? createdAt = DateTime.tryParse(
+        report['created_at']?.toString() ?? '',
+      )?.toUtc();
+
+      if (createdAt != null && !createdAt.isBefore(startOfMonth)) {
+        reportsThisMonth++;
+      }
+    }
+
+    final Map<String, int> statusCounts = {
+      'Pendentes': openReports,
+      'Em resolução': inProgressReports,
+      'Resolvidas': resolvedReports,
+      'Arquivadas': archivedReports,
+    };
+
+    return MunicipalityStatisticsData(
+      totalReports: data.length,
+      openReports: openReports,
+      inProgressReports: inProgressReports,
+      resolvedReports: resolvedReports,
+      archivedReports: archivedReports,
+      reportsThisMonth: reportsThisMonth,
+      statusCounts: statusCounts,
+      categoryCounts: _sortCountsDescending(categoryCounts),
+    );
+  }
+
+  String _normalizeStatisticsStatus(String? status) {
+    final String normalizedStatus = status?.trim().toLowerCase() ?? '';
+
+    switch (normalizedStatus) {
+      case 'in_progress':
+      case 'em progresso':
+      case 'em resolução':
+      case 'em resolucao':
+        return 'in_progress';
+      case 'resolved':
+      case 'resolvido':
+        return 'resolved';
+      case 'archived':
+      case 'arquivado':
+        return 'archived';
+      case 'submitted':
+      case 'pending':
+      case 'pendente':
+      default:
+        return 'submitted';
+    }
+  }
+
+  String _formatStatisticsCategory(String? category) {
+    final String cleanCategory = category?.trim() ?? '';
+    return cleanCategory.isEmpty ? 'Sem categoria' : cleanCategory;
+  }
+
+  Map<String, int> _sortCountsDescending(Map<String, int> counts) {
+    final entries = counts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return Map<String, int>.fromEntries(entries);
+  }
+}
+
+class MunicipalityStatisticsData {
+  const MunicipalityStatisticsData({
+    required this.totalReports,
+    required this.openReports,
+    required this.inProgressReports,
+    required this.resolvedReports,
+    required this.archivedReports,
+    required this.reportsThisMonth,
+    required this.statusCounts,
+    required this.categoryCounts,
+  });
+
+  final int totalReports;
+  final int openReports;
+  final int inProgressReports;
+  final int resolvedReports;
+  final int archivedReports;
+  final int reportsThisMonth;
+  final Map<String, int> statusCounts;
+  final Map<String, int> categoryCounts;
+
+  double get resolutionRate {
+    if (totalReports == 0) {
+      return 0;
+    }
+
+    return (resolvedReports / totalReports) * 100;
   }
 }

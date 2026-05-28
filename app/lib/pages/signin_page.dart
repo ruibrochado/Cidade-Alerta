@@ -4,6 +4,8 @@ import '../widgets/custom_alert_card.dart';
 import '../widgets/success_banner.dart';
 import 'home_page.dart';
 import 'signup_page.dart';
+import '../services/profile_service.dart';
+import 'municipality_dashboard_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,6 +16,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final AuthService authService = AuthService();
+  final ProfileService profileService = ProfileService();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
@@ -73,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> signIn() async {
-    if (!isFormValid) return; // Segurança extra
+    if (!isFormValid) return;
 
     setState(() {
       isLoading = true;
@@ -87,17 +90,45 @@ class _LoginPageState extends State<LoginPage> {
         passwordController.text.trim(),
       );
 
+      final profile = await profileService.getCurrentUserProfile();
+
       if (!mounted) return;
+
+      if (profile == null) {
+        setState(() {
+          errorMessage = 'Perfil de utilizador não encontrado.';
+          showErrorCard = true;
+        });
+        return;
+      }
 
       showSuccessLogin();
 
       Future.delayed(const Duration(milliseconds: 1200), () {
         if (!mounted) return;
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const HomePage()),
-        );
+        if (profile.isMunicipalityWorker) {
+          if (!profile.hasAssignedMunicipality) {
+            setState(() {
+              errorMessage = 'Esta conta não tem município associado.';
+              showErrorCard = true;
+            });
+            return;
+          }
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  const MunicipalityDashboardPage(showLoginConfirmation: true),
+            ),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomePage()),
+          );
+        }
       });
     } catch (e) {
       final err = e.toString().toLowerCase();
@@ -228,12 +259,6 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           );
                         }),
-                        const SizedBox(height: 10),
-                        _footer(
-                          "És trabalhador municipal? ",
-                          "Iniciar Sessão",
-                          () {},
-                        ),
                       ],
                     ),
                   ),

@@ -127,6 +127,60 @@ class AppBottomNavBar extends StatelessWidget {
   }
 }
 
+class MunicipalityBottomNavBar extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onTabSelected;
+
+  const MunicipalityBottomNavBar({
+    super.key,
+    required this.currentIndex,
+    required this.onTabSelected,
+  });
+
+  static const Color activeColor = AppBottomNavBar.activeColor;
+  static const Color inactiveColor = AppBottomNavBar.inactiveColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final double bottomInset = MediaQuery.of(context).padding.bottom;
+
+    return Container(
+      height: 72 + bottomInset,
+      padding: EdgeInsets.only(left: 12, right: 12, bottom: bottomInset),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 16,
+            offset: Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _NavItem(
+              icon: Icons.home_outlined,
+              label: 'Início',
+              isActive: currentIndex == 0,
+              onTap: () => onTabSelected(0),
+            ),
+          ),
+          Expanded(
+            child: _NavItem(
+              icon: Icons.bar_chart_outlined,
+              label: 'Estatísticas',
+              isActive: currentIndex == 1,
+              onTap: () => onTabSelected(1),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final String label;

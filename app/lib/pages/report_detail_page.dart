@@ -117,7 +117,7 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
             });
           }
         });
-      } // <-- Aqui faltava fechar o IF
+      }
     } catch (e) {
       debugPrint('Erro ao carregar detalhes: $e');
       if (mounted) setState(() => _isLoading = false);
@@ -127,9 +127,6 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
   Future<void> _submitComment() async {
     final String text = _commentController.text.trim();
     if (text.isEmpty || _isSending) return;
-
-    //final currentUser = Supabase.instance.client.auth.currentUser;
-    //final String? currentUserId = currentUser?.id;
 
     setState(() {
       _isSending = true;
@@ -211,10 +208,73 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
     );
   }
 
+  String _formatStatus(String status) {
+    switch (status.trim().toLowerCase()) {
+      case 'submitted':
+      case 'pending':
+      case 'pendente':
+        return 'Pendente';
+      case 'in_progress':
+      case 'em progresso':
+      case 'em resolução':
+      case 'em resolucao':
+        return 'Em resolução';
+      case 'resolved':
+      case 'resolvido':
+        return 'Resolvido';
+      case 'archived':
+      case 'arquivado':
+        return 'Arquivado';
+      default:
+        return status.isEmpty ? 'Pendente' : status;
+    }
+  }
+
+  Color _getStatusBackgroundColor(String status) {
+    switch (status.trim().toLowerCase()) {
+      case 'resolved':
+      case 'resolvido':
+        return const Color(0xFFEFF8F1);
+      case 'in_progress':
+      case 'em progresso':
+      case 'em resolução':
+      case 'em resolucao':
+        return const Color(0xFFEAF2FF);
+      case 'archived':
+      case 'arquivado':
+        return const Color(0xFFF2F4F7);
+      case 'submitted':
+      case 'pending':
+      case 'pendente':
+      default:
+        return const Color(0xFFFFF3E8);
+    }
+  }
+
+  Color _getStatusTextColor(String status) {
+    switch (status.trim().toLowerCase()) {
+      case 'resolved':
+      case 'resolvido':
+        return const Color(0xFF1A6B3A);
+      case 'in_progress':
+      case 'em progresso':
+      case 'em resolução':
+      case 'em resolucao':
+        return const Color(0xFF2563EB);
+      case 'archived':
+      case 'arquivado':
+        return const Color(0xFF667085);
+      case 'submitted':
+      case 'pending':
+      case 'pendente':
+      default:
+        return const Color(0xFFEC6A00);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Material(
-      // Adicionado Material para evitar o erro de TextField
       color: Colors.white,
       child: SafeArea(
         child: GestureDetector(
@@ -315,6 +375,7 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
   }
 
   Widget _buildTitleAndStatus() {
+    final String status = widget.report.status;
     return Row(
       children: [
         Expanded(
@@ -326,13 +387,13 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: const Color(0xFFFFEBD8),
+            color: _getStatusBackgroundColor(status),
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const Text(
-            'Pendente',
+          child: Text(
+            _formatStatus(status),
             style: TextStyle(
-              color: Color(0xFFEC6A00),
+              color: _getStatusTextColor(status),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -378,14 +439,11 @@ class _ReportDetailSheetState extends State<ReportDetailSheet> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 600),
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
-      margin: const EdgeInsets.symmetric(vertical: 4.0), // Margem consistente
+      margin: const EdgeInsets.symmetric(vertical: 4.0),
       decoration: BoxDecoration(
-        // Se estiver destacado, mostra o verde, senão fica transparente
         color: isHighlighted ? const Color(0xFFF0FDF4) : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          // Mantemos uma borda sempre, mas transparente quando não destacado
-          // para o texto não "mexer" 1px quando a borda sumir
           color: isHighlighted ? const Color(0xFFBBF7D0) : Colors.transparent,
           width: 1,
         ),
