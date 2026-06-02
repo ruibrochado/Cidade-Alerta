@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Sprint 3] - 2026-05-28
+
+### Added
+- Municipality statistics page for municipality workers ([#15](https://github.com/orgs/LEIC-ES-2025-26-2LEIC11/projects/6/views/1?filterQuery=type%3AFeature&pane=issue&itemId=183572936&issue=LEIC-ES-2025-26-2LEIC11%7C2LEIC11T5%7C15))
+- Municipality-specific issue feed ([#3](https://github.com/orgs/LEIC-ES-2025-26-2LEIC11/projects/6/views/1?filterQuery=type%3AFeature&pane=issue&itemId=183572936&issue=LEIC-ES-2025-26-2LEIC11%7C2LEIC11T5%7C3))
+- Role-based access for municipality workers ([#20](https://github.com/orgs/LEIC-ES-2025-26-2LEIC11/projects/6/views/1?filterQuery=type%3AFeature&pane=issue&itemId=183572936&issue=LEIC-ES-2025-26-2LEIC11%7C2LEIC11T5%7C20))
+- Municipality report filtering by assigned municipality ([#118](https://github.com/orgs/LEIC-ES-2025-26-2LEIC11/projects/6/views/1?filterQuery=type%3AFeature&pane=issue&itemId=183572936&issue=LEIC-ES-2025-26-2LEIC11%7C2LEIC11T5%7C118))
+- Report status update functionality for municipality workers ([#111](https://github.com/orgs/LEIC-ES-2025-26-2LEIC11/projects/6/views/1?filterQuery=type%3AFeature&pane=issue&itemId=183572936&issue=LEIC-ES-2025-26-2LEIC11%7C2LEIC11T5%7C111))
+- Resolved issue archiving functionality ([#1](https://github.com/orgs/LEIC-ES-2025-26-2LEIC11/projects/6/views/1?filterQuery=type%3AFeature&pane=issue&itemId=183572936&issue=LEIC-ES-2025-26-2LEIC11%7C2LEIC11T5%7C1))
+- Refresh functionality for the normal user feed page ([#135](https://github.com/orgs/LEIC-ES-2025-26-2LEIC11/projects/6/views/1?filterQuery=type%3AFeature&pane=issue&itemId=183572936&issue=LEIC-ES-2025-26-2LEIC11%7C2LEIC11T5%7C1135))
+
+### Changed
+- Improved choice cards on the municipality page ([#128](https://github.com/orgs/LEIC-ES-2025-26-2LEIC11/projects/6/views/1?filterQuery=type%3AFeature&pane=issue&itemId=183572936&issue=LEIC-ES-2025-26-2LEIC11%7C2LEIC11T5%7C128))
+- Improved the signup flow by automatically signing in users after account creation ([#134](https://github.com/orgs/LEIC-ES-2025-26-2LEIC11/projects/6/views/1?filterQuery=type%3AFeature&pane=issue&itemId=183572936&issue=LEIC-ES-2025-26-2LEIC11%7C2LEIC11T5%7C134))
+
 ## [Sprint 2] - 2026-05-14
 
 ### Added
