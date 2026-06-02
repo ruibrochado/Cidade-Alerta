@@ -334,20 +334,7 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
     }
   }
 
-  bool _isResolved(String status) {
-    final s = status.trim().toLowerCase();
-    return s == 'resolved' || s == 'resolvido';
-  }
-
   Future<void> _confirmArchiveIssue(ReportData report) async {
-    if (!_isResolved(report.status)) {
-      _showCustomBanner(
-        'Apenas denúncias resolvidas podem ser arquivadas.',
-        isError: true,
-      );
-      return;
-    }
-
     final shouldArchive = await showDialog<bool>(
       context: context,
       builder: (context) {
