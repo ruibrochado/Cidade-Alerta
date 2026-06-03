@@ -6,9 +6,13 @@ The included videos demonstrate the validation of the system's main functionalit
 
 ## Contents
 
-- [Authentication Flow](./authentication-flow.md)
-- [User Registration](./user-registration.md)
-- [Incident Reporting](./incident-reporting.md)
+- [Authentication Flow](./authentication-flow.mp4)
+- [User Registration Flow](./user-registration-flow.mp4)
+- [Register Test Flow](./register-test-flow.mp4)
+- [Report Submission Flow](./report-submission-flow.mp4)
+- [Activity Test Flow](./activity-test-flow.mp4)
+- [Municipality Worker Flow](./municipality-worker-flow.mp4)
+- [Municipality Edit Status Flow](./municipality-edit-status-flow.mp4)
 
 ## Purpose
 
