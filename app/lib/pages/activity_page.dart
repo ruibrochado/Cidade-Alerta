@@ -1,7 +1,6 @@
 import 'package:app/pages/report_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-// Ajusta este import para o caminho correto do teu IssueService
 import '../models/report_data.dart';
 import '../services/issue_service.dart';
 
@@ -19,11 +18,53 @@ class _ActivityPageState extends State<ActivityPage> {
   @override
   void initState() {
     super.initState();
-    // Inicia a chamada à BD quando a página carrega
-    _activityFuture = _issueService.fetchUserActivity();
+    _activityFuture = _loadActivity();
   }
 
-  // Função auxiliar para formatar a data
+  // Carrega comentários + notificações de status e junta tudo por data
+  Future<List<Map<String, dynamic>>> _loadActivity() async {
+    final results = await Future.wait([
+      _issueService.fetchUserActivity(),
+      _fetchStatusNotifications(),
+    ]);
+
+    final comments = (results[0] as List<Map<String, dynamic>>)
+        .map((e) => {...e, '_type': 'comment'})
+        .toList();
+
+    final notifications = (results[1] as List<Map<String, dynamic>>)
+        .map((e) => {...e, '_type': 'notification'})
+        .toList();
+
+    final all = [...comments, ...notifications]
+      ..sort((a, b) {
+        final aDate = DateTime.tryParse(a['created_at'] ?? '') ?? DateTime(0);
+        final bDate = DateTime.tryParse(b['created_at'] ?? '') ?? DateTime(0);
+        return bDate.compareTo(aDate);
+      });
+
+    return all;
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchStatusNotifications() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return [];
+
+    try {
+      final response = await Supabase.instance.client
+          .from('notifications')
+          .select('id, created_at, issue_id, issue_title, new_status, is_read')
+          .eq('user_id', user.id)
+          .order('created_at', ascending: false)
+          .limit(20);
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      debugPrint('Erro a buscar notificações: $e');
+      return [];
+    }
+  }
+
   String _formatDate(String isoString) {
     final date = DateTime.parse(isoString);
     return '${date.day}/${date.month}/${date.year} às ${date.hour}h${date.minute.toString().padLeft(2, '0')}';
@@ -131,6 +172,9 @@ class _ActivityPageState extends State<ActivityPage> {
                   itemCount: activities.length,
                   itemBuilder: (context, index) {
                     final activity = activities[index];
+                    if (activity['_type'] == 'notification') {
+                      return _buildNotificationCard(context, activity);
+                    }
                     return _buildCommentCard(context, activity);
                   },
                 );
@@ -142,15 +186,14 @@ class _ActivityPageState extends State<ActivityPage> {
     );
   }
 
+  // Card original de comentário — sem alterações
   Widget _buildCommentCard(
-    BuildContext context,
-    Map<String, dynamic> activity,
-  ) {
-    // Extrair os dados de forma segura com base na query do Supabase
+      BuildContext context,
+      Map<String, dynamic> activity,
+      ) {
     final profile = activity['profiles'] ?? {};
     final issue = activity['issues'] ?? {};
 
-    // O ID da denúncia que precisamos para abrir os detalhes
     final issueId = issue['id'];
 
     final firstName = profile['first_name'] ?? 'Utilizador';
@@ -272,6 +315,151 @@ class _ActivityPageState extends State<ActivityPage> {
                 ),
               ),
 
+              if (!(activity['is_read'] ?? false))
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF00D159),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationCard(
+      BuildContext context,
+      Map<String, dynamic> activity,
+      ) {
+    final issueId = activity['issue_id']?.toString();
+    final issueTitle = activity['issue_title'] ?? 'Denúncia';
+    final newStatus = activity['new_status'] ?? '';
+    final timeString = activity['created_at'] != null
+        ? _formatDate(activity['created_at'])
+        : '';
+
+    const statusLabels = {
+      'submitted': 'Submetida',
+      'in_progress': 'Em resolução',
+      'resolved': 'Resolvida',
+      'archived': 'Arquivada',
+    };
+    const statusColors = {
+      'submitted': Color(0xFF6B7280),
+      'in_progress': Color(0xFFF59E0B),
+      'resolved': Color(0xFF16A34A),
+      'archived': Color(0xFF9CA3AF),
+    };
+    const statusIcons = {
+      'submitted': Icons.inbox_rounded,
+      'in_progress': Icons.autorenew_rounded,
+      'resolved': Icons.check_circle_rounded,
+      'archived': Icons.archive_rounded,
+    };
+
+    final label = statusLabels[newStatus] ?? newStatus;
+    final color = statusColors[newStatus] ?? const Color(0xFF6B7280);
+    final icon = statusIcons[newStatus] ?? Icons.info_outline_rounded;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0FDF4),
+        border: Border.all(color: Colors.green.shade100, width: 1.5),
+        borderRadius: BorderRadius.circular(16.0),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16.0),
+          onTap: () async {
+            setState(() {
+              activity['is_read'] = true;
+            });
+            try {
+              await Supabase.instance.client
+                  .from('notifications')
+                  .update({'is_read': true})
+                  .eq('id', activity['id']);
+            } catch (e) {
+              debugPrint('Erro ao marcar notificação como lida: $e');
+            }
+            if (!mounted || issueId == null) return;
+            _openReportDetails(
+              ReportData(id: issueId, title: '', category: ''),
+            );
+          },
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(icon, color: color, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          RichText(
+                            text: TextSpan(
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontSize: 14,
+                                height: 1.4,
+                              ),
+                              children: [
+                                const TextSpan(
+                                    text: 'O estado da sua denúncia '),
+                                TextSpan(
+                                  text: '"$issueTitle" ',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                const TextSpan(text: 'foi atualizado para '),
+                                TextSpan(
+                                  text: label,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: color,
+                                  ),
+                                ),
+                                const TextSpan(text: '.'),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            timeString,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               if (!(activity['is_read'] ?? false))
                 Positioned(
                   top: 12,
