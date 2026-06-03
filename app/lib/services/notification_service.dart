@@ -48,16 +48,28 @@ class NotificationService {
   }
 
   Future<void> _saveFcmToken(String token) async {
-    final user = Supabase.instance.client.auth.currentUser;
+    SupabaseClient client;
+
+    try {
+      client = Supabase.instance.client;
+    } catch (e) {
+      log('_saveFcmToken: Supabase not initialized, skipping.');
+      return;
+    }
+
+    final user = client.auth.currentUser;
+
     if (user == null) {
       log('_saveFcmToken: no logged-in user, skipping.');
       return;
     }
+
     try {
-      await Supabase.instance.client
+      await client
           .from('profiles')
           .update({'fcm_token': token})
           .eq('id', user.id);
+
       log('FCM token saved for user ${user.id}');
     } catch (e) {
       log('Failed to save FCM token: $e');
@@ -65,13 +77,25 @@ class NotificationService {
   }
 
   Future<void> clearFcmToken() async {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) return;
+    SupabaseClient client;
+
     try {
-      await Supabase.instance.client
+      client = Supabase.instance.client;
+    } catch (e) {
+      log('clearFcmToken: Supabase not initialized, skipping.');
+      return;
+    }
+
+    final user = client.auth.currentUser;
+
+    if (user == null) return;
+
+    try {
+      await client
           .from('profiles')
           .update({'fcm_token': null})
           .eq('id', user.id);
+
       log('FCM token cleared for user ${user.id}');
     } catch (e) {
       log('Failed to clear FCM token: $e');

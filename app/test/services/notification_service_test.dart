@@ -1,8 +1,9 @@
 import 'dart:async';
+
+import 'package:app/services/notification_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:app/services/notification_service.dart';
 
 class MockFirebaseMessaging extends Mock implements FirebaseMessaging {}
 
@@ -12,13 +13,20 @@ void main() {
   group('NotificationService Tests', () {
     late NotificationService notificationService;
     late MockFirebaseMessaging mockMessaging;
+    late StreamController<String> tokenRefreshController;
     late StreamController<RemoteMessage> onMessageController;
     late StreamController<RemoteMessage> onMessageOpenedAppController;
 
     setUp(() {
       mockMessaging = MockFirebaseMessaging();
+
+      tokenRefreshController = StreamController<String>();
       onMessageController = StreamController<RemoteMessage>();
       onMessageOpenedAppController = StreamController<RemoteMessage>();
+
+      when(
+        () => mockMessaging.onTokenRefresh,
+      ).thenAnswer((_) => tokenRefreshController.stream);
 
       notificationService = NotificationService(
         messagingInstance: mockMessaging,
@@ -27,9 +35,10 @@ void main() {
       );
     });
 
-    tearDown(() {
-      onMessageController.close();
-      onMessageOpenedAppController.close();
+    tearDown(() async {
+      await tokenRefreshController.close();
+      await onMessageController.close();
+      await onMessageOpenedAppController.close();
     });
 
     test('Should initialize, request permissions and fetch token', () async {
@@ -57,7 +66,16 @@ void main() {
 
       await notificationService.initialize();
 
+      verify(
+        () => mockMessaging.requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+        ),
+      ).called(1);
+
       verify(() => mockMessaging.getToken()).called(1);
+      verify(() => mockMessaging.onTokenRefresh).called(1);
     });
   });
 }

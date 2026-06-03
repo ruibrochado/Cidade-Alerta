@@ -1,15 +1,31 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'notification_service.dart';
 
 class AuthService {
   final SupabaseClient supabase;
-  final NotificationService notificationService;
+  final NotificationService? notificationService;
 
-  AuthService({
-    SupabaseClient? client,
-    NotificationService? notificationService,
-  }) : supabase = client ?? Supabase.instance.client,
-       notificationService = notificationService ?? NotificationService();
+  AuthService({SupabaseClient? client, this.notificationService})
+    : supabase = client ?? Supabase.instance.client;
+
+  Future<void> _initializeNotificationsSafely() async {
+    try {
+      final service = notificationService ?? NotificationService();
+      await service.initialize();
+    } catch (_) {
+      // Non-fatal: authentication should not fail because of notifications.
+    }
+  }
+
+  Future<void> _clearFcmTokenSafely() async {
+    try {
+      final service = notificationService ?? NotificationService();
+      await service.clearFcmToken();
+    } catch (_) {
+      // Non-fatal: sign out should not fail because of notifications.
+    }
+  }
 
   Future<AuthResponse> signUp(
     String firstName,
@@ -35,11 +51,7 @@ class AuthService {
           'updated_at': DateTime.now().toIso8601String(),
         });
 
-        try {
-          await notificationService.initialize();
-        } catch (e) {
-          // Non-fatal: signup should not fail because of notifications.
-        }
+        await _initializeNotificationsSafely();
       }
 
       return response;
@@ -56,11 +68,7 @@ class AuthService {
       );
 
       if (response.user != null) {
-        try {
-          await notificationService.initialize();
-        } catch (e) {
-          // Non-fatal: login should not fail because of notifications.
-        }
+        await _initializeNotificationsSafely();
       }
 
       return response;
@@ -92,12 +100,7 @@ class AuthService {
   }
 
   Future<void> signOut() async {
-    try {
-      await notificationService.clearFcmToken();
-    } catch (e) {
-      // Non-fatal: logout should continue even if token clearing fails.
-    }
-
+    await _clearFcmTokenSafely();
     await supabase.auth.signOut();
   }
 
