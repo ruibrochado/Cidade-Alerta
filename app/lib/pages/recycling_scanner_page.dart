@@ -214,6 +214,7 @@ class _RecyclingScannerPageState extends State<RecyclingScannerPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
+        bottom: false,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(28, 28, 28, 120),
           children: [
