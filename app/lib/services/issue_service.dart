@@ -148,6 +148,7 @@ class IssueService {
             content,
             created_at,
             user_id,
+            is_read,
             issues!inner (
               id,
               title,
@@ -463,6 +464,17 @@ class IssueService {
       throw Exception('Issue status was not updated.');
     }
 
+    try {
+      final response = await supabase.functions.invoke(
+        'notify-status-change',
+        body: {'issue_id': issueId, 'new_status': status},
+      );
+
+      debugPrint('notify-status-change response: ${response.data}');
+    } catch (e) {
+      debugPrint('notify-status-change: non-fatal error — $e');
+    }
+
     return updatedIssue['status'].toString();
   }
 
@@ -628,10 +640,7 @@ class MunicipalityStatisticsData {
   final Map<String, int> categoryCounts;
 
   double get resolutionRate {
-    if (totalReports == 0) {
-      return 0;
-    }
-
+    if (totalReports == 0) return 0;
     return (resolvedReports / totalReports) * 100;
   }
 }

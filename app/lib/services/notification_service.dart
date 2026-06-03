@@ -1,4 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:developer';
 
 class NotificationService {
@@ -27,6 +28,15 @@ class NotificationService {
     final token = await messaging.getToken();
     log('FCM token: $token');
 
+    if (token != null) {
+      await _saveFcmToken(token);
+    }
+
+    messaging.onTokenRefresh.listen((newToken) async {
+      log('FCM token refreshed: $newToken');
+      await _saveFcmToken(newToken);
+    });
+
     onMessageStream.listen((RemoteMessage message) {
       log('Foreground message title: ${message.notification?.title}');
       log('Foreground message body: ${message.notification?.body}');
@@ -35,5 +45,60 @@ class NotificationService {
     onMessageOpenedAppStream.listen((RemoteMessage message) {
       log('Notification opened app: ${message.messageId}');
     });
+  }
+
+  Future<void> _saveFcmToken(String token) async {
+    SupabaseClient client;
+
+    try {
+      client = Supabase.instance.client;
+    } catch (e) {
+      log('_saveFcmToken: Supabase not initialized, skipping.');
+      return;
+    }
+
+    final user = client.auth.currentUser;
+
+    if (user == null) {
+      log('_saveFcmToken: no logged-in user, skipping.');
+      return;
+    }
+
+    try {
+      await client
+          .from('profiles')
+          .update({'fcm_token': token})
+          .eq('id', user.id);
+
+      log('FCM token saved for user ${user.id}');
+    } catch (e) {
+      log('Failed to save FCM token: $e');
+    }
+  }
+
+  Future<void> clearFcmToken() async {
+    SupabaseClient client;
+
+    try {
+      client = Supabase.instance.client;
+    } catch (e) {
+      log('clearFcmToken: Supabase not initialized, skipping.');
+      return;
+    }
+
+    final user = client.auth.currentUser;
+
+    if (user == null) return;
+
+    try {
+      await client
+          .from('profiles')
+          .update({'fcm_token': null})
+          .eq('id', user.id);
+
+      log('FCM token cleared for user ${user.id}');
+    } catch (e) {
+      log('Failed to clear FCM token: $e');
+    }
   }
 }
