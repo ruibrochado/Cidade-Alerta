@@ -28,11 +28,9 @@ class _ActivityPageState extends State<ActivityPage> {
       _fetchStatusNotifications(),
     ]);
 
-    final comments = (results[0] as List<Map<String, dynamic>>)
-        .map((e) => {...e, '_type': 'comment'})
-        .toList();
+    final comments = results[0].map((e) => {...e, '_type': 'comment'}).toList();
 
-    final notifications = (results[1] as List<Map<String, dynamic>>)
+    final notifications = results[1]
         .map((e) => {...e, '_type': 'notification'})
         .toList();
 
@@ -188,9 +186,9 @@ class _ActivityPageState extends State<ActivityPage> {
 
   // Card original de comentário — sem alterações
   Widget _buildCommentCard(
-      BuildContext context,
-      Map<String, dynamic> activity,
-      ) {
+    BuildContext context,
+    Map<String, dynamic> activity,
+  ) {
     final profile = activity['profiles'] ?? {};
     final issue = activity['issues'] ?? {};
 
@@ -336,9 +334,9 @@ class _ActivityPageState extends State<ActivityPage> {
   }
 
   Widget _buildNotificationCard(
-      BuildContext context,
-      Map<String, dynamic> activity,
-      ) {
+    BuildContext context,
+    Map<String, dynamic> activity,
+  ) {
     final issueId = activity['issue_id']?.toString();
     final issueTitle = activity['issue_title'] ?? 'Denúncia';
     final newStatus = activity['new_status'] ?? '';
@@ -408,7 +406,7 @@ class _ActivityPageState extends State<ActivityPage> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.12),
+                        color: color.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(icon, color: color, size: 20),
@@ -427,11 +425,13 @@ class _ActivityPageState extends State<ActivityPage> {
                               ),
                               children: [
                                 const TextSpan(
-                                    text: 'O estado da sua denúncia '),
+                                  text: 'O estado da sua denúncia ',
+                                ),
                                 TextSpan(
                                   text: '"$issueTitle" ',
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.bold),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 const TextSpan(text: 'foi atualizado para '),
                                 TextSpan(

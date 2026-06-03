@@ -10,7 +10,7 @@ class IssueService {
   static const int pageSize = 4;
 
   IssueService({SupabaseClient? client})
-      : supabase = client ?? Supabase.instance.client;
+    : supabase = client ?? Supabase.instance.client;
 
   Future<String?> _uploadPhoto(String localPhotoPath, String userId) async {
     final File file = File(localPhotoPath);
@@ -27,10 +27,10 @@ class IssueService {
     await supabase.storage
         .from('issue-images')
         .upload(
-      storagePath,
-      file,
-      fileOptions: const FileOptions(upsert: false),
-    );
+          storagePath,
+          file,
+          fileOptions: const FileOptions(upsert: false),
+        );
 
     return supabase.storage.from('issue-images').getPublicUrl(storagePath);
   }
@@ -94,16 +94,16 @@ class IssueService {
       final Map<String, dynamic> insertedIssue = await supabase
           .from('issues')
           .insert({
-        'user_id': user.id,
-        'title': title,
-        'description': description,
-        'category': category,
-        'latitude': latitude,
-        'longitude': longitude,
-        'address': finalAddress,
-        'city': finalCity,
-        'photo_url': uploadedPhotoUrl,
-      })
+            'user_id': user.id,
+            'title': title,
+            'description': description,
+            'category': category,
+            'latitude': latitude,
+            'longitude': longitude,
+            'address': finalAddress,
+            'city': finalCity,
+            'photo_url': uploadedPhotoUrl,
+          })
           .select('id, ticket_number')
           .single();
 
@@ -217,8 +217,8 @@ class IssueService {
       var query = supabase
           .from('issues')
           .select(
-        'id, category, title, description, photo_url, latitude, longitude, address, city, status, score, created_at',
-      )
+            'id, category, title, description, photo_url, latitude, longitude, address, city, status, score, created_at',
+          )
           .neq('title', 'Test issue')
           .neq('title', '')
           .neq('description', '')
@@ -279,8 +279,8 @@ class IssueService {
       final List<dynamic> data = await supabase
           .from('issues')
           .select(
-        'id, category, title, description, photo_url, latitude, longitude, address, city, status, score, created_at',
-      )
+            'id, category, title, description, photo_url, latitude, longitude, address, city, status, score, created_at',
+          )
           .neq('title', 'Test issue')
           .neq('title', '')
           .neq('description', '')
@@ -457,13 +457,12 @@ class IssueService {
     }
 
     try {
-      await supabase.functions.invoke(
+      final response = await supabase.functions.invoke(
         'notify-status-change',
-        body: {
-          'issue_id': issueId,
-          'new_status': status,
-        },
+        body: {'issue_id': issueId, 'new_status': status},
       );
+
+      debugPrint('notify-status-change response: ${response.data}');
     } catch (e) {
       debugPrint('notify-status-change: non-fatal error — $e');
     }

@@ -1,10 +1,15 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'notification_service.dart';
 
 class AuthService {
   final SupabaseClient supabase;
+  final NotificationService notificationService;
 
-  AuthService({SupabaseClient? client})
-    : supabase = client ?? Supabase.instance.client;
+  AuthService({
+    SupabaseClient? client,
+    NotificationService? notificationService,
+  }) : supabase = client ?? Supabase.instance.client,
+       notificationService = notificationService ?? NotificationService();
 
   Future<AuthResponse> signUp(
     String firstName,
@@ -29,6 +34,12 @@ class AuthService {
           'role': 'citizen',
           'updated_at': DateTime.now().toIso8601String(),
         });
+
+        try {
+          await notificationService.initialize();
+        } catch (e) {
+          // Non-fatal: signup should not fail because of notifications.
+        }
       }
 
       return response;
@@ -39,10 +50,20 @@ class AuthService {
 
   Future<AuthResponse> signIn(String email, String password) async {
     try {
-      return await supabase.auth.signInWithPassword(
+      final response = await supabase.auth.signInWithPassword(
         email: email.trim(),
         password: password,
       );
+
+      if (response.user != null) {
+        try {
+          await notificationService.initialize();
+        } catch (e) {
+          // Non-fatal: login should not fail because of notifications.
+        }
+      }
+
+      return response;
     } catch (e) {
       throw Exception('Error signing in: $e');
     }
@@ -71,6 +92,12 @@ class AuthService {
   }
 
   Future<void> signOut() async {
+    try {
+      await notificationService.clearFcmToken();
+    } catch (e) {
+      // Non-fatal: logout should continue even if token clearing fails.
+    }
+
     await supabase.auth.signOut();
   }
 

@@ -11,10 +11,10 @@ class NotificationService {
     FirebaseMessaging? messagingInstance,
     Stream<RemoteMessage>? onMessage,
     Stream<RemoteMessage>? onMessageOpenedApp,
-  })  : messaging = messagingInstance ?? FirebaseMessaging.instance,
-        onMessageStream = onMessage ?? FirebaseMessaging.onMessage,
-        onMessageOpenedAppStream =
-            onMessageOpenedApp ?? FirebaseMessaging.onMessageOpenedApp;
+  }) : messaging = messagingInstance ?? FirebaseMessaging.instance,
+       onMessageStream = onMessage ?? FirebaseMessaging.onMessage,
+       onMessageOpenedAppStream =
+           onMessageOpenedApp ?? FirebaseMessaging.onMessageOpenedApp;
 
   Future<void> initialize() async {
     final settings = await messaging.requestPermission(
