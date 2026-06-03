@@ -7,10 +7,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class IssueService {
   final SupabaseClient supabase;
+  final bool enableLogs;
+
   static const int pageSize = 4;
 
-  IssueService({SupabaseClient? client})
+  IssueService({SupabaseClient? client, this.enableLogs = false})
     : supabase = client ?? Supabase.instance.client;
+
+  void _logError(String message) {
+    if (enableLogs) {
+      debugPrint(message);
+    }
+  }
 
   Future<String?> _uploadPhoto(String localPhotoPath, String userId) async {
     final File file = File(localPhotoPath);
@@ -75,7 +83,7 @@ class IssueService {
             finalCity = pos.locality;
           }
         } catch (e) {
-          debugPrint('Erro no geocoding: $e');
+          _logError('Erro no geocoding: $e');
         }
       } else {
         try {
@@ -87,7 +95,7 @@ class IssueService {
             finalCity = placemarks[0].locality;
           }
         } catch (e) {
-          debugPrint('Erro no geocoding (city only): $e');
+          _logError('Erro no geocoding (city only): $e');
         }
       }
 
@@ -159,7 +167,7 @@ class IssueService {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      debugPrint('Erro a buscar atividade: $e');
+      _logError('Erro a buscar atividade: $e');
       return [];
     }
   }
@@ -364,7 +372,7 @@ class IssueService {
 
       return {'score': score, 'userVote': userVote};
     } catch (e) {
-      debugPrint('Erro a buscar votos: $e');
+      _logError('Erro a buscar votos: $e');
       return {'score': 0, 'userVote': 0};
     }
   }
