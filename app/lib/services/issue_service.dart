@@ -481,13 +481,6 @@ class IssueService {
       throw Exception('Issue not found.');
     }
 
-    final currentStatus = (currentIssue['status'] as String? ?? '')
-        .trim()
-        .toLowerCase();
-    if (currentStatus != 'resolved' && currentStatus != 'resolvido') {
-      throw Exception('Only resolved issues can be archived.');
-    }
-
     final updatedIssue = await supabase
         .from('issues')
         .update({'status': 'archived'})

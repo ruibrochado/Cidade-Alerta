@@ -91,7 +91,7 @@ class _MunicipalityDashboardPageState extends State<MunicipalityDashboardPage> {
       if (widget.showLoginConfirmation && !hasShownConfirmation) {
         hasShownConfirmation = true;
 
-        _showNotification('Municipality dashboard loaded');
+        _showNotification('Painel do município carregado');
       }
     } catch (e) {
       if (!mounted) return;

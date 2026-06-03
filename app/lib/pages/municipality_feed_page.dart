@@ -334,26 +334,13 @@ class _MunicipalityIssueFeedPageState extends State<MunicipalityIssueFeedPage> {
     }
   }
 
-  bool _isResolved(String status) {
-    final s = status.trim().toLowerCase();
-    return s == 'resolved' || s == 'resolvido';
-  }
-
   Future<void> _confirmArchiveIssue(ReportData report) async {
-    if (!_isResolved(report.status)) {
-      _showCustomBanner(
-        'Apenas denúncias resolvidas podem ser arquivadas.',
-        isError: true,
-      );
-      return;
-    }
-
     final shouldArchive = await showDialog<bool>(
       context: context,
       builder: (context) {
         return ChoiceWidget(
           title: 'Arquivar denúncia',
-          emoji: '🗂️',
+          //emoji: '🗂️',
           message:
               'Tens a certeza que queres arquivar esta denúncia? Ela deixará de aparecer no feed municipal, mas continuará guardada na base de dados.',
           secondaryButtonText: 'Cancelar',
