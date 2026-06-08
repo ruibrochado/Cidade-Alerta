@@ -36,6 +36,7 @@ It is organised by the following activities:
   * [Sprint 1](/docs/project-management/sprint1.md)
   * [Sprint 2](/docs/project-management/sprint2.md)
   * [Sprint 3](/docs/project-management/sprint3.md)
+  * [Pitch](/docs/project-management/pitch.md)
 
 ## Development
 
