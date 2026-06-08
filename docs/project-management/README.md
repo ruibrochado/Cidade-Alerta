@@ -11,6 +11,7 @@ It includes sprint planning, progress tracking, retrospectives, and team happine
 - [Sprint 1](./sprint1.md)
 - [Sprint 2](./sprint2.md)
 - [Sprint 3](./sprint3.md)
+- [Pitch](./pitch.md)
 
 ## Purpose
 
